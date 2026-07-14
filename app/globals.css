@@ -1533,16 +1533,19 @@ button { color: inherit; font: inherit; }
   padding: 0;
   background: transparent;
   color: var(--ink);
-  cursor: copy;
+  cursor: pointer;
   font-size: 60px;
   font-weight: 400;
   letter-spacing: -.062em;
   line-height: .88;
   white-space: nowrap;
   pointer-events: auto;
+  transform-origin: center;
+  transition: transform .14s cubic-bezier(.22, 1, .36, 1);
 }
 
 .split-combined-word:disabled { cursor: default; }
+.split-combined-word:active:not(:disabled) { transform: scale(.975); }
 
 .split-word-part,
 .split-word-details {
