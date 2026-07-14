@@ -2,7 +2,7 @@ import { Cardo, Inter } from "next/font/google";
 
 export const cardo = Cardo({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "700"],
   display: "swap",
 });
 

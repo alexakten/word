@@ -181,9 +181,9 @@ button { color: inherit; font: inherit; }
 
 .wordmark-name {
   color: var(--ink);
-  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", serif;
-  font-size: 1rem;
-  letter-spacing: -.02em;
+  font-size: 18px;
+  font-weight: 450;
+  letter-spacing: -.062em;
 }
 
 .brand-group {
@@ -1748,8 +1748,8 @@ button { color: inherit; font: inherit; }
   background: transparent;
   color: var(--ink);
   cursor: pointer;
-  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", serif;
-  font-size: 1.08rem;
+  font-size: 18px;
+  font-weight: 450;
   line-height: 1.5;
   text-align: inherit;
   overflow: hidden;

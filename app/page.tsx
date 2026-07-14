@@ -18,6 +18,8 @@ type WordResult = {
   pronunciation?: string;
   syllables?: number;
   relation?: string;
+  splitLeft?: WordResult;
+  splitRight?: WordResult;
 };
 
 type AdvancedMode = "ml" | "sl" | "spell" | "pattern" | "jjb" | "jja" | "trg" | "lc";
@@ -574,6 +576,7 @@ function SplitDescription({ children }: { children: string }) {
     <button
       className={expanded ? "split-definition expanded" : "split-definition"}
       type="button"
+      style={{ fontFamily: cardo.style.fontFamily }}
       aria-expanded={expanded}
       title={expanded ? "Collapse description" : "Show full description"}
       onClick={() => setExpanded((current) => !current)}
@@ -781,8 +784,46 @@ export default function Home() {
       word: combinedSplitWord,
       definition: `A coined word combining “${leftWordValue}” and “${rightWordValue}”.`,
       partOfSpeech: "combined word",
+      splitLeft: result,
+      splitRight: secondaryResult,
     }, ...savedWords]);
-  }, [combinedSplitIsSaved, combinedSplitWord, leftWordValue, rightWordValue, saveWords, savedWords]);
+  }, [combinedSplitIsSaved, combinedSplitWord, leftWordValue, result, rightWordValue, saveWords, savedWords, secondaryResult]);
+
+  const loadSavedWord = useCallback((saved: WordResult) => {
+    setMessage("From your saved words");
+    setSavedOpen(false);
+    selectAppMode("discover");
+
+    if (splitView) {
+      if (saved.splitLeft && saved.splitRight) {
+        setLeftWordDraft("");
+        setRightWordDraft("");
+        setResult(saved.splitLeft);
+        setSecondaryResult(saved.splitRight);
+        return;
+      }
+
+      if (saved.partOfSpeech === "combined word") {
+        const match = saved.definition.match(/combining [“"]([^”"]+)[”"] and [“"]([^”"]+)[”"]/);
+        if (match) {
+          const [, left, right] = match;
+          setLeftWordDraft("");
+          setRightWordDraft("");
+          setResult({ word: left, definition: saved.definition, partOfSpeech: "word" });
+          setSecondaryResult({ word: right, definition: saved.definition, partOfSpeech: "word" });
+          return;
+        }
+      }
+
+      commitWord(saved);
+      setSecondaryResult({ word: "", definition: "", partOfSpeech: "" });
+      setLeftWordDraft("");
+      setRightWordDraft("");
+      return;
+    }
+
+    commitWord(saved);
+  }, [commitWord, selectAppMode, splitView]);
 
   const copyDisplayedWord = useCallback(async (word: string) => {
     if (!word) return;
@@ -1570,7 +1611,7 @@ export default function Home() {
               <span className="logo-cursor-shadow" />
               <span className="logo-cursor" />
             </span>
-            <span className="wordmark-name">Lexicon</span>
+            <span className="wordmark-name" style={{ fontFamily: cardo.style.fontFamily }}>Lexicon</span>
           </a>
           <ApiHealthStatus health={apiHealth} />
         </div>
@@ -1610,12 +1651,7 @@ export default function Home() {
                       <button
                         className="saved-word"
                         type="button"
-                        onClick={() => {
-                          commitWord(saved);
-                          setMessage("From your saved words");
-                          setSavedOpen(false);
-                          selectAppMode("discover");
-                        }}
+                        onClick={() => loadSavedWord(saved)}
                       >
                         <span style={{ fontFamily: cardo.style.fontFamily }}>{saved.word}</span>
                         <small>{saved.partOfSpeech}</small>
