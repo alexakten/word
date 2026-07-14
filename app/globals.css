@@ -116,10 +116,19 @@ button { color: inherit; font: inherit; }
   transform: translateX(-50%);
 }
 
-.wordmark {
+.header-brand {
   position: absolute;
   top: 50%;
   left: 0;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.wordmark {
+  position: static;
   display: inline-flex;
   width: max-content;
   height: 38px;
@@ -127,7 +136,7 @@ button { color: inherit; font: inherit; }
   gap: .65rem;
   text-decoration: none;
   pointer-events: auto;
-  transform: translateY(-50%);
+  transform: none;
 }
 
 .logo-tile {
@@ -1755,7 +1764,7 @@ button { color: inherit; font: inherit; }
 }
 
 @media (max-width: 1050px) {
-  .wordmark { left: 1.5rem; }
+  .header-brand { left: 1.5rem; }
   .brand-group { right: 1.5rem; }
   .split-settings-panel.left { left: 1.5rem; }
   .split-settings-panel.right { right: 1.5rem; }
@@ -1880,6 +1889,27 @@ h1 {
   align-items: center;
   padding-top: 1.4rem;
   transform: translateX(-50%);
+}
+
+.api-health-status {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin: 0;
+  color: var(--faint);
+  font-size: .52rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  pointer-events: auto;
+}
+
+.api-health-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #d14343;
+  box-shadow: 0 0 0 1px rgba(209, 67, 67, .18);
 }
 
 .site-header,

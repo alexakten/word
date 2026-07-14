@@ -60,6 +60,27 @@ function writeViewModeParam(split: boolean) {
   window.history.replaceState(window.history.state, "", url);
 }
 
+type ApiHealth = "online" | "offline";
+
+function applyApiHealth(response: Response | null, setApiHealth: (health: ApiHealth) => void) {
+  if (!response || response.status === 502) setApiHealth("offline");
+  else if (response.ok) setApiHealth("online");
+}
+
+function isFetchFailure(error: unknown) {
+  return error instanceof TypeError;
+}
+
+function ApiHealthStatus({ health }: { health: ApiHealth }) {
+  if (health === "online") return null;
+  return (
+    <p className="api-health-status" aria-live="polite">
+      <span className="api-health-dot" aria-hidden="true" />
+      <span>Offline</span>
+    </p>
+  );
+}
+
 const emptyForgeSlot = (): ForgeSlot => ({
   seed: "",
   maxLetters: "",
@@ -608,6 +629,7 @@ export default function Home() {
   const [secondaryLoading, setSecondaryLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [splitBatchLoading, setSplitBatchLoading] = useState(false);
+  const [apiHealth, setApiHealth] = useState<ApiHealth>("online");
   const [message, setMessage] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [advancedTool, setAdvancedTool] = useState<"search" | "forge">("search");
@@ -817,11 +839,13 @@ export default function Home() {
 
     try {
       const response = await fetch(`/api/advanced?${params}`);
+      applyApiHealth(response, setApiHealth);
       if (!response.ok) throw new Error("No results");
       const words = (await response.json()) as WordResult[];
       setAdvancedResults(words);
       if (!words.length) setAdvancedError("No matching words found");
-    } catch {
+    } catch (error) {
+      if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
       setAdvancedError("No matching words found");
     } finally {
       setAdvancedLoading(false);
@@ -870,6 +894,7 @@ export default function Home() {
       if (forgeSlots[slotIndex].maxLetters) params.set("maxLetters", forgeSlots[slotIndex].maxLetters);
       if (Number(requiredLetters) > 0) params.set("letters", requiredLetters);
       const response = await fetch(`/api/forge?${params}`);
+      applyApiHealth(response, setApiHealth);
       const connected = response.ok ? (await response.json()) as WordResult[] : [];
       const seen = new Set<string>();
       const candidates = connected.filter((word): word is WordResult => {
@@ -910,6 +935,8 @@ export default function Home() {
         fetch(`/api/word?lookup=${encodeURIComponent(seed)}`),
         fetch(`/api/forge?idea=${encodeURIComponent(seed)}`),
       ]);
+      applyApiHealth(wordResponse, setApiHealth);
+      applyApiHealth(connectionsResponse, setApiHealth);
       if (!wordResponse.ok) throw new Error("Word not found");
       const exact = await wordResponse.json() as WordResult;
       if (!fitsForgeSlotConstraints(exact, slotIndex)) throw new Error("Word does not match this half’s limits");
@@ -926,6 +953,7 @@ export default function Home() {
       ];
       updateForgeSlot(slotIndex, { candidates, index: 0, pinned: true, loading: false, error: "" });
     } catch (error) {
+      if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
       updateForgeSlot(slotIndex, {
         loading: false,
         error: error instanceof Error ? error.message : "Word not found",
@@ -984,6 +1012,7 @@ export default function Home() {
           if (forgeSlots[slotIndex].maxLetters) params.set("maxLetters", forgeSlots[slotIndex].maxLetters);
           if (Number(requiredLetters) > 0) params.set("letters", requiredLetters);
           const response = await fetch(`/api/forge?${params}`);
+          applyApiHealth(response, setApiHealth);
           if (!response.ok) throw new Error("Could not remix pair");
           return response.json() as Promise<WordResult[]>;
         }));
@@ -1117,6 +1146,7 @@ export default function Home() {
         let next: WordResult;
         if (!relation && wordRelatedTo.trim()) {
           const response = await fetch(`/api/forge?idea=${encodeURIComponent(wordRelatedTo.trim())}`, { signal: controller.signal });
+          applyApiHealth(response, setApiHealth);
           if (!response.ok) throw new Error("No word found");
           const partName = requestedType === "any"
             ? undefined
@@ -1139,6 +1169,7 @@ export default function Home() {
           next = pool[Math.floor(Math.random() * pool.length)];
         } else {
           const response = await fetch(`/api/word?${params}`, { signal: controller.signal });
+          applyApiHealth(response, setApiHealth);
           if (!response.ok) throw new Error("No word found");
           next = (await response.json()) as WordResult;
         }
@@ -1148,6 +1179,7 @@ export default function Home() {
         setMessage(relation ? `${relation.label} to “${result.word}”` : "");
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
+          if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
           setMessage(relation ? `No ${relation.missing} found` : "The dictionary is quiet — try again");
         }
       } finally {
@@ -1178,6 +1210,7 @@ export default function Home() {
     try {
       if (secondaryWordRelatedTo.trim()) {
         const response = await fetch(`/api/forge?idea=${encodeURIComponent(secondaryWordRelatedTo.trim())}`, { signal: controller.signal });
+        applyApiHealth(response, setApiHealth);
         if (!response.ok) throw new Error("No word found");
         const partName = requestedType === "any"
           ? undefined
@@ -1203,6 +1236,7 @@ export default function Home() {
         if (!splitView) commitWord(next);
       } else {
         const response = await fetch(`/api/word?${params}`, { signal: controller.signal });
+        applyApiHealth(response, setApiHealth);
         if (!response.ok) throw new Error("No word found");
         const next = await response.json() as WordResult;
         if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
@@ -1211,6 +1245,7 @@ export default function Home() {
       }
     } catch (error) {
       if ((error as Error).name !== "AbortError" && secondaryRequestRef.current === controller) {
+        if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
         setSecondaryResult({ word: "", definition: "No word matches these settings.", partOfSpeech: "word" });
       }
     } finally {
@@ -1247,9 +1282,11 @@ export default function Home() {
 
     try {
       const response = await fetch(`/api/word?lookup=${encodeURIComponent(word)}`, { signal: controller.signal });
+      applyApiHealth(response, setApiHealth);
       if (response.ok) nextWord = await response.json() as WordResult;
     } catch (error) {
       if ((error as Error).name === "AbortError") return;
+      if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
     } finally {
       if (requestStore.current === controller) {
         if (side === "left") setLoading(false);
@@ -1527,13 +1564,16 @@ export default function Home() {
       }}
     >
       <header className="site-header">
-        <a className="wordmark" href="#top" aria-label="Lexicon home">
-          <span className="logo-tile" aria-hidden="true">
-            <span className="logo-cursor-shadow" />
-            <span className="logo-cursor" />
-          </span>
-          <span className="wordmark-name">Lexicon</span>
-        </a>
+        <div className="header-brand">
+          <a className="wordmark" href="#top" aria-label="Lexicon home">
+            <span className="logo-tile" aria-hidden="true">
+              <span className="logo-cursor-shadow" />
+              <span className="logo-cursor" />
+            </span>
+            <span className="wordmark-name">Lexicon</span>
+          </a>
+          <ApiHealthStatus health={apiHealth} />
+        </div>
         <ViewModeToggle splitView={splitView} onChange={changeViewMode} />
         <div className="brand-group" ref={savedMenuRef}>
           {appMode === "discover" ? (
