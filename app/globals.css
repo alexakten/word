@@ -1615,12 +1615,85 @@ button { color: inherit; font: inherit; }
 }
 
 .single-main-word {
+  display: block;
   width: 100%;
+  border: 0;
   margin: 0;
+  padding: 0;
+  background: transparent;
   color: var(--ink);
+  cursor: pointer;
   font-size: 60px;
+  font-weight: 400;
+  letter-spacing: -.062em;
+  line-height: .88;
   text-align: left;
   white-space: nowrap;
+  transform-origin: left center;
+  transition: transform .14s cubic-bezier(.22, 1, .36, 1);
+}
+
+.single-main-word:active { transform: scale(.975); }
+
+.copyable-word-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.word-copy-hint {
+  position: absolute;
+  bottom: calc(100% + .8rem);
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  width: max-content;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .02em;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity .18s ease, transform .2s cubic-bezier(.22, 1, .36, 1), filter .18s ease;
+}
+
+.single-copyable-word-wrap .word-copy-hint {
+  left: 0;
+  transform: translateY(4px);
+}
+
+.copyable-word-wrap:hover .word-copy-hint:not(.hidden),
+.copyable-word-wrap:focus-within .word-copy-hint:not(.hidden) {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.single-copyable-word-wrap:hover .word-copy-hint:not(.hidden),
+.single-copyable-word-wrap:focus-within .word-copy-hint:not(.hidden) {
+  transform: translateY(0);
+}
+
+.word-copy-hint-label { animation: copy-hint-swap .2s ease both; }
+.word-copy-hint.hidden { opacity: 0; filter: blur(3px); }
+
+.word-copy-hint-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: copy-hint-icon-swap .24s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes copy-hint-swap {
+  from { opacity: .2; filter: blur(4px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes copy-hint-icon-swap {
+  from { opacity: .15; filter: blur(4px); transform: scale(.6); }
+  to { opacity: 1; filter: blur(0); transform: scale(1); }
 }
 
 .single-details-row {

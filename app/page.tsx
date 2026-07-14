@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Focus, Lock, Minus, Plus, RefreshCw, Unlock, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, Copy, Focus, Lock, Minus, Plus, RefreshCw, Unlock, X } from "lucide-react";
 import { cardo } from "./fonts";
 import { normalizePronunciation } from "./pronunciation";
 
 type PartOfSpeech = "any" | "n" | "v" | "adj" | "adv";
 type LengthMode = "less" | "exact" | "more";
 type AppMode = "discover" | "combine" | "find";
+type WordCopyStatus = "idle" | "copied" | "hidden";
 
 type WordResult = {
   word: string;
@@ -544,11 +545,25 @@ function SplitDescription({ children }: { children: string }) {
   );
 }
 
+function WordCopyHint({ status }: { status: WordCopyStatus }) {
+  return (
+    <span className={`word-copy-hint${status === "hidden" ? " hidden" : ""}`} aria-hidden="true">
+      <span className="word-copy-hint-icon" key={status === "copied" ? "check" : "copy"}>
+        {status === "copied"
+          ? <Check size={12} strokeWidth={1.7} />
+          : <Copy size={12} strokeWidth={1.5} />}
+      </span>
+      <span className="word-copy-hint-label" key={status}>{status === "copied" ? "Copied word" : "Click to copy"}</span>
+    </span>
+  );
+}
+
 export default function Home() {
   const [appMode, setAppMode] = useState<AppMode>("discover");
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
   const [splitView, setSplitView] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [wordCopyStatus, setWordCopyStatus] = useState<WordCopyStatus>("idle");
   const [wordSyllables, setWordSyllables] = useState("");
   const [wordSyllableMode, setWordSyllableMode] = useState<LengthMode>("exact");
   const [wordStartsWith, setWordStartsWith] = useState("");
@@ -599,6 +614,7 @@ export default function Home() {
   const secondaryRequestRef = useRef<AbortController | null>(null);
   const splitEntryRequestFrameRef = useRef(0);
   const splitBatchRequestRef = useRef(0);
+  const wordCopyTimerRef = useRef(0);
   const savedMenuRef = useRef<HTMLDivElement | null>(null);
   const initialWordLoaded = useRef(false);
   const wordHistoryRef = useRef<WordResult[]>([]);
@@ -727,6 +743,20 @@ export default function Home() {
       partOfSpeech: "combined word",
     }, ...savedWords]);
   }, [combinedSplitIsSaved, combinedSplitWord, leftWordValue, rightWordValue, saveWords, savedWords]);
+
+  const copyDisplayedWord = useCallback(async (word: string) => {
+    if (!word) return;
+    try {
+      await navigator.clipboard.writeText(word.replace(/\s+/g, "").toLowerCase());
+      window.clearTimeout(wordCopyTimerRef.current);
+      setWordCopyStatus("copied");
+      wordCopyTimerRef.current = window.setTimeout(() => setWordCopyStatus("hidden"), 2000);
+    } catch {
+      // Clipboard access can be denied outside a secure browser context.
+    }
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(wordCopyTimerRef.current), []);
 
   const runAdvancedSearch = async () => {
     let query = advancedQuery.trim();
@@ -1930,7 +1960,20 @@ export default function Home() {
         {result.word ? (
         <div className="word-anchor split-word-anchor single-word-anchor">
           <div className="single-content-column">
-            <h1 className={`single-main-word ${cardo.className}`}><span data-view-transition-word>{result.word}</span></h1>
+            <h1 className="copyable-word-wrap single-copyable-word-wrap">
+              <WordCopyHint status={wordCopyStatus} />
+              <button
+                className={`single-main-word copyable-word ${cardo.className}`}
+                type="button"
+                aria-label={`Copy ${result.word}`}
+                onClick={() => void copyDisplayedWord(result.word)}
+                onPointerEnter={() => {
+                  if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
+                }}
+              >
+                <span data-view-transition-word>{result.word}</span>
+              </button>
+            </h1>
             <div className="single-details-row">
               <article className="single-word-article" data-view-transition-card>
                 <p className="split-eyebrow">
@@ -2001,17 +2044,22 @@ export default function Home() {
           </aside>
 
           <div className="split-word-anchor">
-            <button
-              className={`split-combined-word ${cardo.className}`}
-              type="button"
-              disabled={!leftWordValue || !rightWordValue}
-              aria-label={`Copy ${leftWordValue}${rightWordValue}`}
-              title="Copy combined word"
-              onClick={() => void navigator.clipboard.writeText(`${leftWordValue}${rightWordValue}`.replace(/\s+/g, "").toLowerCase())}
-            >
-              <span className={`split-word-part${(loading || splitBatchLoading) && leftWordValue ? " loading" : ""}`} key={`left-${leftWordValue}`}>{leftWordValue}</span>
-              <span className={`split-word-part${(secondaryLoading || splitBatchLoading) && rightWordValue ? " loading" : ""}`} data-view-transition-word key={`right-${rightWordValue}`}>{rightWordValue || "——"}</span>
-            </button>
+            <div className="copyable-word-wrap split-copyable-word-wrap">
+              <WordCopyHint status={wordCopyStatus} />
+              <button
+                className={`split-combined-word copyable-word ${cardo.className}`}
+                type="button"
+                disabled={!leftWordValue || !rightWordValue}
+                aria-label={`Copy ${leftWordValue}${rightWordValue}`}
+                onClick={() => void copyDisplayedWord(`${leftWordValue}${rightWordValue}`)}
+                onPointerEnter={() => {
+                  if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
+                }}
+              >
+                <span className={`split-word-part${(loading || splitBatchLoading) && leftWordValue ? " loading" : ""}`} key={`left-${leftWordValue}`}>{leftWordValue}</span>
+                <span className={`split-word-part${(secondaryLoading || splitBatchLoading) && rightWordValue ? " loading" : ""}`} data-view-transition-word key={`right-${rightWordValue}`}>{rightWordValue || "——"}</span>
+              </button>
+            </div>
             <div className="split-definitions">
               {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
                 <article
