@@ -336,24 +336,36 @@ function RelatedToSetting({ id, value, onChange }: {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
-  const tagsControlRef = useRef<HTMLDivElement | null>(null);
-  const tagsControlHeightRef = useRef<number | null>(null);
-  const tagsControlAnimationRef = useRef<Animation | null>(null);
+  const relatedFieldRef = useRef<HTMLDivElement | null>(null);
+  const settingsPanelHeightRef = useRef<number | null>(null);
+  const settingsPanelAnimationRef = useRef<Animation | null>(null);
+  const settingsContentPositionsRef = useRef(new Map<HTMLElement, number>());
+  const settingsContentAnimationsRef = useRef<Animation[]>([]);
   const tags = useMemo(
     () => value.split(",").map((tag) => tag.trim()).filter(Boolean),
     [value],
   );
 
   useLayoutEffect(() => {
-    const control = tagsControlRef.current;
-    if (!control) return;
+    const panel = relatedFieldRef.current?.closest<HTMLElement>(".split-settings-panel");
+    if (!panel) return;
 
-    const targetHeight = control.scrollHeight;
-    const previousHeight = tagsControlAnimationRef.current
-      ? control.getBoundingClientRect().height
-      : tagsControlHeightRef.current;
-    tagsControlAnimationRef.current?.cancel();
-    tagsControlHeightRef.current = targetHeight;
+    settingsContentAnimationsRef.current.forEach((animation) => animation.cancel());
+    const contentItems = Array.from(
+      panel.querySelectorAll<HTMLElement>(".settings-panel-header, .settings-group"),
+    );
+    const panelRect = panel.getBoundingClientRect();
+    const nextContentPositions = new Map(
+      contentItems.map((item) => [item, item.getBoundingClientRect().top - panelRect.top]),
+    );
+    const previousContentPositions = settingsContentPositionsRef.current;
+    settingsContentPositionsRef.current = nextContentPositions;
+    const previousHeight = settingsPanelAnimationRef.current
+      ? panel.getBoundingClientRect().height
+      : settingsPanelHeightRef.current;
+    settingsPanelAnimationRef.current?.cancel();
+    const targetHeight = panel.getBoundingClientRect().height;
+    settingsPanelHeightRef.current = targetHeight;
 
     if (
       previousHeight === null
@@ -361,24 +373,39 @@ function RelatedToSetting({ id, value, onChange }: {
       || window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) return;
 
-    const animation = control.animate(
+    const animation = panel.animate(
       [
         { height: `${previousHeight}px` },
         { height: `${targetHeight}px` },
       ],
       { duration: 260, easing: "cubic-bezier(.22, 1, .36, 1)" },
     );
-    tagsControlAnimationRef.current = animation;
+    settingsPanelAnimationRef.current = animation;
+    settingsContentAnimationsRef.current = contentItems.flatMap((item) => {
+      const previousTop = previousContentPositions.get(item);
+      const nextTop = nextContentPositions.get(item);
+      if (previousTop === undefined || nextTop === undefined || Math.abs(previousTop - nextTop) < 1) return [];
+      return [item.animate(
+        [
+          { transform: `translateY(${previousTop - nextTop}px)` },
+          { transform: "translateY(0)" },
+        ],
+        { duration: 260, easing: "cubic-bezier(.22, 1, .36, 1)" },
+      )];
+    });
     animation.onfinish = () => {
-      if (tagsControlAnimationRef.current === animation) tagsControlAnimationRef.current = null;
+      if (settingsPanelAnimationRef.current === animation) settingsPanelAnimationRef.current = null;
     };
   }, [tags.length]);
 
-  useEffect(() => () => tagsControlAnimationRef.current?.cancel(), []);
+  useEffect(() => () => {
+    settingsPanelAnimationRef.current?.cancel();
+    settingsContentAnimationsRef.current.forEach((animation) => animation.cancel());
+  }, []);
 
   useEffect(() => {
     const query = draft.trim();
-    if (!open || query.length < 2 || tags.length >= 6) return;
+    if (!open || query.length < 2 || tags.length >= 8) return;
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -406,7 +433,7 @@ function RelatedToSetting({ id, value, onChange }: {
     for (const entry of entries) {
       const tag = entry.trim();
       const key = tag.toLowerCase();
-      if (!tag || seen.has(key) || nextTags.length >= 6) continue;
+      if (!tag || seen.has(key) || nextTags.length >= 8) continue;
       seen.add(key);
       nextTags.push(tag);
     }
@@ -422,9 +449,9 @@ function RelatedToSetting({ id, value, onChange }: {
   };
 
   return (
-    <div className="split-setting-field boxed-setting-field related-tags-field">
+    <div className="split-setting-field boxed-setting-field related-tags-field" ref={relatedFieldRef}>
       <label htmlFor={id}>Related to</label>
-      <div className="related-tags-control" ref={tagsControlRef}>
+      <div className="related-tags-control">
         {tags.map((tag, index) => (
           <span className="related-tag" key={`${tag.toLowerCase()}-${index}`}>
             {tag}
@@ -438,13 +465,13 @@ function RelatedToSetting({ id, value, onChange }: {
           id={id}
           role="combobox"
           value={draft}
-          placeholder={tags.length ? "Add another" : "Add words"}
+          placeholder={tags.length ? "" : "Add words"}
           autoComplete="off"
           aria-autocomplete="list"
           aria-controls={`${id}-suggestions`}
           aria-expanded={open && suggestions.length > 0}
           aria-activedescendant={activeSuggestion >= 0 ? `${id}-suggestion-${activeSuggestion}` : undefined}
-          disabled={tags.length >= 6}
+          disabled={tags.length >= 8}
           onChange={(event) => {
             const nextDraft = event.target.value;
             if (nextDraft.includes(",")) {

@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       .split(",")
       .map((idea) => idea.trim())
       .filter(Boolean),
-  )].slice(0, 6);
+  )].slice(0, 8);
   const random = search.get("random") === "1";
   const syllables = Number(search.get("syllables"));
   const maxLetters = Number(search.get("maxLetters"));

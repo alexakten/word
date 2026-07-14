@@ -1252,7 +1252,6 @@ button { color: inherit; font: inherit; }
   border-radius: 9px;
   padding: .35rem .45rem;
   background: #F6F5F4;
-  overflow: hidden;
 }
 
 .related-tag {
@@ -1289,9 +1288,9 @@ button { color: inherit; font: inherit; }
 .related-tag button:focus-visible { outline: 1px solid rgba(21, 21, 19, .35); outline-offset: 1px; }
 
 .related-tags-field .related-tags-input {
-  flex: 1 1 6rem;
+  flex: 1 1 1.5rem;
   width: auto;
-  min-width: 4rem;
+  min-width: 1.5rem;
   height: 24px;
   border: 0;
   outline: none;
