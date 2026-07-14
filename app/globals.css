@@ -1252,6 +1252,7 @@ button { color: inherit; font: inherit; }
   border-radius: 9px;
   padding: .35rem .45rem;
   background: #F6F5F4;
+  overflow: hidden;
 }
 
 .related-tag {

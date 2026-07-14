@@ -336,10 +336,45 @@ function RelatedToSetting({ id, value, onChange }: {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const tagsControlRef = useRef<HTMLDivElement | null>(null);
+  const tagsControlHeightRef = useRef<number | null>(null);
+  const tagsControlAnimationRef = useRef<Animation | null>(null);
   const tags = useMemo(
     () => value.split(",").map((tag) => tag.trim()).filter(Boolean),
     [value],
   );
+
+  useLayoutEffect(() => {
+    const control = tagsControlRef.current;
+    if (!control) return;
+
+    const targetHeight = control.scrollHeight;
+    const previousHeight = tagsControlAnimationRef.current
+      ? control.getBoundingClientRect().height
+      : tagsControlHeightRef.current;
+    tagsControlAnimationRef.current?.cancel();
+    tagsControlHeightRef.current = targetHeight;
+
+    if (
+      previousHeight === null
+      || Math.abs(previousHeight - targetHeight) < 1
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) return;
+
+    const animation = control.animate(
+      [
+        { height: `${previousHeight}px` },
+        { height: `${targetHeight}px` },
+      ],
+      { duration: 260, easing: "cubic-bezier(.22, 1, .36, 1)" },
+    );
+    tagsControlAnimationRef.current = animation;
+    animation.onfinish = () => {
+      if (tagsControlAnimationRef.current === animation) tagsControlAnimationRef.current = null;
+    };
+  }, [tags.length]);
+
+  useEffect(() => () => tagsControlAnimationRef.current?.cancel(), []);
 
   useEffect(() => {
     const query = draft.trim();
@@ -389,7 +424,7 @@ function RelatedToSetting({ id, value, onChange }: {
   return (
     <div className="split-setting-field boxed-setting-field related-tags-field">
       <label htmlFor={id}>Related to</label>
-      <div className="related-tags-control">
+      <div className="related-tags-control" ref={tagsControlRef}>
         {tags.map((tag, index) => (
           <span className="related-tag" key={`${tag.toLowerCase()}-${index}`}>
             {tag}
