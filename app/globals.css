@@ -1677,7 +1677,14 @@ button { color: inherit; font: inherit; }
 }
 
 .word-copy-hint-label { animation: copy-hint-swap .2s ease both; }
-.word-copy-hint.hidden { opacity: 0; filter: blur(3px); }
+.word-copy-hint.hidden {
+  opacity: 0;
+  filter: blur(5px);
+  transform: translate(-50%, -7px);
+  transition-duration: .3s, .34s, .3s;
+}
+
+.single-copyable-word-wrap .word-copy-hint.hidden { transform: translateY(-7px); }
 
 .word-copy-hint-icon {
   display: inline-flex;
