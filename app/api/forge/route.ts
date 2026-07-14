@@ -55,12 +55,18 @@ function connectionsForIdea(idea: string): Connection[] {
 
 export async function GET(request: Request) {
   const search = new URL(request.url).searchParams;
-  const idea = search.get("idea")?.trim().slice(0, 120);
+  const ideaInput = search.get("idea")?.trim().slice(0, 120) ?? "";
+  const ideas = [...new Set(
+    ideaInput
+      .split(",")
+      .map((idea) => idea.trim())
+      .filter(Boolean),
+  )].slice(0, 6);
   const random = search.get("random") === "1";
   const syllables = Number(search.get("syllables"));
   const maxLetters = Number(search.get("maxLetters"));
   const letters = Number(search.get("letters"));
-  if (!idea && !random) return Response.json({ error: "Enter an idea" }, { status: 400 });
+  if (!ideas.length && !random) return Response.json({ error: "Enter an idea" }, { status: 400 });
 
   try {
     if (random) {
@@ -92,9 +98,10 @@ export async function GET(request: Request) {
       return Response.json(results);
     }
 
-    if (!idea) return Response.json({ error: "Enter an idea" }, { status: 400 });
+    if (!ideas.length) return Response.json({ error: "Enter an idea" }, { status: 400 });
 
-    const connections = connectionsForIdea(idea);
+    const connections = ideas.flatMap(connectionsForIdea);
+    const inputIdeas = new Set(ideas.map((idea) => idea.toLowerCase()));
 
     const resultSets = await Promise.all(connections.map(async (connection) => {
       try {
@@ -122,7 +129,7 @@ export async function GET(request: Request) {
         const word = words[rank];
         if (!word) continue;
         const key = word.word.toLowerCase();
-        if (!/^[a-z]+$/i.test(word.word) || key === idea.toLowerCase() || seen.has(key)) continue;
+        if (!/^[a-z]+$/i.test(word.word) || inputIdeas.has(key) || seen.has(key)) continue;
         seen.add(key);
         results.push(word);
       }
