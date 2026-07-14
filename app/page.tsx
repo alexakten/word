@@ -47,6 +47,19 @@ type SplitHistoryEntry = {
   right: WordResult;
 };
 
+function parseViewModeParam(search: string): boolean | null {
+  const view = new URLSearchParams(search).get("view");
+  if (view === "split") return true;
+  if (view === "single") return false;
+  return null;
+}
+
+function writeViewModeParam(split: boolean) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("view", split ? "split" : "single");
+  window.history.replaceState(window.history.state, "", url);
+}
+
 const emptyForgeSlot = (): ForgeSlot => ({
   seed: "",
   maxLetters: "",
@@ -183,6 +196,10 @@ function ViewModeToggle({ splitView, onChange }: { splitView: boolean; onChange:
   ];
 
   useEffect(() => () => window.cancelAnimationFrame(pendingChangeRef.current), []);
+
+  useEffect(() => {
+    setSelectedSplitView(splitView);
+  }, [splitView]);
 
   const selectView = (nextSplit: boolean) => {
     if (nextSplit === selectedSplitView) return;
@@ -1287,6 +1304,11 @@ export default function Home() {
     setMessage("");
   }, []);
 
+  useLayoutEffect(() => {
+    const splitFromUrl = parseViewModeParam(window.location.search);
+    if (splitFromUrl !== null) setSplitView(splitFromUrl);
+  }, []);
+
   useEffect(() => {
     if (initialWordLoaded.current) return;
     initialWordLoaded.current = true;
@@ -1470,6 +1492,7 @@ export default function Home() {
       }
     };
     flushSync(updateLayout);
+    writeViewModeParam(nextSplit);
 
     // On entry, the existing word becomes the right-hand word. Animating that
     // element from its single-view position makes it pass through the empty
