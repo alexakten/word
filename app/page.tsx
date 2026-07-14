@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Columns2, Lock, Minus, Plus, RefreshCw, Unlock, X } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Focus, Lock, Minus, Plus, RefreshCw, Unlock, X } from "lucide-react";
 import { cardo } from "./fonts";
 import { normalizePronunciation } from "./pronunciation";
 
@@ -102,29 +103,47 @@ type WordTypeTabsProps = {
   onChange: (value: PartOfSpeech) => void;
 };
 
-function WordTypeTabs({ value, label, className = "", onChange }: WordTypeTabsProps) {
+function useActiveTabClipPath(activeValue: unknown) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     const activeTab = activeTabRef.current;
     if (!container || !activeTab) return;
 
     const updateClipPath = () => {
+      const containerWidth = container.offsetWidth;
+      if (!containerWidth) return;
+
       const containerRect = container.getBoundingClientRect();
       const activeRect = activeTab.getBoundingClientRect();
-      const leftInset = activeRect.left - containerRect.left;
-      const rightInset = containerRect.right - activeRect.right;
-      container.style.clipPath = `inset(0 ${Math.max(0, rightInset)}px 0 ${Math.max(0, leftInset)}px round 17px)`;
+      const clipLeft = Math.max(0, activeRect.left - containerRect.left);
+      const clipRight = Math.max(0, containerRect.right - activeRect.right);
+
+      container.style.clipPath = `inset(0 ${clipRight}px 0 ${clipLeft}px round 999px)`;
     };
 
+    const isInitialPosition = container.dataset.positioned !== "true";
+    if (isInitialPosition) container.style.transition = "none";
     updateClipPath();
+    if (isInitialPosition) {
+      container.dataset.positioned = "true";
+      void container.offsetWidth;
+      container.style.removeProperty("transition");
+    }
+
     const observer = new ResizeObserver(updateClipPath);
     observer.observe(container);
     observer.observe(activeTab);
     return () => observer.disconnect();
-  }, [value]);
+  }, [activeValue]);
+
+  return { activeTabRef, containerRef };
+}
+
+function WordTypeTabs({ value, label, className = "", onChange }: WordTypeTabsProps) {
+  const { activeTabRef, containerRef } = useActiveTabClipPath(value);
 
   return (
     <div className={`word-type-tabs ${className}`.trim()} role="group" aria-label={label}>
@@ -146,6 +165,51 @@ function WordTypeTabs({ value, label, className = "", onChange }: WordTypeTabsPr
         <ul className="word-type-tab-list word-type-tab-list-overlay">
           {wordTypes.map((type) => (
             <li key={type.value}><button type="button" tabIndex={-1}>{type.label}</button></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function ViewModeToggle({ splitView, onChange }: { splitView: boolean; onChange: (split: boolean) => void }) {
+  const [selectedSplitView, setSelectedSplitView] = useState(splitView);
+  const pendingChangeRef = useRef(0);
+  const { activeTabRef, containerRef } = useActiveTabClipPath(selectedSplitView);
+  const options = [
+    { value: false, label: "Single" },
+    { value: true, label: "Split" },
+  ];
+
+  useEffect(() => () => window.cancelAnimationFrame(pendingChangeRef.current), []);
+
+  const selectView = (nextSplit: boolean) => {
+    if (nextSplit === selectedSplitView) return;
+    setSelectedSplitView(nextSplit);
+    window.cancelAnimationFrame(pendingChangeRef.current);
+    pendingChangeRef.current = window.requestAnimationFrame(() => onChange(nextSplit));
+  };
+
+  return (
+    <div className="word-type-tabs view-mode-toggle" role="group" aria-label="View mode">
+      <ul className="word-type-tab-list">
+        {options.map((option) => (
+          <li key={option.label}>
+            <button
+              ref={selectedSplitView === option.value ? activeTabRef : null}
+              type="button"
+              aria-pressed={selectedSplitView === option.value}
+              onClick={() => selectView(option.value)}
+            >
+              {option.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="word-type-active-layer" aria-hidden="true" ref={containerRef}>
+        <ul className="word-type-tab-list word-type-tab-list-overlay">
+          {options.map((option) => (
+            <li key={option.label}><button type="button" tabIndex={-1}>{option.label}</button></li>
           ))}
         </ul>
       </div>
@@ -180,37 +244,21 @@ function CounterSetting({ label, value, max, onChange }: CounterSettingProps) {
   );
 }
 
-function LengthModeToggle({ value, onChange }: { value: LengthMode; onChange: (value: LengthMode) => void }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const activeTabRef = useRef<HTMLButtonElement | null>(null);
+function LengthModeToggle({ value, label = "Word length comparison", disabled = false, onChange }: {
+  value: LengthMode;
+  label?: string;
+  disabled?: boolean;
+  onChange: (value: LengthMode) => void;
+}) {
+  const { activeTabRef, containerRef } = useActiveTabClipPath(value);
   const options = [
     { value: "less" as const, label: "Less than or equal", symbol: "≤" },
     { value: "exact" as const, label: "Equal", symbol: "=" },
     { value: "more" as const, label: "More than or equal", symbol: "≥" },
   ];
 
-  useEffect(() => {
-    const container = containerRef.current;
-    const activeTab = activeTabRef.current;
-    if (!container || !activeTab) return;
-
-    const updateClipPath = () => {
-      const containerRect = container.getBoundingClientRect();
-      const activeRect = activeTab.getBoundingClientRect();
-      const leftInset = activeRect.left - containerRect.left;
-      const rightInset = containerRect.right - activeRect.right;
-      container.style.clipPath = `inset(0 ${Math.max(0, rightInset)}px 0 ${Math.max(0, leftInset)}px round 17px)`;
-    };
-
-    updateClipPath();
-    const observer = new ResizeObserver(updateClipPath);
-    observer.observe(container);
-    observer.observe(activeTab);
-    return () => observer.disconnect();
-  }, [value]);
-
   return (
-    <div className="length-mode-toggle" role="group" aria-label="Word length comparison">
+    <div className={disabled ? "length-mode-toggle disabled" : "length-mode-toggle"} role="group" aria-label={label} aria-disabled={disabled}>
       <ul className="word-type-tab-list">
         {options.map((option) => (
           <li key={option.value}>
@@ -220,6 +268,7 @@ function LengthModeToggle({ value, onChange }: { value: LengthMode; onChange: (v
               aria-label={option.label}
               title={option.label}
               aria-pressed={value === option.value}
+              disabled={disabled}
               onClick={() => onChange(option.value)}
             >
               <span className="inequality-symbol" aria-hidden="true">{option.symbol}</span>
@@ -247,7 +296,7 @@ function WordLengthSetting({ value, mode, onValueChange, onModeChange }: {
   return (
     <div className="word-length-setting">
       <CounterSetting label="Word length" value={value} max={22} onChange={onValueChange} />
-      <LengthModeToggle value={mode} onChange={onModeChange} />
+      <LengthModeToggle value={mode} disabled={!value} onChange={onModeChange} />
     </div>
   );
 }
@@ -278,6 +327,145 @@ function AffixSetting({ kind, value, onChange }: {
   );
 }
 
+function RelatedToSetting({ id, value, onChange }: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const tags = useMemo(
+    () => value.split(",").map((tag) => tag.trim()).filter(Boolean),
+    [value],
+  );
+
+  useEffect(() => {
+    const query = draft.trim();
+    if (!open || query.length < 2 || tags.length >= 6) return;
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+        if (!response.ok) return;
+        const existing = new Set(tags.map((tag) => tag.toLowerCase()));
+        const words = (await response.json() as string[]).filter((word) => !existing.has(word.toLowerCase()));
+        setSuggestions(words);
+        setActiveSuggestion(-1);
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") setSuggestions([]);
+      }
+    }, 160);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [draft, open, tags]);
+
+  const addTags = (entries: string[], nextDraft = "") => {
+    const nextTags = [...tags];
+    const seen = new Set(tags.map((tag) => tag.toLowerCase()));
+    for (const entry of entries) {
+      const tag = entry.trim();
+      const key = tag.toLowerCase();
+      if (!tag || seen.has(key) || nextTags.length >= 6) continue;
+      seen.add(key);
+      nextTags.push(tag);
+    }
+    onChange(nextTags.join(", "));
+    setDraft(nextDraft);
+    setSuggestions([]);
+    setActiveSuggestion(-1);
+    setOpen(Boolean(nextDraft));
+  };
+
+  const removeTag = (index: number) => {
+    onChange(tags.filter((_, tagIndex) => tagIndex !== index).join(", "));
+  };
+
+  return (
+    <div className="split-setting-field boxed-setting-field related-tags-field">
+      <label htmlFor={id}>Related to</label>
+      <div className="related-tags-control">
+        {tags.map((tag, index) => (
+          <span className="related-tag" key={`${tag.toLowerCase()}-${index}`}>
+            {tag}
+            <button type="button" aria-label={`Remove ${tag}`} onClick={() => removeTag(index)}>
+              <X size={12} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+          </span>
+        ))}
+        <input
+          className="related-tags-input"
+          id={id}
+          role="combobox"
+          value={draft}
+          placeholder={tags.length ? "Add another" : "Add words"}
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-controls={`${id}-suggestions`}
+          aria-expanded={open && suggestions.length > 0}
+          aria-activedescendant={activeSuggestion >= 0 ? `${id}-suggestion-${activeSuggestion}` : undefined}
+          disabled={tags.length >= 6}
+          onChange={(event) => {
+            const nextDraft = event.target.value;
+            if (nextDraft.includes(",")) {
+              const entries = nextDraft.split(",");
+              const remainingDraft = entries.pop() ?? "";
+              addTags(entries, remainingDraft);
+              return;
+            }
+            setDraft(nextDraft);
+            if (nextDraft.trim().length < 2) {
+              setSuggestions([]);
+              setActiveSuggestion(-1);
+            }
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => window.setTimeout(() => setOpen(false), 100)}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowDown" && suggestions.length) {
+              event.preventDefault();
+              setActiveSuggestion((current) => Math.min(current + 1, suggestions.length - 1));
+            } else if (event.key === "ArrowUp" && suggestions.length) {
+              event.preventDefault();
+              setActiveSuggestion((current) => Math.max(current - 1, 0));
+            } else if (event.key === "Enter" || event.key === ",") {
+              event.preventDefault();
+              addTags([activeSuggestion >= 0 ? suggestions[activeSuggestion] : draft]);
+            } else if (event.key === "Backspace" && !draft && tags.length) {
+              removeTag(tags.length - 1);
+            } else if (event.key === "Escape") {
+              setOpen(false);
+            }
+          }}
+        />
+      </div>
+      {open && suggestions.length ? (
+        <ul className="related-suggestions" id={`${id}-suggestions`} role="listbox">
+          {suggestions.map((word, index) => (
+            <li
+              id={`${id}-suggestion-${index}`}
+              key={word}
+              role="option"
+              aria-selected={index === activeSuggestion}
+              className={index === activeSuggestion ? "active" : ""}
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => addTags([word])}
+            >
+              {word}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 function SplitDescription({ children }: { children: string }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -298,7 +486,9 @@ export default function Home() {
   const [appMode, setAppMode] = useState<AppMode>("discover");
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
   const [splitView, setSplitView] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
   const [wordSyllables, setWordSyllables] = useState("");
+  const [wordSyllableMode, setWordSyllableMode] = useState<LengthMode>("exact");
   const [wordStartsWith, setWordStartsWith] = useState("");
   const [wordEndsWith, setWordEndsWith] = useState("");
   const [wordLetters, setWordLetters] = useState("");
@@ -306,6 +496,7 @@ export default function Home() {
   const [wordRelatedTo, setWordRelatedTo] = useState("");
   const [secondaryWordType, setSecondaryWordType] = useState<PartOfSpeech>("any");
   const [secondaryWordSyllables, setSecondaryWordSyllables] = useState("");
+  const [secondaryWordSyllableMode, setSecondaryWordSyllableMode] = useState<LengthMode>("exact");
   const [secondaryWordStartsWith, setSecondaryWordStartsWith] = useState("");
   const [secondaryWordEndsWith, setSecondaryWordEndsWith] = useState("");
   const [secondaryWordLetters, setSecondaryWordLetters] = useState("");
@@ -321,11 +512,8 @@ export default function Home() {
   const [rightWordDraft, setRightWordDraft] = useState("");
   const [secondaryLoading, setSecondaryLoading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("Press space to begin");
-  const [search, setSearch] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const [splitBatchLoading, setSplitBatchLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [advancedTool, setAdvancedTool] = useState<"search" | "forge">("search");
   const [advancedMode, setAdvancedMode] = useState<AdvancedMode>("ml");
@@ -344,13 +532,12 @@ export default function Home() {
   const [forgeRemixing, setForgeRemixing] = useState(false);
   const [savedWords, setSavedWords] = useState<WordResult[]>([]);
   const [savedOpen, setSavedOpen] = useState(false);
-  const [definitionExpanded, setDefinitionExpanded] = useState(false);
   const [splitHistoryRevision, setSplitHistoryRevision] = useState(0);
   const requestRef = useRef<AbortController | null>(null);
   const secondaryRequestRef = useRef<AbortController | null>(null);
+  const splitEntryRequestFrameRef = useRef(0);
+  const splitBatchRequestRef = useRef(0);
   const savedMenuRef = useRef<HTMLDivElement | null>(null);
-  const searchMenuRef = useRef<HTMLFormElement | null>(null);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const initialWordLoaded = useRef(false);
   const wordHistoryRef = useRef<WordResult[]>([]);
   const historyIndexRef = useRef(-1);
@@ -365,6 +552,7 @@ export default function Home() {
     setWordRelatedTo("");
     setWordType("any");
     setWordSyllables("");
+    setWordSyllableMode("exact");
     setWordStartsWith("");
     setWordEndsWith("");
     setWordLetters("");
@@ -376,6 +564,7 @@ export default function Home() {
     setSecondaryWordRelatedTo("");
     setSecondaryWordType("any");
     setSecondaryWordSyllables("");
+    setSecondaryWordSyllableMode("exact");
     setSecondaryWordStartsWith("");
     setSecondaryWordEndsWith("");
     setSecondaryWordLetters("");
@@ -385,8 +574,8 @@ export default function Home() {
   const selectAppMode = useCallback((mode: AppMode) => {
     setAppMode(mode);
     setAdvancedOpen(mode !== "discover");
+    if (mode !== "discover") setFocusMode(false);
     if (mode !== "discover") setAdvancedTool(mode === "combine" ? "forge" : "search");
-    setSearchOpen(false);
   }, []);
 
   const commitWord = useCallback((word: WordResult) => {
@@ -395,7 +584,6 @@ export default function Home() {
     wordHistoryRef.current = updatedHistory;
     historyIndexRef.current = updatedHistory.length - 1;
     setResult(word);
-    setDefinitionExpanded(false);
   }, []);
 
   const moveThroughHistory = useCallback((direction: -1 | 1) => {
@@ -403,8 +591,10 @@ export default function Home() {
     if (nextIndex < 0 || nextIndex >= wordHistoryRef.current.length) return;
 
     historyIndexRef.current = nextIndex;
-    setResult(wordHistoryRef.current[nextIndex]);
-    setDefinitionExpanded(false);
+    const nextWord = wordHistoryRef.current[nextIndex];
+    setResult(nextWord);
+    setSecondaryResult(nextWord);
+    setRightWordDraft("");
     setMessage("");
   }, []);
 
@@ -475,61 +665,6 @@ export default function Home() {
       partOfSpeech: "combined word",
     }, ...savedWords]);
   }, [combinedSplitIsSaved, combinedSplitWord, leftWordValue, rightWordValue, saveWords, savedWords]);
-
-  useEffect(() => {
-    const query = search.trim();
-    if (query.length < 2 || !searchOpen) {
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) return;
-        const words = (await response.json()) as string[];
-        setSuggestions(words);
-        setActiveSuggestion(-1);
-      } catch {
-        // Autocomplete is optional; a direct search still works if it is unavailable.
-      }
-    }, 160);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [search, searchOpen]);
-
-  const lookupWord = useCallback(async (word: string) => {
-    const query = word.trim();
-    if (!query) return;
-
-    requestRef.current?.abort();
-    const controller = new AbortController();
-    requestRef.current = controller;
-    setLoading(true);
-    setSearch(query);
-    setSuggestions([]);
-    setSearchOpen(false);
-    setMessage("");
-
-    try {
-      const response = await fetch(`/api/word?lookup=${encodeURIComponent(query)}`, {
-        signal: controller.signal,
-      });
-      if (!response.ok) throw new Error("Word not found");
-      const next = (await response.json()) as WordResult;
-      commitWord(next);
-      setMessage(`Search result for “${query}”`);
-    } catch (error) {
-      if ((error as Error).name !== "AbortError") setMessage(`No definition found for “${query}”`);
-    } finally {
-      if (requestRef.current === controller) setLoading(false);
-    }
-  }, [commitWord]);
 
   const runAdvancedSearch = async () => {
     let query = advancedQuery.trim();
@@ -843,7 +978,7 @@ export default function Home() {
   });
 
   const findWord = useCallback(
-    async (relation?: (typeof relations)[number], requestedType: PartOfSpeech = wordType) => {
+    async (relation?: (typeof relations)[number], requestedType: PartOfSpeech = wordType, syncSecondary = !splitView) => {
       requestRef.current?.abort();
       setLeftWordDraft("");
       const controller = new AbortController();
@@ -856,7 +991,10 @@ export default function Home() {
         params.set("relation", relation.code);
         params.set("word", result.word);
       } else {
-        if (wordSyllables) params.set("syllables", wordSyllables);
+        if (wordSyllables) {
+          params.set("syllables", wordSyllables);
+          params.set("syllablesMode", wordSyllableMode);
+        }
         if (wordStartsWith) params.set("startsWith", wordStartsWith);
         if (wordEndsWith) params.set("endsWith", wordEndsWith);
         if (wordLetters) {
@@ -875,7 +1013,10 @@ export default function Home() {
             : { n: "noun", v: "verb", adj: "adjective", adv: "adverb" }[requestedType];
           const candidates = (await response.json() as WordResult[]).filter((word) => {
             if (partName && word.partOfSpeech !== partName) return false;
-            if (wordSyllables && word.syllables !== Number(wordSyllables)) return false;
+            if (wordSyllables && !word.syllables) return false;
+            if (wordSyllables && wordSyllableMode === "exact" && word.syllables !== Number(wordSyllables)) return false;
+            if (wordSyllables && wordSyllableMode === "less" && word.syllables! > Number(wordSyllables)) return false;
+            if (wordSyllables && wordSyllableMode === "more" && word.syllables! < Number(wordSyllables)) return false;
             if (wordStartsWith && !word.word.toLowerCase().startsWith(wordStartsWith.toLowerCase())) return false;
             if (wordEndsWith && !word.word.toLowerCase().endsWith(wordEndsWith.toLowerCase())) return false;
             if (wordLetters && wordLengthMode === "exact" && word.word.length !== Number(wordLetters)) return false;
@@ -891,7 +1032,9 @@ export default function Home() {
           if (!response.ok) throw new Error("No word found");
           next = (await response.json()) as WordResult;
         }
+        if (controller.signal.aborted || requestRef.current !== controller) return;
         commitWord(next);
+        if (syncSecondary) setSecondaryResult(next);
         setMessage(relation ? `${relation.label} to “${result.word}”` : "");
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
@@ -901,7 +1044,7 @@ export default function Home() {
         if (requestRef.current === controller) setLoading(false);
       }
     },
-    [commitWord, result.word, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllables, wordType],
+    [commitWord, result.word, splitView, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllableMode, wordSyllables, wordType],
   );
 
   const findSecondaryWord = useCallback(async (requestedType: PartOfSpeech = secondaryWordType) => {
@@ -911,7 +1054,10 @@ export default function Home() {
     secondaryRequestRef.current = controller;
     setSecondaryLoading(true);
     const params = new URLSearchParams({ pos: requestedType });
-    if (secondaryWordSyllables) params.set("syllables", secondaryWordSyllables);
+    if (secondaryWordSyllables) {
+      params.set("syllables", secondaryWordSyllables);
+      params.set("syllablesMode", secondaryWordSyllableMode);
+    }
     if (secondaryWordStartsWith) params.set("startsWith", secondaryWordStartsWith);
     if (secondaryWordEndsWith) params.set("endsWith", secondaryWordEndsWith);
     if (secondaryWordLetters) {
@@ -928,7 +1074,10 @@ export default function Home() {
           : { n: "noun", v: "verb", adj: "adjective", adv: "adverb" }[requestedType];
         const candidates = (await response.json() as WordResult[]).filter((word) => {
           if (partName && word.partOfSpeech !== partName) return false;
-          if (secondaryWordSyllables && word.syllables !== Number(secondaryWordSyllables)) return false;
+          if (secondaryWordSyllables && !word.syllables) return false;
+          if (secondaryWordSyllables && secondaryWordSyllableMode === "exact" && word.syllables !== Number(secondaryWordSyllables)) return false;
+          if (secondaryWordSyllables && secondaryWordSyllableMode === "less" && word.syllables! > Number(secondaryWordSyllables)) return false;
+          if (secondaryWordSyllables && secondaryWordSyllableMode === "more" && word.syllables! < Number(secondaryWordSyllables)) return false;
           if (secondaryWordStartsWith && !word.word.toLowerCase().startsWith(secondaryWordStartsWith.toLowerCase())) return false;
           if (secondaryWordEndsWith && !word.word.toLowerCase().endsWith(secondaryWordEndsWith.toLowerCase())) return false;
           if (secondaryWordLetters && secondaryWordLengthMode === "exact" && word.word.length !== Number(secondaryWordLetters)) return false;
@@ -938,20 +1087,26 @@ export default function Home() {
         if (!candidates.length) throw new Error("No word found");
         const alternatives = candidates.filter((word) => word.word !== secondaryResult.word);
         const pool = alternatives.length ? alternatives : candidates;
-        setSecondaryResult(pool[Math.floor(Math.random() * pool.length)]);
+        const next = pool[Math.floor(Math.random() * pool.length)];
+        if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
+        setSecondaryResult(next);
+        if (!splitView) commitWord(next);
       } else {
         const response = await fetch(`/api/word?${params}`, { signal: controller.signal });
         if (!response.ok) throw new Error("No word found");
-        setSecondaryResult(await response.json() as WordResult);
+        const next = await response.json() as WordResult;
+        if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
+        setSecondaryResult(next);
+        if (!splitView) commitWord(next);
       }
     } catch (error) {
-      if ((error as Error).name !== "AbortError") {
+      if ((error as Error).name !== "AbortError" && secondaryRequestRef.current === controller) {
         setSecondaryResult({ word: "", definition: "No word matches these settings.", partOfSpeech: "word" });
       }
     } finally {
       if (secondaryRequestRef.current === controller) setSecondaryLoading(false);
     }
-  }, [secondaryResult.word, secondaryWordEndsWith, secondaryWordLengthMode, secondaryWordLetters, secondaryWordRelatedTo, secondaryWordStartsWith, secondaryWordSyllables, secondaryWordType]);
+  }, [commitWord, secondaryResult.word, secondaryWordEndsWith, secondaryWordLengthMode, secondaryWordLetters, secondaryWordRelatedTo, secondaryWordStartsWith, secondaryWordSyllableMode, secondaryWordSyllables, secondaryWordType, splitView]);
 
   const setExplicitSplitWord = useCallback(async (side: "left" | "right", draft: string) => {
     const word = draft.trim();
@@ -999,12 +1154,13 @@ export default function Home() {
     } else {
       setSecondaryResult(nextWord);
       setRightWordDraft(word);
+      if (!splitView) commitWord(nextWord);
     }
-  }, [commitWord, result.word, secondaryResult.word]);
+  }, [commitWord, result.word, secondaryResult.word, splitView]);
 
   const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
     if (!splitView) {
-      void findWord(undefined, requestedType);
+      if (!rightWordDraft.trim()) void findSecondaryWord();
       return;
     }
 
@@ -1013,8 +1169,12 @@ export default function Home() {
     if (!rightWordDraft.trim()) requests.push(findSecondaryWord());
     if (!requests.length) return;
 
+    const batchRequest = splitBatchRequestRef.current + 1;
+    splitBatchRequestRef.current = batchRequest;
+    if (requests.length > 1) setSplitBatchLoading(true);
     splitHistoryBatchDepthRef.current += 1;
     void Promise.all(requests).finally(() => {
+      if (splitBatchRequestRef.current === batchRequest) setSplitBatchLoading(false);
       splitHistoryBatchDepthRef.current = Math.max(0, splitHistoryBatchDepthRef.current - 1);
       if (splitHistoryBatchDepthRef.current === 0) {
         setSplitHistoryRevision((revision) => revision + 1);
@@ -1031,32 +1191,32 @@ export default function Home() {
     setRightWordDraft("");
     setResult(entry.left);
     setSecondaryResult(entry.right);
-    setDefinitionExpanded(false);
     setMessage("");
   }, []);
 
   useEffect(() => {
     if (initialWordLoaded.current) return;
     initialWordLoaded.current = true;
-    void findWord();
-  }, [findWord]);
+    void findSecondaryWord();
+  }, [findSecondaryWord]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (focusMode) {
         event.preventDefault();
-        selectAppMode("discover");
-        setSearchOpen(true);
-        window.requestAnimationFrame(() => {
-          searchInputRef.current?.focus();
-          searchInputRef.current?.select();
-        });
+        if (event.code === "Space") generateVisibleWords();
+        else setFocusMode(false);
         return;
       }
-
       if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement;
       if (target.matches("button, input, select, textarea")) return;
+
+      if (event.key.toLowerCase() === "f" && appMode === "discover") {
+        event.preventDefault();
+        setFocusMode((focused) => !focused);
+        return;
+      }
 
       if (event.code === "Space") {
         event.preventDefault();
@@ -1112,7 +1272,7 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [appMode, findSecondaryWord, findWord, generateVisibleWords, moveThroughHistory, moveThroughSplitHistory, selectAppMode, splitView, toggleCombinedSaved, toggleSaved]);
+  }, [appMode, findSecondaryWord, findWord, focusMode, generateVisibleWords, moveThroughHistory, moveThroughSplitHistory, selectAppMode, splitView, toggleCombinedSaved, toggleSaved]);
 
   const forgeWords = forgeSlots.map((slot) => slot.candidates[slot.index]);
   const forgedWord = forgeWords.every(Boolean)
@@ -1188,29 +1348,93 @@ export default function Home() {
     || secondaryWordLetters
   );
 
+  const changeViewMode = useCallback((nextSplit: boolean) => {
+    if (nextSplit === splitView) return;
+    window.cancelAnimationFrame(splitEntryRequestFrameRef.current);
+    const movingSelectors = ["[data-view-transition-word]", "[data-view-transition-card]"];
+    const previousPositions = new Map(
+      movingSelectors.map((selector) => [selector, document.querySelector<HTMLElement>(selector)?.getBoundingClientRect()]),
+    );
+    const updateLayout = () => {
+      requestRef.current?.abort();
+      requestRef.current = null;
+      secondaryRequestRef.current?.abort();
+      secondaryRequestRef.current = null;
+      setLoading(false);
+      setSecondaryLoading(false);
+      splitBatchRequestRef.current += 1;
+      setSplitBatchLoading(false);
+
+      if (nextSplit) {
+        setLeftWordDraft("");
+        setSecondaryResult(result);
+        setResult({ word: "", definition: "", partOfSpeech: "" });
+        setSplitView(true);
+      } else {
+        if (secondaryResult.word) commitWord(secondaryResult);
+        setLeftWordDraft("");
+        setSplitView(false);
+      }
+    };
+    flushSync(updateLayout);
+
+    // On entry, the existing word becomes the right-hand word. Animating that
+    // element from its single-view position makes it pass through the empty
+    // left slot, which looks like stale left-hand content. Keep the positional
+    // animation only when returning to single view.
+    if (!nextSplit && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      movingSelectors.forEach((selector) => {
+        const previousPosition = previousPositions.get(selector);
+        const element = document.querySelector<HTMLElement>(selector);
+        if (!previousPosition || !element) return;
+
+        const nextPosition = element.getBoundingClientRect();
+        const offsetX = previousPosition.left - nextPosition.left;
+        if (Math.abs(offsetX) < 1) return;
+        element.animate(
+          [{ transform: `translateX(${offsetX}px)` }, { transform: "translateX(0)" }],
+          { duration: 420, easing: "cubic-bezier(.22, 1, .36, 1)" },
+        );
+      });
+    }
+
+    if (nextSplit) {
+      splitEntryRequestFrameRef.current = window.requestAnimationFrame(() => void findWord(undefined, wordType, false));
+    }
+  }, [commitWord, findWord, result, secondaryResult, splitView, wordType]);
+
   return (
-    <main className="page-shell">
+    <main
+      className={focusMode ? "page-shell focus-mode" : "page-shell"}
+      onPointerDown={() => {
+        if (focusMode) setFocusMode(false);
+      }}
+    >
       <header className="site-header">
         <a className="wordmark" href="#top" aria-label="Lexicon home">
           <span className="logo-tile" aria-hidden="true">
             <span className="logo-cursor-shadow" />
             <span className="logo-cursor" />
           </span>
+          <span className="wordmark-name">Lexicon</span>
         </a>
+        <ViewModeToggle splitView={splitView} onChange={changeViewMode} />
         <div className="brand-group" ref={savedMenuRef}>
-          <button
-            className={splitView ? "header-split-toggle active" : "header-split-toggle"}
-            type="button"
-            aria-pressed={splitView}
-            onClick={() => {
-              const next = !splitView;
-              setSplitView(next);
-              if (next && !secondaryResult.word) void findSecondaryWord();
-            }}
-          >
-            <Columns2 size={13} strokeWidth={1.5} aria-hidden="true" />
-            {splitView ? "Single" : "Split"}
-          </button>
+          {appMode === "discover" ? (
+            <button
+              className="focus-toggle"
+              type="button"
+              aria-pressed={focusMode}
+              title="Focus mode (F). Press Escape to exit."
+              onClick={() => {
+                setSavedOpen(false);
+                setFocusMode(true);
+              }}
+            >
+              <Focus size={13} strokeWidth={1.5} aria-hidden="true" />
+              Focus
+            </button>
+          ) : null}
           <button
             className={savedOpen ? "saved-toggle active" : "saved-toggle"}
             type="button"
@@ -1259,77 +1483,17 @@ export default function Home() {
         </div>
 
         <form
-          className="word-search"
-          ref={searchMenuRef}
-          role="search"
+          className="advanced-host"
           onSubmit={(event) => {
             event.preventDefault();
-            if (advancedOpen) {
-              if (advancedTool === "search") {
-                void runAdvancedSearch();
-              } else {
-                const slotIndex = forgeSlots.findIndex((slot) => !slot.candidates.length);
-                if (slotIndex >= 0) void findForgeWords(slotIndex);
-              }
-              return;
+            if (advancedTool === "search") {
+              void runAdvancedSearch();
+            } else {
+              const slotIndex = forgeSlots.findIndex((slot) => !slot.candidates.length);
+              if (slotIndex >= 0) void findForgeWords(slotIndex);
             }
-            const chosen = activeSuggestion >= 0 ? suggestions[activeSuggestion] : search;
-            void lookupWord(chosen);
           }}
         >
-          <label className="sr-only" htmlFor="word-search">Search for a word</label>
-          <span className="search-icon" aria-hidden="true" />
-          <input
-            ref={searchInputRef}
-            id="word-search"
-            type="search"
-            role="combobox"
-            value={search}
-            placeholder="Search a word"
-            autoComplete="off"
-            aria-autocomplete="list"
-            aria-keyshortcuts="Meta+K Control+K"
-            aria-controls="word-suggestions"
-            aria-expanded={searchOpen && suggestions.length > 0}
-            aria-activedescendant={activeSuggestion >= 0 ? `suggestion-${activeSuggestion}` : undefined}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              if (event.target.value.trim().length < 2) setSuggestions([]);
-              setSearchOpen(true);
-            }}
-            onFocus={() => setSearchOpen(true)}
-            onBlur={() => window.setTimeout(() => setSearchOpen(false), 100)}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowDown") {
-                event.preventDefault();
-                setActiveSuggestion((current) => Math.min(current + 1, suggestions.length - 1));
-              } else if (event.key === "ArrowUp") {
-                event.preventDefault();
-                setActiveSuggestion((current) => Math.max(current - 1, 0));
-              } else if (event.key === "Escape") {
-                setSearchOpen(false);
-              }
-            }}
-          />
-          <kbd className="search-shortcut" aria-hidden="true">⌘K</kbd>
-          {searchOpen && !advancedOpen && suggestions.length > 0 ? (
-            <ul className="suggestions" id="word-suggestions" role="listbox">
-              {suggestions.map((word, index) => (
-                <li
-                  id={`suggestion-${index}`}
-                  key={word}
-                  role="option"
-                  aria-selected={index === activeSuggestion}
-                  className={index === activeSuggestion ? "active" : ""}
-                  style={{ fontFamily: cardo.style.fontFamily }}
-                  onPointerDown={(event) => event.preventDefault()}
-                  onClick={() => void lookupWord(word)}
-                >
-                  {word}
-                </li>
-              ))}
-            </ul>
-          ) : null}
           {advancedOpen ? (
             <div className="advanced-panel" id="advanced-search">
               <div className="advanced-heading">
@@ -1457,7 +1621,6 @@ export default function Home() {
                         onClick={() => {
                           commitWord(word);
                           setMessage("");
-                          setSearch(word.word);
                           selectAppMode("discover");
                         }}
                       >
@@ -1651,15 +1814,15 @@ export default function Home() {
       </header>
 
       {appMode === "discover" && !splitView ? (
-        <aside className="split-settings-panel left single-settings-panel" aria-label="Word settings">
+        <aside className="split-settings-panel right rounded-3xl" aria-label="Right word settings">
           <div className="settings-panel-header">
-            <p>Word settings</p>
+            <p>Right word</p>
             <button
-              className={primaryFiltersApplied ? undefined : "settings-reset-placeholder"}
+              className={rightSettingsApplied ? undefined : "settings-reset-placeholder"}
               type="button"
-              aria-hidden={!primaryFiltersApplied}
-              tabIndex={primaryFiltersApplied ? undefined : -1}
-              onClick={resetPrimarySettings}
+              aria-hidden={!rightSettingsApplied}
+              tabIndex={rightSettingsApplied ? undefined : -1}
+              onClick={resetSecondarySettings}
             >
               <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
               Reset
@@ -1667,45 +1830,58 @@ export default function Home() {
           </div>
           <div className="settings-group">
             <label className="split-setting-field boxed-setting-field">
-              <span>Related to</span>
-              <input value={wordRelatedTo} placeholder="Optional idea or word" onChange={(event) => setWordRelatedTo(event.target.value)} />
+              <span>Text</span>
+              <input
+                value={rightWordDraft}
+                placeholder="Optional fixed text"
+                maxLength={40}
+                onChange={(event) => setRightWordDraft(event.target.value)}
+                onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
+                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+              />
             </label>
           </div>
-          <div className="settings-group">
-            <WordTypeTabs className="split-side-types" value={wordType} label="Word type" onChange={setWordType} />
-          </div>
-          <div className="settings-group">
-            <CounterSetting label="Syllables" value={wordSyllables} max={8} onChange={setWordSyllables} />
-            <AffixSetting kind="starts" value={wordStartsWith} onChange={setWordStartsWith} />
-            <AffixSetting kind="ends" value={wordEndsWith} onChange={setWordEndsWith} />
-            <WordLengthSetting value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
-          </div>
-          <div className="settings-group settings-actions">
-            <button className="split-generate-button" type="button" onClick={() => void findWord()}>Generate word</button>
-          </div>
+          <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
+            <div className="settings-group">
+              <RelatedToSetting id="single-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
+            </div>
+            <div className="settings-group">
+              <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
+            </div>
+            <div className="settings-group">
+              <CounterSetting label="Syllables" value={secondaryWordSyllables} max={8} onChange={setSecondaryWordSyllables} />
+              <LengthModeToggle value={secondaryWordSyllableMode} label="Syllable count comparison" disabled={!secondaryWordSyllables} onChange={setSecondaryWordSyllableMode} />
+            </div>
+            <div className="settings-group">
+              <AffixSetting kind="starts" value={secondaryWordStartsWith} onChange={setSecondaryWordStartsWith} />
+              <AffixSetting kind="ends" value={secondaryWordEndsWith} onChange={setSecondaryWordEndsWith} />
+              <WordLengthSetting value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
+            </div>
+            <div className="settings-group settings-actions">
+              <button className="split-generate-button" type="button" onClick={() => void findSecondaryWord()}>Generate right</button>
+            </div>
+          </fieldset>
         </aside>
       ) : null}
 
-      {appMode === "discover" && !splitView ? <section className={loading ? "word-stage loading" : "word-stage"} id="top" aria-live="polite">
+      {appMode === "discover" && !splitView ? <section className={loading || secondaryLoading ? "word-stage loading" : "word-stage"} id="top" aria-live="polite">
         {result.word ? (
-        <div className="word-anchor">
-          <p className="eyebrow">
-            {result.partOfSpeech}
-            {displayedPronunciation ? <><span>·</span><span className="pronunciation-inline">{displayedPronunciation}</span></> : null}
-          </p>
-          <h1 className={cardo.className} style={{ fontSize: "60px" }}>{result.word}</h1>
-          <div className="word-details">
-            <div className="rule" aria-hidden="true" />
-            <button
-              className={definitionExpanded ? "definition expanded" : "definition"}
-              type="button"
-              aria-expanded={definitionExpanded}
-              title={definitionExpanded ? "Collapse definition" : "Expand definition"}
-              onClick={() => setDefinitionExpanded((expanded) => !expanded)}
-            >
-              {result.definition}
-            </button>
-            {message ? <p className="status">{message}</p> : null}
+        <div className="word-anchor split-word-anchor single-word-anchor">
+          <div className="single-content-column">
+            <h1 className={`single-main-word ${cardo.className}`}><span data-view-transition-word>{result.word}</span></h1>
+            <div className="single-details-row">
+              <article className="single-word-article" data-view-transition-card>
+                <p className="split-eyebrow">
+                  {result.partOfSpeech || "word"}
+                  {displayedPronunciation ? <><span>·</span><span className="pronunciation-inline">{displayedPronunciation}</span></> : null}
+                </p>
+                <div className="rule" aria-hidden="true" />
+                <SplitDescription key={result.word}>
+                  {result.definition}
+                </SplitDescription>
+                {message ? <p className="status">{message}</p> : null}
+              </article>
+            </div>
           </div>
         </div>
         ) : null}
@@ -1713,7 +1889,7 @@ export default function Home() {
 
       {appMode === "discover" && splitView ? (
         <section className="split-word-stage" aria-live="polite">
-          <aside className="split-settings-panel left" aria-label="Left word settings">
+          <aside className="split-settings-panel left rounded-3xl" aria-label="Left word settings">
             <div className="settings-panel-header">
               <p>Left word</p>
               <button
@@ -1742,16 +1918,16 @@ export default function Home() {
             </div>
             <fieldset className="settings-filter-set" disabled={Boolean(leftWordDraft.trim())}>
               <div className="settings-group">
-              <label className="split-setting-field boxed-setting-field">
-                <span>Related to</span>
-                <input value={wordRelatedTo} placeholder="Optional idea or word" onChange={(event) => setWordRelatedTo(event.target.value)} />
-              </label>
+                <RelatedToSetting id="split-left-related" value={wordRelatedTo} onChange={setWordRelatedTo} />
               </div>
               <div className="settings-group">
                 <WordTypeTabs className="split-side-types" value={wordType} label="Left word type" onChange={setWordType} />
               </div>
               <div className="settings-group">
                 <CounterSetting label="Syllables" value={wordSyllables} max={8} onChange={setWordSyllables} />
+                <LengthModeToggle value={wordSyllableMode} label="Syllable count comparison" disabled={!wordSyllables} onChange={setWordSyllableMode} />
+              </div>
+              <div className="settings-group">
                 <AffixSetting kind="starts" value={wordStartsWith} onChange={setWordStartsWith} />
                 <AffixSetting kind="ends" value={wordEndsWith} onChange={setWordEndsWith} />
                 <WordLengthSetting value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
@@ -1764,34 +1940,41 @@ export default function Home() {
 
           <div className="split-word-anchor">
             <button
-              className={`split-combined-word${loading || secondaryLoading ? " loading" : ""} ${cardo.className}`}
+              className={`split-combined-word ${cardo.className}`}
               type="button"
               disabled={!leftWordValue || !rightWordValue}
               aria-label={`Copy ${leftWordValue}${rightWordValue}`}
               title="Copy combined word"
               onClick={() => void navigator.clipboard.writeText(`${leftWordValue}${rightWordValue}`.replace(/\s+/g, "").toLowerCase())}
             >
-              <span>{leftWordValue}</span><span>{rightWordValue || "——"}</span>
+              <span className={`split-word-part${(loading || splitBatchLoading) && leftWordValue ? " loading" : ""}`} key={`left-${leftWordValue}`}>{leftWordValue}</span>
+              <span className={`split-word-part${(secondaryLoading || splitBatchLoading) && rightWordValue ? " loading" : ""}`} data-view-transition-word key={`right-${rightWordValue}`}>{rightWordValue || "——"}</span>
             </button>
             <div className="split-definitions">
               {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
-                <article className={index === 0 ? loading ? "loading" : "" : secondaryLoading ? "loading" : ""} key={index}>
-                  <h2 className={`split-source-word ${cardo.className}`}>{item.word.word || "——"}</h2>
-                  <p className="split-eyebrow">
-                    {index === 0 && item.pronunciation ? <><span className="pronunciation-inline">{item.pronunciation}</span><span>·</span></> : null}
-                    {item.word.partOfSpeech || "word"}
-                    {index === 1 && item.pronunciation ? <><span>·</span><span className="pronunciation-inline">{item.pronunciation}</span></> : null}
-                  </p>
-                  <div className="rule" aria-hidden="true" />
-                  <SplitDescription key={item.word.word || index}>
-                    {item.word.definition || "Generate a word to begin."}
-                  </SplitDescription>
+                <article
+                  className={item.word.word && (splitBatchLoading || (index === 0 ? loading : secondaryLoading)) ? "loading" : ""}
+                  data-view-transition-card={index === 1 ? "" : undefined}
+                  key={index}
+                >
+                  {item.word.word ? <div className="split-word-details" key={`${index}-${item.word.word}`}>
+                    <h2 className={`split-source-word ${cardo.className}`}>{item.word.word || "——"}</h2>
+                    <p className="split-eyebrow">
+                      {index === 0 && item.pronunciation ? <><span className="pronunciation-inline">{item.pronunciation}</span><span>·</span></> : null}
+                      {item.word.partOfSpeech || "word"}
+                      {index === 1 && item.pronunciation ? <><span>·</span><span className="pronunciation-inline">{item.pronunciation}</span></> : null}
+                    </p>
+                    <div className="rule" aria-hidden="true" />
+                    <SplitDescription>
+                      {item.word.definition || "Generate a word to begin."}
+                    </SplitDescription>
+                  </div> : null}
                 </article>
               ))}
             </div>
           </div>
 
-          <aside className="split-settings-panel right" aria-label="Right word settings">
+          <aside className="split-settings-panel right rounded-3xl" aria-label="Right word settings">
             <div className="settings-panel-header">
               <p>Right word</p>
               <button
@@ -1820,16 +2003,16 @@ export default function Home() {
             </div>
             <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
               <div className="settings-group">
-              <label className="split-setting-field boxed-setting-field">
-                <span>Related to</span>
-                <input value={secondaryWordRelatedTo} placeholder="Optional idea or word" onChange={(event) => setSecondaryWordRelatedTo(event.target.value)} />
-              </label>
+                <RelatedToSetting id="split-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
               </div>
               <div className="settings-group">
                 <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
               </div>
               <div className="settings-group">
                 <CounterSetting label="Syllables" value={secondaryWordSyllables} max={8} onChange={setSecondaryWordSyllables} />
+                <LengthModeToggle value={secondaryWordSyllableMode} label="Syllable count comparison" disabled={!secondaryWordSyllables} onChange={setSecondaryWordSyllableMode} />
+              </div>
+              <div className="settings-group">
                 <AffixSetting kind="starts" value={secondaryWordStartsWith} onChange={setSecondaryWordStartsWith} />
                 <AffixSetting kind="ends" value={secondaryWordEndsWith} onChange={setSecondaryWordEndsWith} />
                 <WordLengthSetting value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
@@ -1847,6 +2030,10 @@ export default function Home() {
           <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
             <kbd>space</kbd>
             <span>Generate</span>
+          </button>
+          <button type="button" onClick={() => setFocusMode(true)}>
+            <kbd>F</kbd>
+            <span>Focus</span>
           </button>
           {splitView ? (
             <>
@@ -1876,12 +2063,6 @@ export default function Home() {
             </>
           ) : (
             <>
-              {relations.map((relation) => (
-                <button key={relation.key} type="button" onClick={() => void findWord(relation)}>
-                  <kbd>{relation.key.toUpperCase()}</kbd>
-                  <span>{relation.label}</span>
-                </button>
-              ))}
               <button
                 className={isSaved ? "save-legend liked" : "save-legend"}
                 type="button"

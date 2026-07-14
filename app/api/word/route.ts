@@ -50,6 +50,7 @@ export async function GET(request: Request) {
   const sourceWord = search.get("word")?.trim().slice(0, 80);
   const lookup = search.get("lookup")?.trim().slice(0, 80);
   const syllables = Number(search.get("syllables"));
+  const syllablesMode = search.get("syllablesMode") ?? "exact";
   const startsWith = search.get("startsWith")?.replace(/[^a-z]/gi, "").slice(0, 12) ?? "";
   const endsWith = search.get("endsWith")?.replace(/[^a-z]/gi, "").slice(0, 12) ?? "";
   const requestedLength = Number(search.get("length"));
@@ -117,7 +118,10 @@ export async function GET(request: Request) {
       if (!item.defs?.length) return false;
       if (lookup && item.word.toLowerCase() !== lookup.toLowerCase()) return false;
       if (!lookup && /[\s_-]/.test(item.word)) return false;
-      if (!lookup && syllables && item.numSyllables !== syllables) return false;
+      if (!lookup && syllables && !item.numSyllables) return false;
+      if (!lookup && syllables && syllablesMode === "exact" && item.numSyllables !== syllables) return false;
+      if (!lookup && syllables && syllablesMode === "less" && item.numSyllables! > syllables) return false;
+      if (!lookup && syllables && syllablesMode === "more" && item.numSyllables! < syllables) return false;
       if (!lookup && startsWith && !item.word.toLowerCase().startsWith(startsWith.toLowerCase())) return false;
       if (!lookup && endsWith && !item.word.toLowerCase().endsWith(endsWith.toLowerCase())) return false;
       if (!lookup && exactLetters && item.word.length !== exactLetters) return false;
