@@ -49,6 +49,21 @@ type SplitHistoryEntry = {
   right: WordResult;
 };
 
+const POS_VALUES = new Set<PartOfSpeech>(["any", "n", "v", "adj", "adv"]);
+const LENGTH_MODES = new Set<LengthMode>(["less", "exact", "more"]);
+
+type SideSettings = {
+  text: string;
+  related: string;
+  pos: PartOfSpeech;
+  syllables: string;
+  syllableMode: LengthMode;
+  startsWith: string;
+  endsWith: string;
+  letters: string;
+  lengthMode: LengthMode;
+};
+
 function parseViewModeParam(search: string): boolean | null {
   const view = new URLSearchParams(search).get("view");
   if (view === "split") return true;
@@ -56,9 +71,64 @@ function parseViewModeParam(search: string): boolean | null {
   return null;
 }
 
-function writeViewModeParam(split: boolean) {
+function parsePartOfSpeech(value: string | null): PartOfSpeech | null {
+  return value && POS_VALUES.has(value as PartOfSpeech) ? value as PartOfSpeech : null;
+}
+
+function parseLengthMode(value: string | null): LengthMode | null {
+  return value && LENGTH_MODES.has(value as LengthMode) ? value as LengthMode : null;
+}
+
+function parseSideSettings(search: URLSearchParams, prefix: "l" | "r"): Partial<SideSettings> {
+  const get = (key: string) => search.get(`${prefix}${key}`);
+  const settings: Partial<SideSettings> = {};
+  const text = get("Text");
+  const related = get("Related");
+  const pos = parsePartOfSpeech(get("Pos"));
+  const syllables = get("Syl");
+  const syllableMode = parseLengthMode(get("SylMode"));
+  const startsWith = get("Start")?.replace(/[^a-z]/gi, "").slice(0, 12);
+  const endsWith = get("End")?.replace(/[^a-z]/gi, "").slice(0, 12);
+  const letters = get("Len");
+  const lengthMode = parseLengthMode(get("LenMode"));
+
+  if (text) settings.text = text.slice(0, 40);
+  if (related) settings.related = related;
+  if (pos) settings.pos = pos;
+  if (syllables) settings.syllables = syllables;
+  if (syllableMode) settings.syllableMode = syllableMode;
+  if (startsWith) settings.startsWith = startsWith;
+  if (endsWith) settings.endsWith = endsWith;
+  if (letters) settings.letters = letters;
+  if (lengthMode) settings.lengthMode = lengthMode;
+  return settings;
+}
+
+function writeSideSettings(params: URLSearchParams, prefix: "l" | "r", settings: SideSettings) {
+  const entries: [string, string | null][] = [
+    ["Text", settings.text || null],
+    ["Related", settings.related || null],
+    ["Pos", settings.pos !== "any" ? settings.pos : null],
+    ["Syl", settings.syllables || null],
+    ["SylMode", settings.syllableMode !== "exact" ? settings.syllableMode : null],
+    ["Start", settings.startsWith || null],
+    ["End", settings.endsWith || null],
+    ["Len", settings.letters || null],
+    ["LenMode", settings.lengthMode !== "exact" ? settings.lengthMode : null],
+  ];
+
+  for (const [key, value] of entries) {
+    const param = `${prefix}${key}`;
+    if (value) params.set(param, value);
+    else params.delete(param);
+  }
+}
+
+function syncDiscoverUrlParams(splitView: boolean, left: SideSettings, right: SideSettings) {
   const url = new URL(window.location.href);
-  url.searchParams.set("view", split ? "split" : "single");
+  url.searchParams.set("view", splitView ? "split" : "single");
+  writeSideSettings(url.searchParams, "l", left);
+  writeSideSettings(url.searchParams, "r", right);
   window.history.replaceState(window.history.state, "", url);
 }
 
@@ -116,15 +186,15 @@ const advancedModes: {
   description: string;
   example: string;
 }[] = [
-  { value: "ml", label: "Similar meaning", fieldLabel: "Meaning or idea", placeholder: "Describe a meaning", description: "Find words that express the same idea", example: "Example: ringing in the ears → tinnitus" },
-  { value: "sl", label: "Similar sound", fieldLabel: "How it sounds", placeholder: "Type how it sounds", description: "Find words with a similar pronunciation", example: "Example: jirraf → giraffe" },
-  { value: "spell", label: "Fix spelling", fieldLabel: "Word or misspelling", placeholder: "Enter a word", description: "Find likely spellings for an uncertain word", example: "Example: hipopatamus → hippopotamus" },
-  { value: "pattern", label: "Letter pattern", fieldLabel: "Letter pattern", placeholder: "", description: "Find words by their beginning, ending, or length", example: "Example: begins with t, ends with k, 4 letters" },
-  { value: "jjb", label: "Describe a noun", fieldLabel: "Noun", placeholder: "Enter a noun", description: "Find adjectives commonly used for a noun", example: "Example: ocean → vast, blue" },
-  { value: "jja", label: "Nouns by adjective", fieldLabel: "Adjective", placeholder: "Enter an adjective", description: "Find nouns commonly described by an adjective", example: "Example: yellow → sun, flower" },
-  { value: "trg", label: "Associated words", fieldLabel: "Word", placeholder: "Enter a word", description: "Find words that often appear in the same context", example: "Example: cow → milk, farm" },
-  { value: "lc", label: "Comes after", fieldLabel: "Previous word", placeholder: "Enter the previous word", description: "Find words that commonly follow another word", example: "Example: drink → water" },
-];
+    { value: "ml", label: "Similar meaning", fieldLabel: "Meaning or idea", placeholder: "Describe a meaning", description: "Find words that express the same idea", example: "Example: ringing in the ears → tinnitus" },
+    { value: "sl", label: "Similar sound", fieldLabel: "How it sounds", placeholder: "Type how it sounds", description: "Find words with a similar pronunciation", example: "Example: jirraf → giraffe" },
+    { value: "spell", label: "Fix spelling", fieldLabel: "Word or misspelling", placeholder: "Enter a word", description: "Find likely spellings for an uncertain word", example: "Example: hipopatamus → hippopotamus" },
+    { value: "pattern", label: "Letter pattern", fieldLabel: "Letter pattern", placeholder: "", description: "Find words by their beginning, ending, or length", example: "Example: begins with t, ends with k, 4 letters" },
+    { value: "jjb", label: "Describe a noun", fieldLabel: "Noun", placeholder: "Enter a noun", description: "Find adjectives commonly used for a noun", example: "Example: ocean → vast, blue" },
+    { value: "jja", label: "Nouns by adjective", fieldLabel: "Adjective", placeholder: "Enter an adjective", description: "Find nouns commonly described by an adjective", example: "Example: yellow → sun, flower" },
+    { value: "trg", label: "Associated words", fieldLabel: "Word", placeholder: "Enter a word", description: "Find words that often appear in the same context", example: "Example: cow → milk, farm" },
+    { value: "lc", label: "Comes after", fieldLabel: "Previous word", placeholder: "Enter the previous word", description: "Find words that commonly follow another word", example: "Example: drink → water" },
+  ];
 
 const advancedModeGroups: { label: string; modes: AdvancedMode[] }[] = [
   { label: "Meaning", modes: ["ml", "trg"] },
@@ -680,6 +750,7 @@ export default function Home() {
   const splitHistoryRef = useRef<SplitHistoryEntry[]>([]);
   const splitHistoryIndexRef = useRef(-1);
   const splitHistoryBatchDepthRef = useRef(0);
+  const settingsUrlSyncedRef = useRef(false);
 
   const resetPrimarySettings = useCallback(() => {
     setLeftWordDraft("");
@@ -1420,15 +1491,92 @@ export default function Home() {
   }, []);
 
   useLayoutEffect(() => {
+    const search = new URLSearchParams(window.location.search);
     const splitFromUrl = parseViewModeParam(window.location.search);
     if (splitFromUrl !== null) setSplitView(splitFromUrl);
+
+    const left = parseSideSettings(search, "l");
+    if (left.text !== undefined) setLeftWordDraft(left.text);
+    if (left.related !== undefined) setWordRelatedTo(left.related);
+    if (left.pos !== undefined) setWordType(left.pos);
+    if (left.syllables !== undefined) setWordSyllables(left.syllables);
+    if (left.syllableMode !== undefined) setWordSyllableMode(left.syllableMode);
+    if (left.startsWith !== undefined) setWordStartsWith(left.startsWith);
+    if (left.endsWith !== undefined) setWordEndsWith(left.endsWith);
+    if (left.letters !== undefined) setWordLetters(left.letters);
+    if (left.lengthMode !== undefined) setWordLengthMode(left.lengthMode);
+
+    const right = parseSideSettings(search, "r");
+    if (right.text !== undefined) setRightWordDraft(right.text);
+    if (right.related !== undefined) setSecondaryWordRelatedTo(right.related);
+    if (right.pos !== undefined) setSecondaryWordType(right.pos);
+    if (right.syllables !== undefined) setSecondaryWordSyllables(right.syllables);
+    if (right.syllableMode !== undefined) setSecondaryWordSyllableMode(right.syllableMode);
+    if (right.startsWith !== undefined) setSecondaryWordStartsWith(right.startsWith);
+    if (right.endsWith !== undefined) setSecondaryWordEndsWith(right.endsWith);
+    if (right.letters !== undefined) setSecondaryWordLetters(right.letters);
+    if (right.lengthMode !== undefined) setSecondaryWordLengthMode(right.lengthMode);
+
+    settingsUrlSyncedRef.current = true;
   }, []);
+
+  useEffect(() => {
+    if (!settingsUrlSyncedRef.current) return;
+    syncDiscoverUrlParams(splitView, {
+      text: leftWordDraft,
+      related: wordRelatedTo,
+      pos: wordType,
+      syllables: wordSyllables,
+      syllableMode: wordSyllableMode,
+      startsWith: wordStartsWith,
+      endsWith: wordEndsWith,
+      letters: wordLetters,
+      lengthMode: wordLengthMode,
+    }, {
+      text: rightWordDraft,
+      related: secondaryWordRelatedTo,
+      pos: secondaryWordType,
+      syllables: secondaryWordSyllables,
+      syllableMode: secondaryWordSyllableMode,
+      startsWith: secondaryWordStartsWith,
+      endsWith: secondaryWordEndsWith,
+      letters: secondaryWordLetters,
+      lengthMode: secondaryWordLengthMode,
+    });
+  }, [
+    splitView,
+    leftWordDraft,
+    wordRelatedTo,
+    wordType,
+    wordSyllables,
+    wordSyllableMode,
+    wordStartsWith,
+    wordEndsWith,
+    wordLetters,
+    wordLengthMode,
+    rightWordDraft,
+    secondaryWordRelatedTo,
+    secondaryWordType,
+    secondaryWordSyllables,
+    secondaryWordSyllableMode,
+    secondaryWordStartsWith,
+    secondaryWordEndsWith,
+    secondaryWordLetters,
+    secondaryWordLengthMode,
+  ]);
 
   useEffect(() => {
     if (initialWordLoaded.current) return;
     initialWordLoaded.current = true;
-    generateVisibleWords();
-  }, [generateVisibleWords]);
+    const loadInitialWords = async () => {
+      const tasks: Promise<void>[] = [];
+      if (leftWordDraft.trim()) tasks.push(setExplicitSplitWord("left", leftWordDraft));
+      if (rightWordDraft.trim()) tasks.push(setExplicitSplitWord("right", rightWordDraft));
+      if (tasks.length) await Promise.all(tasks);
+      generateVisibleWords();
+    };
+    void loadInitialWords();
+  }, [generateVisibleWords, leftWordDraft, rightWordDraft, setExplicitSplitWord]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -1607,7 +1755,6 @@ export default function Home() {
       }
     };
     flushSync(updateLayout);
-    writeViewModeParam(nextSplit);
 
     // On entry, the existing word becomes the right-hand word. Animating that
     // element from its single-view position makes it pass through the empty
@@ -1648,7 +1795,7 @@ export default function Home() {
               <span className="logo-cursor-shadow" />
               <span className="logo-cursor" />
             </span>
-            <span className="wordmark-name" style={{ fontFamily: cardo.style.fontFamily }}>Lexicon</span>
+            <span className="wordmark-name" style={{ fontFamily: cardo.style.fontFamily }}>Lexical.</span>
           </a>
           <ApiHealthStatus health={apiHealth} />
         </div>
@@ -1741,125 +1888,125 @@ export default function Home() {
               </div>
 
               {advancedTool === "search" ? <>
-              <div className="advanced-workspace">
-                <div className="advanced-mode-nav" role="tablist" aria-label="Advanced search type">
-                  {advancedModeGroups.map((group) => (
-                    <div className="mode-group" key={group.label}>
-                      <p>{group.label}</p>
-                      {group.modes.map((modeValue) => {
-                        const mode = advancedModes.find((item) => item.value === modeValue)!;
-                        return (
-                          <button
-                            key={mode.value}
-                            type="button"
-                            role="tab"
-                            aria-selected={mode.value === advancedMode}
-                            aria-controls="advanced-query-panel"
-                            className={mode.value === advancedMode ? "active" : ""}
-                            onClick={() => {
-                              setAdvancedMode(mode.value);
-                              setAdvancedQuery("");
-                              setAdvancedStartsWith("");
-                              setAdvancedEndsWith("");
-                              setAdvancedLength("");
-                              setAdvancedTopic("");
-                              setAdvancedResults([]);
-                              setAdvancedError("");
-                            }}
-                          >
-                            {mode.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="advanced-query-panel" id="advanced-query-panel" role="tabpanel">
-                  <div className="query-intro">
-                    <p>{advancedModes.find((mode) => mode.value === advancedMode)?.label}</p>
-                    <span>{advancedModes.find((mode) => mode.value === advancedMode)?.description}</span>
-                    <small>{advancedModes.find((mode) => mode.value === advancedMode)?.example}</small>
+                <div className="advanced-workspace">
+                  <div className="advanced-mode-nav" role="tablist" aria-label="Advanced search type">
+                    {advancedModeGroups.map((group) => (
+                      <div className="mode-group" key={group.label}>
+                        <p>{group.label}</p>
+                        {group.modes.map((modeValue) => {
+                          const mode = advancedModes.find((item) => item.value === modeValue)!;
+                          return (
+                            <button
+                              key={mode.value}
+                              type="button"
+                              role="tab"
+                              aria-selected={mode.value === advancedMode}
+                              aria-controls="advanced-query-panel"
+                              className={mode.value === advancedMode ? "active" : ""}
+                              onClick={() => {
+                                setAdvancedMode(mode.value);
+                                setAdvancedQuery("");
+                                setAdvancedStartsWith("");
+                                setAdvancedEndsWith("");
+                                setAdvancedLength("");
+                                setAdvancedTopic("");
+                                setAdvancedResults([]);
+                                setAdvancedError("");
+                              }}
+                            >
+                              {mode.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
 
-                  {advancedMode !== "pattern" ? (
-                    <label className="advanced-field">
-                      <span>{advancedModes.find((mode) => mode.value === advancedMode)?.fieldLabel}</span>
-                      <input
-                        value={advancedQuery}
-                        placeholder={advancedModes.find((mode) => mode.value === advancedMode)?.placeholder}
-                        onChange={(event) => setAdvancedQuery(event.target.value)}
-                      />
-                    </label>
-                  ) : (
-                    <div className="pattern-builder">
-                      <p>Build the word shape</p>
-                      <div className="pattern-fields">
-                        <label className="advanced-field">
-                          <span>Starts with</span>
-                          <input value={advancedStartsWith} maxLength={12} onChange={(event) => setAdvancedStartsWith(event.target.value)} />
-                        </label>
-                        <label className="advanced-field">
-                          <span>Ends with</span>
-                          <input value={advancedEndsWith} maxLength={12} onChange={(event) => setAdvancedEndsWith(event.target.value)} />
-                        </label>
-                        <label className="advanced-field">
-                          <span>Total letters</span>
-                          <input value={advancedLength} inputMode="numeric" onChange={(event) => setAdvancedLength(event.target.value.replace(/\D/g, "").slice(0, 2))} />
-                        </label>
-                      </div>
+                  <div className="advanced-query-panel" id="advanced-query-panel" role="tabpanel">
+                    <div className="query-intro">
+                      <p>{advancedModes.find((mode) => mode.value === advancedMode)?.label}</p>
+                      <span>{advancedModes.find((mode) => mode.value === advancedMode)?.description}</span>
+                      <small>{advancedModes.find((mode) => mode.value === advancedMode)?.example}</small>
                     </div>
-                  )}
 
-                  {advancedMode === "ml" || advancedMode === "lc" ? (
-                    <div className="optional-spelling">
-                      <p>Limit the spelling <small>optional</small></p>
-                      <div className="constraint-fields">
-                        <label className="advanced-field">
-                          <span>Starts with</span>
-                          <input value={advancedStartsWith} maxLength={12} onChange={(event) => setAdvancedStartsWith(event.target.value)} />
-                        </label>
-                        <label className="advanced-field">
-                          <span>Ends with</span>
-                          <input value={advancedEndsWith} maxLength={12} onChange={(event) => setAdvancedEndsWith(event.target.value)} />
-                        </label>
+                    {advancedMode !== "pattern" ? (
+                      <label className="advanced-field">
+                        <span>{advancedModes.find((mode) => mode.value === advancedMode)?.fieldLabel}</span>
+                        <input
+                          value={advancedQuery}
+                          placeholder={advancedModes.find((mode) => mode.value === advancedMode)?.placeholder}
+                          onChange={(event) => setAdvancedQuery(event.target.value)}
+                        />
+                      </label>
+                    ) : (
+                      <div className="pattern-builder">
+                        <p>Build the word shape</p>
+                        <div className="pattern-fields">
+                          <label className="advanced-field">
+                            <span>Starts with</span>
+                            <input value={advancedStartsWith} maxLength={12} onChange={(event) => setAdvancedStartsWith(event.target.value)} />
+                          </label>
+                          <label className="advanced-field">
+                            <span>Ends with</span>
+                            <input value={advancedEndsWith} maxLength={12} onChange={(event) => setAdvancedEndsWith(event.target.value)} />
+                          </label>
+                          <label className="advanced-field">
+                            <span>Total letters</span>
+                            <input value={advancedLength} inputMode="numeric" onChange={(event) => setAdvancedLength(event.target.value.replace(/\D/g, "").slice(0, 2))} />
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
+                    )}
 
-                  {["ml", "jjb", "jja", "trg"].includes(advancedMode) ? (
-                    <label className="advanced-field">
-                      <span>Prefer this topic <small>optional</small></span>
-                      <input value={advancedTopic} onChange={(event) => setAdvancedTopic(event.target.value)} />
-                    </label>
-                  ) : null}
+                    {advancedMode === "ml" || advancedMode === "lc" ? (
+                      <div className="optional-spelling">
+                        <p>Limit the spelling <small>optional</small></p>
+                        <div className="constraint-fields">
+                          <label className="advanced-field">
+                            <span>Starts with</span>
+                            <input value={advancedStartsWith} maxLength={12} onChange={(event) => setAdvancedStartsWith(event.target.value)} />
+                          </label>
+                          <label className="advanced-field">
+                            <span>Ends with</span>
+                            <input value={advancedEndsWith} maxLength={12} onChange={(event) => setAdvancedEndsWith(event.target.value)} />
+                          </label>
+                        </div>
+                      </div>
+                    ) : null}
 
-                  <button className="advanced-submit" type="submit" disabled={advancedLoading}>
-                    {advancedLoading ? "Searching…" : "Find words"}
-                  </button>
+                    {["ml", "jjb", "jja", "trg"].includes(advancedMode) ? (
+                      <label className="advanced-field">
+                        <span>Prefer this topic <small>optional</small></span>
+                        <input value={advancedTopic} onChange={(event) => setAdvancedTopic(event.target.value)} />
+                      </label>
+                    ) : null}
+
+                    <button className="advanced-submit" type="submit" disabled={advancedLoading}>
+                      {advancedLoading ? "Searching…" : "Find words"}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {advancedError ? <p className="advanced-error">{advancedError}</p> : null}
-              {advancedResults.length ? (
-                <ul className="advanced-results">
-                  {advancedResults.map((word) => (
-                    <li key={`${word.word}-${word.partOfSpeech}`}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          commitWord(word);
-                          setMessage("");
-                          selectAppMode("discover");
-                        }}
-                      >
-                        <span style={{ fontFamily: cardo.style.fontFamily }}>{word.word}</span>
-                        <small>{word.partOfSpeech}</small>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+                {advancedError ? <p className="advanced-error">{advancedError}</p> : null}
+                {advancedResults.length ? (
+                  <ul className="advanced-results">
+                    {advancedResults.map((word) => (
+                      <li key={`${word.word}-${word.partOfSpeech}`}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            commitWord(word);
+                            setMessage("");
+                            selectAppMode("discover");
+                          }}
+                        >
+                          <span style={{ fontFamily: cardo.style.fontFamily }}>{word.word}</span>
+                          <small>{word.partOfSpeech}</small>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </> : (
                 <div className="forge-workspace">
                   <div className="forge-constraints">
@@ -2095,37 +2242,37 @@ export default function Home() {
 
       {appMode === "discover" && !splitView ? <section className={loading || secondaryLoading ? "word-stage loading" : "word-stage"} id="top" aria-live="polite">
         {result.word ? (
-        <div className="word-anchor split-word-anchor single-word-anchor">
-          <div className="single-content-column">
-            <h1 className="copyable-word-wrap single-copyable-word-wrap">
-              <WordCopyHint status={wordCopyStatus} />
-              <button
-                className={`single-main-word copyable-word ${cardo.className}`}
-                type="button"
-                aria-label={`Copy ${result.word}`}
-                onClick={() => void copyDisplayedWord(result.word)}
-                onPointerEnter={() => {
-                  if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
-                }}
-              >
-                <span data-view-transition-word>{result.word}</span>
-              </button>
-            </h1>
-            <div className="single-details-row">
-              <article className="single-word-article" data-view-transition-card>
-                <p className="split-eyebrow">
-                  {result.partOfSpeech || "word"}
-                  {displayedPronunciation ? <><span>·</span><span className="pronunciation-inline">{displayedPronunciation}</span></> : null}
-                </p>
-                <div className="rule" aria-hidden="true" />
-                <SplitDescription key={result.word}>
-                  {result.definition}
-                </SplitDescription>
-                {message ? <p className="status">{message}</p> : null}
-              </article>
+          <div className="word-anchor split-word-anchor single-word-anchor">
+            <div className="single-content-column">
+              <h1 className="copyable-word-wrap single-copyable-word-wrap">
+                <WordCopyHint status={wordCopyStatus} />
+                <button
+                  className={`single-main-word copyable-word ${cardo.className}`}
+                  type="button"
+                  aria-label={`Copy ${result.word}`}
+                  onClick={() => void copyDisplayedWord(result.word)}
+                  onPointerEnter={() => {
+                    if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
+                  }}
+                >
+                  <span data-view-transition-word>{result.word}</span>
+                </button>
+              </h1>
+              <div className="single-details-row">
+                <article className="single-word-article" data-view-transition-card>
+                  <p className="split-eyebrow">
+                    {result.partOfSpeech || "word"}
+                    {displayedPronunciation ? <><span>·</span><span className="pronunciation-inline">{displayedPronunciation}</span></> : null}
+                  </p>
+                  <div className="rule" aria-hidden="true" />
+                  <SplitDescription key={result.word}>
+                    {result.definition}
+                  </SplitDescription>
+                  {message ? <p className="status">{message}</p> : null}
+                </article>
+              </div>
             </div>
           </div>
-        </div>
         ) : null}
       </section> : null}
 
