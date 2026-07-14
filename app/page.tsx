@@ -562,7 +562,7 @@ function WordCopyHint({ status }: { status: WordCopyStatus }) {
 export default function Home() {
   const [appMode, setAppMode] = useState<AppMode>("discover");
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
-  const [splitView, setSplitView] = useState(false);
+  const [splitView, setSplitView] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
   const [wordCopyStatus, setWordCopyStatus] = useState<WordCopyStatus>("idle");
   const [wordSyllables, setWordSyllables] = useState("");
@@ -1290,8 +1290,8 @@ export default function Home() {
   useEffect(() => {
     if (initialWordLoaded.current) return;
     initialWordLoaded.current = true;
-    void findSecondaryWord();
-  }, [findSecondaryWord]);
+    generateVisibleWords();
+  }, [generateVisibleWords]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
