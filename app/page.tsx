@@ -83,6 +83,19 @@ function ApiHealthStatus({ health }: { health: ApiHealth }) {
   );
 }
 
+function stripSplitFields(word: WordResult): WordResult {
+  const { splitLeft, splitRight, ...clean } = word;
+  return clean;
+}
+
+function parseCombinedParts(saved: WordResult): [string, string] | null {
+  if (saved.splitLeft?.word && saved.splitRight?.word) {
+    return [saved.splitLeft.word, saved.splitRight.word];
+  }
+  const match = saved.definition.match(/combining [“"]([^”"]+)[”"] and [“"]([^”"]+)[”"]/);
+  return match ? [match[1], match[2]] : null;
+}
+
 const emptyForgeSlot = (): ForgeSlot => ({
   seed: "",
   maxLetters: "",
@@ -784,37 +797,61 @@ export default function Home() {
       word: combinedSplitWord,
       definition: `A coined word combining “${leftWordValue}” and “${rightWordValue}”.`,
       partOfSpeech: "combined word",
-      splitLeft: result,
-      splitRight: secondaryResult,
+      splitLeft: stripSplitFields(result),
+      splitRight: stripSplitFields(secondaryResult),
     }, ...savedWords]);
   }, [combinedSplitIsSaved, combinedSplitWord, leftWordValue, result, rightWordValue, saveWords, savedWords, secondaryResult]);
 
-  const loadSavedWord = useCallback((saved: WordResult) => {
+  const loadSavedWord = useCallback(async (saved: WordResult) => {
     setMessage("From your saved words");
     setSavedOpen(false);
     selectAppMode("discover");
 
-    if (splitView) {
-      if (saved.splitLeft && saved.splitRight) {
+    if (splitView && saved.partOfSpeech === "combined word") {
+      const parts = parseCombinedParts(saved);
+      if (parts) {
+        const [left, right] = parts;
         setLeftWordDraft("");
         setRightWordDraft("");
-        setResult(saved.splitLeft);
-        setSecondaryResult(saved.splitRight);
-        return;
-      }
+        const hasStoredDefinitions = saved.splitLeft && saved.splitRight
+          && saved.splitLeft.definition
+          && saved.splitRight.definition
+          && !saved.splitLeft.definition.startsWith("A coined word combining ")
+          && !saved.splitRight.definition.startsWith("A coined word combining ")
+          && saved.splitLeft.definition !== saved.definition
+          && saved.splitRight.definition !== saved.definition;
 
-      if (saved.partOfSpeech === "combined word") {
-        const match = saved.definition.match(/combining [“"]([^”"]+)[”"] and [“"]([^”"]+)[”"]/);
-        if (match) {
-          const [, left, right] = match;
-          setLeftWordDraft("");
-          setRightWordDraft("");
-          setResult({ word: left, definition: saved.definition, partOfSpeech: "word" });
-          setSecondaryResult({ word: right, definition: saved.definition, partOfSpeech: "word" });
+        if (hasStoredDefinitions) {
+          setResult(saved.splitLeft!);
+          setSecondaryResult(saved.splitRight!);
           return;
         }
-      }
 
+        setLoading(true);
+        setSecondaryLoading(true);
+        try {
+          const lookupSide = async (word: string): Promise<WordResult> => {
+            try {
+              const response = await fetch(`/api/word?lookup=${encodeURIComponent(word)}`);
+              applyApiHealth(response, setApiHealth);
+              if (response.ok) return await response.json() as WordResult;
+            } catch (error) {
+              if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
+            }
+            return { word, definition: "No definition available.", partOfSpeech: "word" };
+          };
+          const [leftWord, rightWord] = await Promise.all([lookupSide(left), lookupSide(right)]);
+          setResult(leftWord);
+          setSecondaryResult(rightWord);
+        } finally {
+          setLoading(false);
+          setSecondaryLoading(false);
+        }
+        return;
+      }
+    }
+
+    if (splitView) {
       commitWord(saved);
       setSecondaryResult({ word: "", definition: "", partOfSpeech: "" });
       setLeftWordDraft("");
@@ -1651,7 +1688,7 @@ export default function Home() {
                       <button
                         className="saved-word"
                         type="button"
-                        onClick={() => loadSavedWord(saved)}
+                        onClick={() => void loadSavedWord(saved)}
                       >
                         <span style={{ fontFamily: cardo.style.fontFamily }}>{saved.word}</span>
                         <small>{saved.partOfSpeech}</small>
