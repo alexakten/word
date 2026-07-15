@@ -1211,16 +1211,6 @@ button { color: inherit; font: inherit; }
   display: none;
 }
 
-.page-shell.discover-mode .controls {
-  top: var(--page-padding-y);
-  bottom: auto;
-  padding-top: 0;
-}
-
-.page-shell.discover-mode .controls-bar {
-  align-items: flex-start;
-}
-
 .settings-panel-scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -2140,7 +2130,6 @@ button { color: inherit; font: inherit; }
 .split-word-anchor {
   width: var(--content-width);
   height: 16.25rem;
-  transform: translateY(clamp(-3rem, -5vh, -1.6rem));
 }
 
 .split-word-anchor:has(.discover-start-prompt),
@@ -2793,10 +2782,6 @@ kbd {
     padding-left: 0;
   }
   .controls { right: auto; bottom: var(--page-padding-y); left: 50%; width: var(--content-width); }
-  .page-shell.discover-mode .controls {
-    top: var(--page-padding-y);
-    bottom: auto;
-  }
   .site-header {
     top: .75rem;
     height: 58px;
@@ -2955,7 +2940,6 @@ kbd {
 
   .page-shell.discover-mode.mobile-layout .split-word-anchor {
     width: min(var(--content-width), calc(100vw - 2 * var(--page-padding-x)));
-    transform: translateY(clamp(-1.5rem, -2vh, -.5rem));
   }
 
   .page-shell.discover-mode.mobile-layout .split-combined-word {
