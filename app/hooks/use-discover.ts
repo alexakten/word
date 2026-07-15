@@ -636,31 +636,41 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     splitHistoryIndexRef.current = splitHistoryRef.current.length - 1;
   }, [result, secondaryResult, splitHistoryRevision]);
 
-  const primaryFiltersApplied = Boolean(
-    wordRelatedTo.trim()
-    || wordType !== "any"
-    || wordSyllables
-    || wordStartsWith
-    || wordEndsWith
-    || wordLetters
-  );
+  const leftSettingsCount = [
+    Boolean(leftWordDraft.trim()),
+    Boolean(wordRelatedTo.trim()),
+    wordType !== "any",
+    Boolean(wordSyllables),
+    Boolean(wordStartsWith),
+    Boolean(wordEndsWith),
+    Boolean(wordLetters),
+  ].filter(Boolean).length;
+  const rightSettingsCount = [
+    Boolean(rightWordDraft.trim()),
+    Boolean(secondaryWordRelatedTo.trim()),
+    secondaryWordType !== "any",
+    Boolean(secondaryWordSyllables),
+    Boolean(secondaryWordStartsWith),
+    Boolean(secondaryWordEndsWith),
+    Boolean(secondaryWordLetters),
+  ].filter(Boolean).length;
   const mixLeftApplied = leftSliceMode !== DEFAULT_SLICE_MODE
     || mixLeftSettings.syllablePick !== defaultCustomMixLeftSettings.syllablePick
     || mixLeftSettings.syllableTake !== defaultCustomMixLeftSettings.syllableTake;
   const mixRightApplied = rightSliceMode !== DEFAULT_SLICE_MODE
     || mixRightSettings.syllablePick !== defaultCustomMixRightSettings.syllablePick
     || mixRightSettings.syllableTake !== defaultCustomMixRightSettings.syllableTake;
-  const sliceSettingsApplied = mixLeftApplied || mixRightApplied;
-  const leftSettingsApplied = Boolean(leftWordDraft.trim()) || primaryFiltersApplied;
-  const rightSettingsApplied = Boolean(
-    rightWordDraft.trim()
-    || secondaryWordRelatedTo.trim()
-    || secondaryWordType !== "any"
-    || secondaryWordSyllables
-    || secondaryWordStartsWith
-    || secondaryWordEndsWith
-    || secondaryWordLetters
-  );
+  const sliceSettingsCount = [
+    leftSliceMode !== DEFAULT_SLICE_MODE,
+    mixLeftSettings.syllablePick !== defaultCustomMixLeftSettings.syllablePick,
+    mixLeftSettings.syllableTake !== defaultCustomMixLeftSettings.syllableTake,
+    rightSliceMode !== DEFAULT_SLICE_MODE,
+    mixRightSettings.syllablePick !== defaultCustomMixRightSettings.syllablePick,
+    mixRightSettings.syllableTake !== defaultCustomMixRightSettings.syllableTake,
+  ].filter(Boolean).length;
+  const sliceSettingsApplied = sliceSettingsCount > 0;
+  const leftSettingsApplied = leftSettingsCount > 0;
+  const rightSettingsApplied = rightSettingsCount > 0;
 
   return {
     wordType,
@@ -743,6 +753,9 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     rightSliceSettingsApplied: mixRightApplied,
     leftSettingsApplied,
     rightSettingsApplied,
+    leftSettingsCount,
+    rightSettingsCount,
+    sliceSettingsCount,
     setResult,
     setSecondaryResult,
     setLeftWordDraft,

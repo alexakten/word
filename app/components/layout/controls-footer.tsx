@@ -13,6 +13,9 @@ export type ControlsFooterProps = Pick<
   | "leftSettingsApplied"
   | "sliceSettingsApplied"
   | "rightSettingsApplied"
+  | "leftSettingsCount"
+  | "sliceSettingsCount"
+  | "rightSettingsCount"
   | "discoverHasNoWords"
   | "generateVisibleWords"
   | "setFocusMode"
@@ -45,6 +48,9 @@ export function ControlsFooter(props: ControlsFooterProps) {
     leftSettingsApplied,
     sliceSettingsApplied,
     rightSettingsApplied,
+    leftSettingsCount,
+    sliceSettingsCount,
+    rightSettingsCount,
     discoverHasNoWords,
     generateVisibleWords,
     setFocusMode,
@@ -79,6 +85,11 @@ export function ControlsFooter(props: ControlsFooterProps) {
             onClick={() => toggleMobileDiscoverPanel("left")}
           >
             Left word
+            {leftSettingsCount > 0 ? (
+              <span className="mobile-discover-toolbar-count" aria-label={`${leftSettingsCount} active filters`}>
+                {leftSettingsCount}
+              </span>
+            ) : null}
           </button>
           <button
             className={["mobile-discover-toolbar-button", mobileDiscoverPanel === "slice" ? "active" : "", sliceSettingsApplied ? "has-settings" : ""].filter(Boolean).join(" ")}
@@ -87,6 +98,11 @@ export function ControlsFooter(props: ControlsFooterProps) {
             onClick={() => toggleMobileDiscoverPanel("slice")}
           >
             Slice
+            {sliceSettingsCount > 0 ? (
+              <span className="mobile-discover-toolbar-count" aria-label={`${sliceSettingsCount} active filters`}>
+                {sliceSettingsCount}
+              </span>
+            ) : null}
           </button>
           <button
             className={["mobile-discover-toolbar-button", mobileDiscoverPanel === "right" ? "active" : "", rightSettingsApplied ? "has-settings" : ""].filter(Boolean).join(" ")}
@@ -95,6 +111,11 @@ export function ControlsFooter(props: ControlsFooterProps) {
             onClick={() => toggleMobileDiscoverPanel("right")}
           >
             Right word
+            {rightSettingsCount > 0 ? (
+              <span className="mobile-discover-toolbar-count" aria-label={`${rightSettingsCount} active filters`}>
+                {rightSettingsCount}
+              </span>
+            ) : null}
           </button>
         </div>
       ) : null}
