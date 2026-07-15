@@ -3585,6 +3585,31 @@ kbd {
   will-change: transform;
 }
 
+button.about-drawer-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background-color: #F6F5F4;
+  color: var(--muted);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+button.about-drawer-close:hover {
+  background-color: #EFEDE9;
+  color: var(--ink);
+}
+
 .about-drawer-content[data-vaul-drawer][data-state="open"] {
   animation: about-drawer-slide-in .5s cubic-bezier(.32, .72, 0, 1);
 }
@@ -3652,6 +3677,8 @@ kbd {
 
 .about-drawer-brand {
   margin: 0;
+  min-width: 0;
+  padding-right: 2.5rem;
 }
 
 .about-drawer-brand .wordmark {

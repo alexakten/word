@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Info } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { Drawer } from "vaul";
 import { WordmarkLink } from "./wordmark-link";
 
@@ -25,6 +25,14 @@ export function AboutDrawer() {
       <Drawer.Portal>
         <Drawer.Overlay className="about-drawer-overlay" />
         <Drawer.Content className="about-drawer-content">
+          <button
+            className="about-drawer-close"
+            type="button"
+            aria-label="Close about"
+            onClick={() => setOpen(false)}
+          >
+            <X size={14} strokeWidth={1.5} aria-hidden="true" />
+          </button>
           <div className="about-drawer-inner">
             <Drawer.Handle className="about-drawer-handle" />
             <Drawer.Title asChild>
