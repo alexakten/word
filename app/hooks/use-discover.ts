@@ -1,0 +1,738 @@
+"use client";
+
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { relations } from "../lib/constants";
+import { normalizeLengthSelection, normalizeSyllableSelection, resolveLengthFilter, resolveSyllableFilter } from "../lib/filters";
+import {
+  type ApiHealth,
+  type LengthMode,
+  type PartOfSpeech,
+  type SplitHistoryEntry,
+  type WordCopyStatus,
+  type WordResult,
+  emptyWordResult,
+} from "../lib/types";
+import { parseMixSideSettings, parseSideSettings, syncDiscoverUrlParams } from "../lib/url-params";
+import { applyApiHealth, isFetchFailure, stripSplitFields } from "../lib/word-utils";
+import { normalizePronunciation } from "../pronunciation";
+import {
+  type MixSideSettings,
+  type SliceMode,
+  defaultCustomMixLeftSettings,
+  defaultCustomMixRightSettings,
+  defaultMixLeftSettings,
+  defaultMixRightSettings,
+  effectiveMixSettings,
+  inferSideSliceMode,
+  mixWordParts,
+  normalizeCustomMixSettings,
+  parseSliceMode,
+} from "../syllables";
+
+type UseDiscoverOptions = {
+  setApiHealth: (health: ApiHealth) => void;
+  savedWords: WordResult[];
+  saveWords: (words: WordResult[]) => void;
+  setMessage: (message: string) => void;
+};
+
+export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
+  const [wordType, setWordType] = useState<PartOfSpeech>("any");
+  const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>("none");
+  const [rightSliceMode, setRightSliceMode] = useState<SliceMode>("none");
+  const [mixLeftSettings, setMixLeftSettings] = useState<MixSideSettings>(defaultCustomMixLeftSettings);
+  const [mixRightSettings, setMixRightSettings] = useState<MixSideSettings>(defaultCustomMixRightSettings);
+  const [wordCopyStatus, setWordCopyStatus] = useState<WordCopyStatus>("idle");
+  const [wordSyllables, setWordSyllables] = useState("");
+  const [wordSyllableMode, setWordSyllableMode] = useState<LengthMode>("exact");
+  const [wordStartsWith, setWordStartsWith] = useState("");
+  const [wordEndsWith, setWordEndsWith] = useState("");
+  const [wordLetters, setWordLetters] = useState("");
+  const [wordLengthMode, setWordLengthMode] = useState<LengthMode>("exact");
+  const [wordRelatedTo, setWordRelatedTo] = useState("");
+  const [secondaryWordType, setSecondaryWordType] = useState<PartOfSpeech>("any");
+  const [secondaryWordSyllables, setSecondaryWordSyllables] = useState("");
+  const [secondaryWordSyllableMode, setSecondaryWordSyllableMode] = useState<LengthMode>("exact");
+  const [secondaryWordStartsWith, setSecondaryWordStartsWith] = useState("");
+  const [secondaryWordEndsWith, setSecondaryWordEndsWith] = useState("");
+  const [secondaryWordLetters, setSecondaryWordLetters] = useState("");
+  const [secondaryWordLengthMode, setSecondaryWordLengthMode] = useState<LengthMode>("exact");
+  const [secondaryWordRelatedTo, setSecondaryWordRelatedTo] = useState("");
+  const [result, setResult] = useState<WordResult>({
+    word: "",
+    definition: "",
+    partOfSpeech: "",
+  });
+  const [secondaryResult, setSecondaryResult] = useState<WordResult>({ word: "", definition: "", partOfSpeech: "" });
+  const [leftWordDraft, setLeftWordDraft] = useState("");
+  const [rightWordDraft, setRightWordDraft] = useState("");
+  const [secondaryLoading, setSecondaryLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [splitBatchLoading, setSplitBatchLoading] = useState(false);
+  const [splitHistoryRevision, setSplitHistoryRevision] = useState(0);
+  const requestRef = useRef<AbortController | null>(null);
+  const secondaryRequestRef = useRef<AbortController | null>(null);
+  const splitBatchRequestRef = useRef(0);
+  const wordCopyTimerRef = useRef(0);
+  const initialWordLoaded = useRef(false);
+  const wordHistoryRef = useRef<WordResult[]>([]);
+  const historyIndexRef = useRef(-1);
+  const splitHistoryRef = useRef<SplitHistoryEntry[]>([]);
+  const splitHistoryIndexRef = useRef(-1);
+  const splitHistoryBatchDepthRef = useRef(0);
+  const settingsUrlSyncedRef = useRef(false);
+
+  const resetPrimaryFilters = useCallback(() => {
+    setWordRelatedTo("");
+    setWordType("any");
+    setWordSyllables("");
+    setWordSyllableMode("exact");
+    setWordStartsWith("");
+    setWordEndsWith("");
+    setWordLetters("");
+    setWordLengthMode("exact");
+  }, []);
+
+  const resetSecondaryFilters = useCallback(() => {
+    setSecondaryWordRelatedTo("");
+    setSecondaryWordType("any");
+    setSecondaryWordSyllables("");
+    setSecondaryWordSyllableMode("exact");
+    setSecondaryWordStartsWith("");
+    setSecondaryWordEndsWith("");
+    setSecondaryWordLetters("");
+    setSecondaryWordLengthMode("exact");
+  }, []);
+
+  const resetSliceSettings = useCallback(() => {
+    setLeftSliceMode("none");
+    setRightSliceMode("none");
+    setMixLeftSettings({ ...defaultCustomMixLeftSettings });
+    setMixRightSettings({ ...defaultCustomMixRightSettings });
+  }, []);
+
+  const handleLeftSliceModeChange = useCallback((mode: SliceMode) => {
+    setLeftSliceMode(mode);
+    if (mode === "custom") {
+      setMixLeftSettings((current) => normalizeCustomMixSettings(current));
+    }
+  }, []);
+
+  const handleRightSliceModeChange = useCallback((mode: SliceMode) => {
+    setRightSliceMode(mode);
+    if (mode === "custom") {
+      setMixRightSettings((current) => normalizeCustomMixSettings(current));
+    }
+  }, []);
+
+  const resetPrimarySettings = useCallback(() => {
+    setLeftWordDraft("");
+    resetPrimaryFilters();
+    setResult(emptyWordResult);
+  }, [resetPrimaryFilters]);
+
+  const resetSecondarySettings = useCallback(() => {
+    setRightWordDraft("");
+    resetSecondaryFilters();
+    setSecondaryResult(emptyWordResult);
+  }, [resetSecondaryFilters]);
+
+  const resetAllDiscoverSettings = useCallback(() => {
+    requestRef.current?.abort();
+    requestRef.current = null;
+    secondaryRequestRef.current?.abort();
+    secondaryRequestRef.current = null;
+    splitBatchRequestRef.current += 1;
+    setLoading(false);
+    setSecondaryLoading(false);
+    setSplitBatchLoading(false);
+    resetPrimaryFilters();
+    resetSecondaryFilters();
+    resetSliceSettings();
+    setLeftWordDraft("");
+    setRightWordDraft("");
+    setResult(emptyWordResult);
+    setSecondaryResult(emptyWordResult);
+    setMessage("");
+  }, [resetPrimaryFilters, resetSecondaryFilters, resetSliceSettings, setMessage]);
+
+  const commitWord = useCallback((word: WordResult) => {
+    const currentBranch = wordHistoryRef.current.slice(0, historyIndexRef.current + 1);
+    const updatedHistory = [...currentBranch, word].slice(-100);
+    wordHistoryRef.current = updatedHistory;
+    historyIndexRef.current = updatedHistory.length - 1;
+    setResult(word);
+  }, []);
+
+  const displayedPronunciation = normalizePronunciation(result.pronunciation);
+  const secondaryPronunciation = normalizePronunciation(secondaryResult.pronunciation);
+  const leftWordValue = leftWordDraft || result.word;
+  const rightWordValue = rightWordDraft || secondaryResult.word;
+  const effectiveMixLeftSettings = useMemo(
+    () => effectiveMixSettings(leftSliceMode, mixLeftSettings),
+    [leftSliceMode, mixLeftSettings],
+  );
+  const effectiveMixRightSettings = useMemo(
+    () => effectiveMixSettings(rightSliceMode, mixRightSettings),
+    [mixRightSettings, rightSliceMode],
+  );
+  const mixedWordParts = useMemo(
+    () => mixWordParts(
+      leftWordValue,
+      rightWordValue,
+      effectiveMixLeftSettings,
+      effectiveMixRightSettings,
+      result.syllables,
+      secondaryResult.syllables,
+    ),
+    [effectiveMixLeftSettings, effectiveMixRightSettings, leftWordValue, rightWordValue, result.syllables, secondaryResult.syllables],
+  );
+  const displayedCombinedWord = mixedWordParts.mixed;
+  const combinedSplitIsSaved = Boolean(displayedCombinedWord)
+    && savedWords.some((item) => item.word.toLowerCase() === displayedCombinedWord);
+  const discoverHasNoWords = !leftWordValue && !rightWordValue;
+
+  const toggleCombinedSaved = useCallback(() => {
+    if (!displayedCombinedWord) return;
+    if (combinedSplitIsSaved) {
+      saveWords(savedWords.filter((item) => item.word.toLowerCase() !== displayedCombinedWord));
+      return;
+    }
+    const definition = `A coined word mixing “${mixedWordParts.leftChunk}” from “${leftWordValue}” with “${mixedWordParts.rightChunk}” from “${rightWordValue}”.`;
+    saveWords([{
+      word: displayedCombinedWord,
+      definition,
+      partOfSpeech: "combined word",
+      splitLeft: stripSplitFields(result),
+      splitRight: stripSplitFields(secondaryResult),
+    }, ...savedWords]);
+  }, [combinedSplitIsSaved, displayedCombinedWord, leftWordValue, mixedWordParts.leftChunk, mixedWordParts.rightChunk, result, rightWordValue, saveWords, savedWords, secondaryResult]);
+
+  const copyDisplayedWord = useCallback(async (word: string) => {
+    if (!word) return;
+    try {
+      await navigator.clipboard.writeText(word.replace(/\s+/g, "").toLowerCase());
+      window.clearTimeout(wordCopyTimerRef.current);
+      setWordCopyStatus("copied");
+      wordCopyTimerRef.current = window.setTimeout(() => setWordCopyStatus("hidden"), 2000);
+    } catch {
+      // Clipboard access can be denied outside a secure browser context.
+    }
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(wordCopyTimerRef.current), []);
+  const findWord = useCallback(
+    async (relation?: (typeof relations)[number], requestedType: PartOfSpeech = wordType) => {
+      requestRef.current?.abort();
+      setLeftWordDraft("");
+      const controller = new AbortController();
+      requestRef.current = controller;
+      setLoading(true);
+      setMessage("");
+
+      const params = new URLSearchParams({ pos: requestedType });
+      if (relation) {
+        params.set("relation", relation.code);
+        params.set("word", result.word);
+      } else {
+        if (wordSyllables) {
+          const syllableFilter = resolveSyllableFilter(wordSyllables, wordSyllableMode);
+          if (syllableFilter) {
+            params.set("syllables", syllableFilter.syllables);
+            params.set("syllablesMode", syllableFilter.mode);
+          }
+        }
+        if (wordStartsWith) params.set("startsWith", wordStartsWith);
+        if (wordEndsWith) params.set("endsWith", wordEndsWith);
+        if (wordLetters) {
+          const lengthFilter = resolveLengthFilter(wordLetters, wordLengthMode);
+          if (lengthFilter) {
+            params.set("length", lengthFilter.length);
+            params.set("lengthMode", lengthFilter.mode);
+          }
+        }
+      }
+
+      try {
+        let next: WordResult;
+        if (!relation && wordRelatedTo.trim()) {
+          const response = await fetch(`/api/forge?idea=${encodeURIComponent(wordRelatedTo.trim())}`, { signal: controller.signal });
+          applyApiHealth(response, setApiHealth);
+          if (!response.ok) throw new Error("No word found");
+          const partName = requestedType === "any"
+            ? undefined
+            : { n: "noun", v: "verb", adj: "adjective", adv: "adverb" }[requestedType];
+          const candidates = (await response.json() as WordResult[]).filter((word) => {
+            if (partName && word.partOfSpeech !== partName) return false;
+            if (wordSyllables && !word.syllables) return false;
+            const syllableFilter = resolveSyllableFilter(wordSyllables, wordSyllableMode);
+            if (syllableFilter) {
+              const syllableCount = word.syllables!;
+              const targetSyllables = Number(syllableFilter.syllables);
+              if (syllableFilter.mode === "exact" && syllableCount !== targetSyllables) return false;
+              if (syllableFilter.mode === "less" && syllableCount > targetSyllables) return false;
+              if (syllableFilter.mode === "more" && syllableCount < targetSyllables) return false;
+            }
+            if (wordStartsWith && !word.word.toLowerCase().startsWith(wordStartsWith.toLowerCase())) return false;
+            if (wordEndsWith && !word.word.toLowerCase().endsWith(wordEndsWith.toLowerCase())) return false;
+            const lengthFilter = resolveLengthFilter(wordLetters, wordLengthMode);
+            if (lengthFilter) {
+              const wordLength = word.word.length;
+              const targetLength = Number(lengthFilter.length);
+              if (lengthFilter.mode === "exact" && wordLength !== targetLength) return false;
+              if (lengthFilter.mode === "less" && wordLength > targetLength) return false;
+              if (lengthFilter.mode === "more" && wordLength < targetLength) return false;
+            }
+            return true;
+          });
+          if (!candidates.length) throw new Error("No word found");
+          const alternatives = candidates.filter((word) => word.word !== result.word);
+          const pool = alternatives.length ? alternatives : candidates;
+          next = pool[Math.floor(Math.random() * pool.length)];
+        } else {
+          const response = await fetch(`/api/word?${params}`, { signal: controller.signal });
+          applyApiHealth(response, setApiHealth);
+          if (!response.ok) throw new Error("No word found");
+          next = (await response.json()) as WordResult;
+        }
+        if (controller.signal.aborted || requestRef.current !== controller) return;
+        commitWord(next);
+        setMessage(relation ? `${relation.label} to “${result.word}”` : "");
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
+          setMessage(relation ? `No ${relation.missing} found` : "The dictionary is quiet — try again");
+        }
+      } finally {
+        if (requestRef.current === controller) setLoading(false);
+      }
+    },
+    [commitWord, result.word, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllableMode, wordSyllables, wordType],
+  );
+
+  const findSecondaryWord = useCallback(async (requestedType: PartOfSpeech = secondaryWordType) => {
+    secondaryRequestRef.current?.abort();
+    setRightWordDraft("");
+    const controller = new AbortController();
+    secondaryRequestRef.current = controller;
+    setSecondaryLoading(true);
+    const params = new URLSearchParams({ pos: requestedType });
+    if (secondaryWordSyllables) {
+      const syllableFilter = resolveSyllableFilter(secondaryWordSyllables, secondaryWordSyllableMode);
+      if (syllableFilter) {
+        params.set("syllables", syllableFilter.syllables);
+        params.set("syllablesMode", syllableFilter.mode);
+      }
+    }
+    if (secondaryWordStartsWith) params.set("startsWith", secondaryWordStartsWith);
+    if (secondaryWordEndsWith) params.set("endsWith", secondaryWordEndsWith);
+    if (secondaryWordLetters) {
+      const lengthFilter = resolveLengthFilter(secondaryWordLetters, secondaryWordLengthMode);
+      if (lengthFilter) {
+        params.set("length", lengthFilter.length);
+        params.set("lengthMode", lengthFilter.mode);
+      }
+    }
+
+    try {
+      if (secondaryWordRelatedTo.trim()) {
+        const response = await fetch(`/api/forge?idea=${encodeURIComponent(secondaryWordRelatedTo.trim())}`, { signal: controller.signal });
+        applyApiHealth(response, setApiHealth);
+        if (!response.ok) throw new Error("No word found");
+        const partName = requestedType === "any"
+          ? undefined
+          : { n: "noun", v: "verb", adj: "adjective", adv: "adverb" }[requestedType];
+        const candidates = (await response.json() as WordResult[]).filter((word) => {
+          if (partName && word.partOfSpeech !== partName) return false;
+          if (secondaryWordSyllables && !word.syllables) return false;
+          const syllableFilter = resolveSyllableFilter(secondaryWordSyllables, secondaryWordSyllableMode);
+          if (syllableFilter) {
+            const syllableCount = word.syllables!;
+            const targetSyllables = Number(syllableFilter.syllables);
+            if (syllableFilter.mode === "exact" && syllableCount !== targetSyllables) return false;
+            if (syllableFilter.mode === "less" && syllableCount > targetSyllables) return false;
+            if (syllableFilter.mode === "more" && syllableCount < targetSyllables) return false;
+          }
+          if (secondaryWordStartsWith && !word.word.toLowerCase().startsWith(secondaryWordStartsWith.toLowerCase())) return false;
+          if (secondaryWordEndsWith && !word.word.toLowerCase().endsWith(secondaryWordEndsWith.toLowerCase())) return false;
+          const lengthFilter = resolveLengthFilter(secondaryWordLetters, secondaryWordLengthMode);
+          if (lengthFilter) {
+            const wordLength = word.word.length;
+            const targetLength = Number(lengthFilter.length);
+            if (lengthFilter.mode === "exact" && wordLength !== targetLength) return false;
+            if (lengthFilter.mode === "less" && wordLength > targetLength) return false;
+            if (lengthFilter.mode === "more" && wordLength < targetLength) return false;
+          }
+          return true;
+        });
+        if (!candidates.length) throw new Error("No word found");
+        const alternatives = candidates.filter((word) => word.word !== secondaryResult.word);
+        const pool = alternatives.length ? alternatives : candidates;
+        const next = pool[Math.floor(Math.random() * pool.length)];
+        if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
+        setSecondaryResult(next);
+      } else {
+        const response = await fetch(`/api/word?${params}`, { signal: controller.signal });
+        applyApiHealth(response, setApiHealth);
+        if (!response.ok) throw new Error("No word found");
+        const next = await response.json() as WordResult;
+        if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
+        setSecondaryResult(next);
+      }
+    } catch (error) {
+      if ((error as Error).name !== "AbortError" && secondaryRequestRef.current === controller) {
+        if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
+        setSecondaryResult({ word: "", definition: "No word matches these settings.", partOfSpeech: "word" });
+      }
+    } finally {
+      if (secondaryRequestRef.current === controller) setSecondaryLoading(false);
+    }
+  }, [secondaryResult.word, secondaryWordEndsWith, secondaryWordLengthMode, secondaryWordLetters, secondaryWordRelatedTo, secondaryWordStartsWith, secondaryWordSyllableMode, secondaryWordSyllables, secondaryWordType]);
+
+  const handleLeftWordDraftChange = useCallback((value: string) => {
+    setLeftWordDraft(value);
+    if (value.trim()) resetPrimaryFilters();
+  }, [resetPrimaryFilters]);
+
+  const handleRightWordDraftChange = useCallback((value: string) => {
+    setRightWordDraft(value);
+    if (value.trim()) resetSecondaryFilters();
+  }, [resetSecondaryFilters]);
+
+  const setExplicitSplitWord = useCallback(async (side: "left" | "right", draft: string) => {
+    const word = draft.trim();
+    const currentWord = side === "left" ? result.word : secondaryResult.word;
+    if (!word) {
+      if (side === "left") setLeftWordDraft("");
+      else setRightWordDraft("");
+      return;
+    }
+    if (word.toLowerCase() === currentWord.toLowerCase()) {
+      if (side === "left") setLeftWordDraft(word);
+      else setRightWordDraft(word);
+      return;
+    }
+
+    const requestStore = side === "left" ? requestRef : secondaryRequestRef;
+    requestStore.current?.abort();
+    const controller = new AbortController();
+    requestStore.current = controller;
+    if (side === "left") setLoading(true);
+    else setSecondaryLoading(true);
+
+    let nextWord: WordResult = {
+      word,
+      definition: "A custom word.",
+      partOfSpeech: "word",
+    };
+
+    try {
+      const response = await fetch(`/api/word?lookup=${encodeURIComponent(word)}`, { signal: controller.signal });
+      applyApiHealth(response, setApiHealth);
+      if (response.ok) nextWord = await response.json() as WordResult;
+    } catch (error) {
+      if ((error as Error).name === "AbortError") return;
+      if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
+    } finally {
+      if (requestStore.current === controller) {
+        if (side === "left") setLoading(false);
+        else setSecondaryLoading(false);
+      }
+    }
+
+    if (controller.signal.aborted) return;
+    if (side === "left") {
+      resetPrimaryFilters();
+      commitWord(nextWord);
+      setLeftWordDraft(word);
+    } else {
+      resetSecondaryFilters();
+      setSecondaryResult(nextWord);
+      setRightWordDraft(word);
+    }
+  }, [commitWord, resetPrimaryFilters, resetSecondaryFilters, result.word, secondaryResult.word]);
+
+  const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
+    const requests: Promise<void>[] = [];
+    if (!leftWordDraft.trim()) requests.push(findWord(undefined, requestedType));
+    if (!rightWordDraft.trim()) requests.push(findSecondaryWord());
+    if (!requests.length) return;
+
+    const batchRequest = splitBatchRequestRef.current + 1;
+    splitBatchRequestRef.current = batchRequest;
+    if (requests.length > 1) setSplitBatchLoading(true);
+    splitHistoryBatchDepthRef.current += 1;
+    void Promise.all(requests).finally(() => {
+      if (splitBatchRequestRef.current === batchRequest) setSplitBatchLoading(false);
+      splitHistoryBatchDepthRef.current = Math.max(0, splitHistoryBatchDepthRef.current - 1);
+      if (splitHistoryBatchDepthRef.current === 0) {
+        setSplitHistoryRevision((revision) => revision + 1);
+      }
+    });
+  }, [findSecondaryWord, findWord, leftWordDraft, rightWordDraft, wordType]);
+
+  const moveThroughSplitHistory = useCallback((direction: -1 | 1) => {
+    const nextIndex = splitHistoryIndexRef.current + direction;
+    const entry = splitHistoryRef.current[nextIndex];
+    if (!entry) return;
+    splitHistoryIndexRef.current = nextIndex;
+    setLeftWordDraft("");
+    setRightWordDraft("");
+    setResult(entry.left);
+    setSecondaryResult(entry.right);
+    setMessage("");
+  }, []);
+  useLayoutEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+
+    const mixLeftEffective = parseMixSideSettings(search, "ml");
+    const mixRightEffective = parseMixSideSettings(search, "mr");
+    const mixLeftCustom = parseMixSideSettings(search, "mlCustom");
+    const mixRightCustom = parseMixSideSettings(search, "mrCustom");
+    const legacySliceMode = parseSliceMode(search.get("slice"));
+    const nextLeftSliceMode = parseSliceMode(search.get("mlSlice"))
+      ?? legacySliceMode
+      ?? inferSideSliceMode({ ...defaultMixLeftSettings, ...mixLeftEffective });
+    const nextRightSliceMode = parseSliceMode(search.get("mrSlice"))
+      ?? legacySliceMode
+      ?? inferSideSliceMode({ ...defaultMixRightSettings, ...mixRightEffective });
+
+    const nextLeftSettings = nextLeftSliceMode === "custom"
+      ? normalizeCustomMixSettings({
+        ...defaultCustomMixLeftSettings,
+        ...mixLeftEffective,
+        ...mixLeftCustom,
+      })
+      : {
+        ...defaultCustomMixLeftSettings,
+        syllableTake: mixLeftCustom.syllableTake
+          ?? mixLeftEffective.syllableTake
+          ?? defaultCustomMixLeftSettings.syllableTake,
+      };
+    const nextRightSettings = nextRightSliceMode === "custom"
+      ? normalizeCustomMixSettings({
+        ...defaultCustomMixRightSettings,
+        ...mixRightEffective,
+        ...mixRightCustom,
+      })
+      : {
+        ...defaultCustomMixRightSettings,
+        syllableTake: mixRightCustom.syllableTake
+          ?? mixRightEffective.syllableTake
+          ?? defaultCustomMixRightSettings.syllableTake,
+      };
+
+    setMixLeftSettings(nextLeftSettings);
+    setMixRightSettings(nextRightSettings);
+    setLeftSliceMode(nextLeftSliceMode);
+    setRightSliceMode(nextRightSliceMode);
+
+    const left = parseSideSettings(search, "l");
+    if (left.text !== undefined) setLeftWordDraft(left.text);
+    if (left.related !== undefined) setWordRelatedTo(left.related);
+    if (left.pos !== undefined) setWordType(left.pos);
+    if (left.syllables !== undefined) setWordSyllables(left.syllables);
+    if (left.syllableMode !== undefined) setWordSyllableMode(left.syllableMode);
+    if (left.startsWith !== undefined) setWordStartsWith(left.startsWith);
+    if (left.endsWith !== undefined) setWordEndsWith(left.endsWith);
+    if (left.letters !== undefined) setWordLetters(left.letters);
+    if (left.lengthMode !== undefined) setWordLengthMode(left.lengthMode);
+
+    const right = parseSideSettings(search, "r");
+    if (right.text !== undefined) setRightWordDraft(right.text);
+    if (right.related !== undefined) setSecondaryWordRelatedTo(right.related);
+    if (right.pos !== undefined) setSecondaryWordType(right.pos);
+    if (right.syllables !== undefined) setSecondaryWordSyllables(right.syllables);
+    if (right.syllableMode !== undefined) setSecondaryWordSyllableMode(right.syllableMode);
+    if (right.startsWith !== undefined) setSecondaryWordStartsWith(right.startsWith);
+    if (right.endsWith !== undefined) setSecondaryWordEndsWith(right.endsWith);
+    if (right.letters !== undefined) setSecondaryWordLetters(right.letters);
+    if (right.lengthMode !== undefined) setSecondaryWordLengthMode(right.lengthMode);
+
+    settingsUrlSyncedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!settingsUrlSyncedRef.current) return;
+    syncDiscoverUrlParams({
+      text: leftWordDraft,
+      related: wordRelatedTo,
+      pos: wordType,
+      syllables: normalizeSyllableSelection(wordSyllables),
+      syllableMode: wordSyllableMode,
+      startsWith: wordStartsWith,
+      endsWith: wordEndsWith,
+      letters: normalizeLengthSelection(wordLetters),
+      lengthMode: wordLengthMode,
+    }, {
+      text: rightWordDraft,
+      related: secondaryWordRelatedTo,
+      pos: secondaryWordType,
+      syllables: normalizeSyllableSelection(secondaryWordSyllables),
+      syllableMode: secondaryWordSyllableMode,
+      startsWith: secondaryWordStartsWith,
+      endsWith: secondaryWordEndsWith,
+      letters: normalizeLengthSelection(secondaryWordLetters),
+      lengthMode: secondaryWordLengthMode,
+    }, mixLeftSettings, mixRightSettings, leftSliceMode, rightSliceMode);
+  }, [
+    leftWordDraft,
+    wordRelatedTo,
+    wordType,
+    wordSyllables,
+    wordSyllableMode,
+    wordStartsWith,
+    wordEndsWith,
+    wordLetters,
+    wordLengthMode,
+    rightWordDraft,
+    secondaryWordRelatedTo,
+    secondaryWordType,
+    secondaryWordSyllables,
+    secondaryWordSyllableMode,
+    secondaryWordStartsWith,
+    secondaryWordEndsWith,
+    secondaryWordLetters,
+    secondaryWordLengthMode,
+    mixLeftSettings,
+    mixRightSettings,
+    leftSliceMode,
+    rightSliceMode,
+  ]);
+
+  useEffect(() => {
+    if (initialWordLoaded.current) return;
+    initialWordLoaded.current = true;
+    const loadInitialWords = async () => {
+      const tasks: Promise<void>[] = [];
+      if (leftWordDraft.trim()) tasks.push(setExplicitSplitWord("left", leftWordDraft));
+      if (rightWordDraft.trim()) tasks.push(setExplicitSplitWord("right", rightWordDraft));
+      if (tasks.length) await Promise.all(tasks);
+      generateVisibleWords();
+    };
+    void loadInitialWords();
+  }, [generateVisibleWords, leftWordDraft, rightWordDraft, setExplicitSplitWord]);
+  useEffect(() => {
+    if (splitHistoryBatchDepthRef.current > 0 || !result.word || !secondaryResult.word) return;
+    const current = splitHistoryRef.current[splitHistoryIndexRef.current];
+    const entry = { left: result, right: secondaryResult };
+    if (current?.left.word === result.word && current?.right.word === secondaryResult.word) {
+      splitHistoryRef.current[splitHistoryIndexRef.current] = entry;
+      return;
+    }
+    const branch = splitHistoryRef.current.slice(0, splitHistoryIndexRef.current + 1);
+    splitHistoryRef.current = [...branch, entry].slice(-100);
+    splitHistoryIndexRef.current = splitHistoryRef.current.length - 1;
+  }, [result, secondaryResult, splitHistoryRevision]);
+
+  const primaryFiltersApplied = Boolean(
+    wordRelatedTo.trim()
+    || wordType !== "any"
+    || wordSyllables
+    || wordStartsWith
+    || wordEndsWith
+    || wordLetters
+  );
+  const mixLeftApplied = leftSliceMode !== "none"
+    || mixLeftSettings.syllablePick !== defaultCustomMixLeftSettings.syllablePick
+    || mixLeftSettings.syllableTake !== defaultCustomMixLeftSettings.syllableTake;
+  const mixRightApplied = rightSliceMode !== "none"
+    || mixRightSettings.syllablePick !== defaultCustomMixRightSettings.syllablePick
+    || mixRightSettings.syllableTake !== defaultCustomMixRightSettings.syllableTake;
+  const sliceSettingsApplied = mixLeftApplied || mixRightApplied;
+  const leftSettingsApplied = Boolean(leftWordDraft.trim()) || primaryFiltersApplied;
+  const rightSettingsApplied = Boolean(
+    rightWordDraft.trim()
+    || secondaryWordRelatedTo.trim()
+    || secondaryWordType !== "any"
+    || secondaryWordSyllables
+    || secondaryWordStartsWith
+    || secondaryWordEndsWith
+    || secondaryWordLetters
+  );
+
+  return {
+    wordType,
+    setWordType,
+    leftSliceMode,
+    rightSliceMode,
+    mixLeftSettings,
+    setMixLeftSettings,
+    mixRightSettings,
+    setMixRightSettings,
+    wordCopyStatus,
+    setWordCopyStatus,
+    wordSyllables,
+    setWordSyllables,
+    wordSyllableMode,
+    setWordSyllableMode,
+    wordStartsWith,
+    setWordStartsWith,
+    wordEndsWith,
+    setWordEndsWith,
+    wordLetters,
+    setWordLetters,
+    wordLengthMode,
+    setWordLengthMode,
+    wordRelatedTo,
+    setWordRelatedTo,
+    secondaryWordType,
+    setSecondaryWordType,
+    secondaryWordSyllables,
+    setSecondaryWordSyllables,
+    secondaryWordSyllableMode,
+    setSecondaryWordSyllableMode,
+    secondaryWordStartsWith,
+    setSecondaryWordStartsWith,
+    secondaryWordEndsWith,
+    setSecondaryWordEndsWith,
+    secondaryWordLetters,
+    setSecondaryWordLetters,
+    secondaryWordLengthMode,
+    setSecondaryWordLengthMode,
+    secondaryWordRelatedTo,
+    setSecondaryWordRelatedTo,
+    result,
+    secondaryResult,
+    leftWordDraft,
+    rightWordDraft,
+    secondaryLoading,
+    loading,
+    splitBatchLoading,
+    displayedPronunciation,
+    secondaryPronunciation,
+    leftWordValue,
+    rightWordValue,
+    effectiveMixLeftSettings,
+    effectiveMixRightSettings,
+    mixedWordParts,
+    displayedCombinedWord,
+    combinedSplitIsSaved,
+    discoverHasNoWords,
+    toggleCombinedSaved,
+    copyDisplayedWord,
+    findWord,
+    findSecondaryWord,
+    handleLeftWordDraftChange,
+    handleRightWordDraftChange,
+    setExplicitSplitWord,
+    generateVisibleWords,
+    resetPrimarySettings,
+    resetSecondarySettings,
+    resetAllDiscoverSettings,
+    resetSliceSettings,
+    handleLeftSliceModeChange,
+    handleRightSliceModeChange,
+    commitWord,
+    moveThroughSplitHistory,
+    sliceSettingsApplied,
+    leftSettingsApplied,
+    rightSettingsApplied,
+    setResult,
+    setSecondaryResult,
+    setLeftWordDraft,
+    setRightWordDraft,
+    setLoading,
+    setSecondaryLoading,
+  };
+}
