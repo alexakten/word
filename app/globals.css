@@ -1736,7 +1736,7 @@ button {
   text-transform: uppercase;
 }
 
-.settings-panel-header button {
+.settings-panel-header button:not(.mobile-panel-close) {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -1751,11 +1751,11 @@ button {
   font-size: 12px;
 }
 
-.settings-panel-header button:hover {
+.settings-panel-header button:not(.mobile-panel-close):hover {
   color: var(--ink);
 }
 
-.settings-panel-header button:focus-visible {
+.settings-panel-header button:not(.mobile-panel-close):focus-visible {
   text-decoration: underline;
 }
 
@@ -1766,22 +1766,24 @@ button {
   gap: .65rem;
 }
 
-.mobile-panel-close {
+.settings-panel-header button.mobile-panel-close {
   display: none;
+  flex: none;
   width: 28px;
   height: 28px;
   align-items: center;
   justify-content: center;
   border: 0;
+  outline: none;
   border-radius: 50%;
   padding: 0;
-  background: rgba(21, 21, 19, .06);
+  background: #F6F5F4;
   color: var(--muted);
   cursor: pointer;
 }
 
-.mobile-panel-close:hover {
-  background: rgba(21, 21, 19, .1);
+.settings-panel-header button.mobile-panel-close:hover {
+  background: #EFEDE9;
   color: var(--ink);
 }
 
