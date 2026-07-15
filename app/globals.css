@@ -1387,6 +1387,7 @@ button {
   width: var(--split-settings-width);
   height: auto;
   max-height: none;
+  padding: 1.3rem 1.3rem 0;
 }
 
 .page-shell.discover-mode.mobile-layout .split-settings-panel {
@@ -1428,10 +1429,12 @@ button {
 }
 
 .settings-panel-scroll {
+  box-sizing: content-box;
+  width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  margin-right: -.45rem;
-  padding-right: .45rem;
+  margin-right: -1.3rem;
+  padding-right: 1.3rem;
   overflow-x: hidden;
   overflow-y: hidden;
   overscroll-behavior: contain;
@@ -1439,6 +1442,12 @@ button {
 
 .settings-panel-scroll.is-scrollable {
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #F6F5F4 transparent;
+}
+
+.settings-panel-scroll-content {
+  padding-bottom: calc(1.3rem + 1.25rem);
 }
 
 .settings-panel-scroll::-webkit-scrollbar {
@@ -1447,7 +1456,7 @@ button {
 
 .settings-panel-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(21, 21, 19, .14);
+  background: #F6F5F4;
 }
 
 .split-settings-panel:has(.related-tags-field:focus-within) {
