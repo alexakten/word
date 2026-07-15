@@ -1240,7 +1240,7 @@ function DiscoverStartPrompt() {
   );
 }
 
-type DiscoverMobilePanel = "left" | "slice" | "right";
+type DiscoverMobilePanel = "left" | "slice" | "right" | "saved";
 
 export default function Home() {
   const [appMode, setAppMode] = useState<AppMode>("discover");
@@ -1427,7 +1427,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!savedOpen) return;
+    if (!savedOpen || isMobileLayout) return;
 
     const closeOnOutsideClick = (event: PointerEvent) => {
       if (!savedMenuRef.current?.contains(event.target as Node)) setSavedOpen(false);
@@ -1435,7 +1435,7 @@ export default function Home() {
 
     document.addEventListener("pointerdown", closeOnOutsideClick);
     return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
-  }, [savedOpen]);
+  }, [isMobileLayout, savedOpen]);
 
   useEffect(() => {
     const loadSavedWords = () => {
@@ -1511,6 +1511,7 @@ export default function Home() {
   const loadSavedWord = useCallback(async (saved: WordResult) => {
     setMessage("From your saved words");
     setSavedOpen(false);
+    setMobileDiscoverPanel(null);
     selectAppMode("discover");
 
     if (saved.partOfSpeech === "combined word") {
@@ -2448,6 +2449,37 @@ export default function Home() {
     || secondaryWordLetters
   );
 
+  const savedWordsList = (
+    <>
+      {savedWords.length ? (
+        <ul>
+          {savedWords.map((saved) => (
+            <li key={saved.word.toLowerCase()}>
+              <button
+                className="saved-word"
+                type="button"
+                onClick={() => void loadSavedWord(saved)}
+              >
+                <span style={{ fontFamily: cardo.style.fontFamily }}>{saved.word}</span>
+                <small>{saved.partOfSpeech}</small>
+              </button>
+              <button
+                className="remove-saved"
+                type="button"
+                aria-label={`Remove ${saved.word}`}
+                onClick={() => saveWords(savedWords.filter((item) => item.word !== saved.word))}
+              >
+                <X size={13} strokeWidth={1.5} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="saved-empty">Words you like will appear here.</p>
+      )}
+    </>
+  );
+
   const savedWordsPanel = (
     <div className="saved-menu" ref={savedMenuRef}>
       <button
@@ -2462,32 +2494,7 @@ export default function Home() {
       {savedOpen ? (
         <div className="saved-panel" id="saved-words">
           <p className="saved-heading">Saved words</p>
-          {savedWords.length ? (
-            <ul>
-              {savedWords.map((saved) => (
-                <li key={saved.word.toLowerCase()}>
-                  <button
-                    className="saved-word"
-                    type="button"
-                    onClick={() => void loadSavedWord(saved)}
-                  >
-                    <span style={{ fontFamily: cardo.style.fontFamily }}>{saved.word}</span>
-                    <small>{saved.partOfSpeech}</small>
-                  </button>
-                  <button
-                    className="remove-saved"
-                    type="button"
-                    aria-label={`Remove ${saved.word}`}
-                    onClick={() => saveWords(savedWords.filter((item) => item.word !== saved.word))}
-                  >
-                    <X size={13} strokeWidth={1.5} aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="saved-empty">Words you like will appear here.</p>
-          )}
+          {savedWordsList}
         </div>
       ) : null}
     </div>
@@ -2506,6 +2513,31 @@ export default function Home() {
         if (focusMode) setFocusMode(false);
       }}
     >
+      {isMobileLayout && mobileDiscoverPanel ? (
+        <button
+          className="mobile-panel-backdrop"
+          type="button"
+          aria-label="Close panel"
+          onClick={closeMobileDiscoverPanel}
+        />
+      ) : null}
+
+      {isMobileLayout && mobileDiscoverPanel === "saved" ? (
+        <aside className="saved-mobile-panel mobile-panel-active rounded-3xl" id="saved-words-mobile" aria-label="Saved words">
+          <div className="settings-panel-header">
+            <p>Saved words</p>
+            <div className="settings-panel-header-actions">
+              <button className="mobile-panel-close" type="button" aria-label="Close saved words" onClick={closeMobileDiscoverPanel}>
+                <X size={14} strokeWidth={1.5} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+          <div className="settings-panel-scroll saved-mobile-panel-scroll">
+            {savedWordsList}
+          </div>
+        </aside>
+      ) : null}
+
       <header className="site-header">
         <div className="header-brand">
           <a className="wordmark" href="#top" aria-label="Lexicon home">
@@ -2851,15 +2883,6 @@ export default function Home() {
 
       {appMode === "discover" ? (
         <section className="split-word-stage" id="top" aria-live="polite">
-          {isMobileLayout && mobileDiscoverPanel ? (
-            <button
-              className="mobile-panel-backdrop"
-              type="button"
-              aria-label="Close settings"
-              onClick={closeMobileDiscoverPanel}
-            />
-          ) : null}
-
           <aside
             className={[
               "split-settings-panel left rounded-3xl",
@@ -3065,11 +3088,22 @@ export default function Home() {
         </section>
       ) : null}
 
-      {appMode === "discover" && isMobileLayout ? (
-        <div className="mobile-generate-bar">
-          <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
-            {discoverHasNoWords ? "Start exploring" : "Generate"}
+      {isMobileLayout ? (
+        <div className="mobile-bottom-bar">
+          <button
+            className={["mobile-saved-button", mobileDiscoverPanel === "saved" ? "active" : ""].filter(Boolean).join(" ")}
+            type="button"
+            aria-expanded={mobileDiscoverPanel === "saved"}
+            aria-controls="saved-words-mobile"
+            onClick={() => toggleMobileDiscoverPanel("saved")}
+          >
+            Saved <span>{savedWords.length}</span>
           </button>
+          {appMode === "discover" ? (
+            <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
+              {discoverHasNoWords ? "Start exploring" : "Generate"}
+            </button>
+          ) : null}
         </div>
       ) : null}
 
