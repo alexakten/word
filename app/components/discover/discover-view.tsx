@@ -72,9 +72,6 @@ export type DiscoverViewProps = Pick<
   | "displayedCombinedWord"
   | "copyDisplayedWord"
   | "mixedWordParts"
-  | "loading"
-  | "secondaryLoading"
-  | "splitBatchLoading"
   | "result"
   | "secondaryResult"
   | "displayedPronunciation"
@@ -153,9 +150,6 @@ export function DiscoverView(props: DiscoverViewProps) {
     displayedCombinedWord,
     copyDisplayedWord,
     mixedWordParts,
-    loading,
-    secondaryLoading,
-    splitBatchLoading,
     result,
     secondaryResult,
     displayedPronunciation,
@@ -358,14 +352,13 @@ export function DiscoverView(props: DiscoverViewProps) {
                     if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
                   }}
                 >
-                  <span className={`mix-word-part${(loading || splitBatchLoading) && mixedWordParts.leftChunk ? " loading" : ""}`} key={`mix-left-${mixedWordParts.leftChunk}`}>{mixedWordParts.leftChunk || "——"}</span>
-                  <span className={`mix-word-part${(secondaryLoading || splitBatchLoading) && mixedWordParts.rightChunk ? " loading" : ""}`} data-view-transition-word key={`mix-right-${mixedWordParts.rightChunk}`}>{mixedWordParts.rightChunk || "——"}</span>
+                  <span className="mix-word-part" key={`mix-left-${mixedWordParts.leftChunk}`}>{mixedWordParts.leftChunk || "——"}</span>
+                  <span className="mix-word-part" data-view-transition-word key={`mix-right-${mixedWordParts.rightChunk}`}>{mixedWordParts.rightChunk || "——"}</span>
                 </button>
               </div>
               <div className="split-definitions">
                 {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
                   <article
-                    className={item.word.word && (splitBatchLoading || (index === 0 ? loading : secondaryLoading)) ? "loading" : ""}
                     data-view-transition-card={index === 1 ? "" : undefined}
                     key={index}
                   >

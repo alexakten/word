@@ -81,10 +81,22 @@
   }
 }
 
+@keyframes word-fade-in {
+  from {
+    opacity: .55;
+    filter: blur(3px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
 @keyframes description-reveal {
   from {
-    opacity: .45;
-    filter: blur(4px);
+    opacity: .55;
+    filter: blur(2px);
   }
 
   to {
@@ -1716,6 +1728,7 @@ button {
   display: inline;
   flex: none;
   width: auto;
+  animation: word-fade-in .14s ease;
 }
 
 .mix-syllable-used {
@@ -1726,11 +1739,6 @@ button {
 .mix-source-word .mix-syllable-unused {
   color: var(--muted);
   opacity: .48;
-}
-
-.mix-word-part.loading {
-  opacity: .28;
-  filter: blur(8px);
 }
 
 .settings-panel-header {
@@ -2511,15 +2519,6 @@ button {
   gap: .45rem;
 }
 
-.split-definitions article {
-  transition: opacity .28s ease, filter .28s ease;
-}
-
-.split-definitions article.loading {
-  opacity: .28;
-  filter: blur(8px);
-}
-
 .split-combined-word {
   display: flex;
   width: 100%;
@@ -2575,17 +2574,7 @@ button {
 
 .split-word-part,
 .split-word-details {
-  animation: word-blur-in .28s ease;
-}
-
-.split-word-part {
-  transition: opacity .28s ease, filter .28s ease;
-}
-
-.split-word-part.loading {
-  opacity: .28;
-  filter: blur(8px);
-  animation: none;
+  animation: word-fade-in .14s ease;
 }
 
 .split-word-details {
