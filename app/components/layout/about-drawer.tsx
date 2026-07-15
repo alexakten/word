@@ -45,7 +45,7 @@ export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
               <Drawer.Title className="about-drawer-title">About Spellsurf</Drawer.Title>
             )}
             <Drawer.Description className="about-drawer-lead">
-              Discover and create new words by blending two random words.{" "}
+              Discover and create new words by combining syllables from existing words.{" "}
               Powered by the{" "}
               <a
                 className="about-drawer-link"
@@ -74,7 +74,7 @@ export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
               <section>
                 <h3>Slice</h3>
                 <p>
-                  Slice sets how much of each source word is used: the full word, a shorter portion, or a custom syllable range.
+                  Slice sets how much of each source word is used: the full word, a shorter portion, or a custom syllable range. You can also randomize the slice.
                 </p>
               </section>
               <section>
