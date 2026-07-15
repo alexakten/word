@@ -94,7 +94,7 @@ export function syncDiscoverUrlParams(
   rightSliceMode: SliceMode,
 ) {
   const url = new URL(window.location.href);
-  url.searchParams.set("view", "split");
+  url.searchParams.delete("view");
   writeSideSettings(url.searchParams, "l", left);
   writeSideSettings(url.searchParams, "r", right);
   url.searchParams.set("mlSlice", leftSliceMode);
