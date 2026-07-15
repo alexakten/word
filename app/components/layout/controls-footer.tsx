@@ -121,6 +121,16 @@ export function ControlsFooter(props: ControlsFooterProps) {
         </div>
       ) : null}
       <div className="controls-bar">
+        {appMode === "discover" && !isMobileLayout ? (
+          <SavedWordsPanel
+            savedWords={savedWords}
+            savedOpen={savedOpen}
+            setSavedOpen={setSavedOpen}
+            savedMenuRef={savedMenuRef}
+            saveWords={saveWords}
+            loadSavedWord={loadSavedWord}
+          />
+        ) : null}
         {appMode === "discover" ? discoverHasNoWords ? (
           <div className="shortcut-row discover-start-shortcuts" aria-label="Start exploring">
             <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
@@ -194,17 +204,21 @@ export function ControlsFooter(props: ControlsFooterProps) {
             <span>Find words</span>
           </button>
         </div> : null}
-        <div className="controls-end">
-          <SavedWordsPanel
-            savedWords={savedWords}
-            savedOpen={savedOpen}
-            setSavedOpen={setSavedOpen}
-            savedMenuRef={savedMenuRef}
-            saveWords={saveWords}
-            loadSavedWord={loadSavedWord}
-          />
-          {!isMobileLayout ? <AboutDrawer /> : null}
-        </div>
+        {appMode === "discover" && !isMobileLayout ? (
+          <AboutDrawer />
+        ) : appMode !== "discover" ? (
+          <div className="controls-end">
+            <SavedWordsPanel
+              savedWords={savedWords}
+              savedOpen={savedOpen}
+              setSavedOpen={setSavedOpen}
+              savedMenuRef={savedMenuRef}
+              saveWords={saveWords}
+              loadSavedWord={loadSavedWord}
+            />
+            {!isMobileLayout ? <AboutDrawer /> : null}
+          </div>
+        ) : null}
       </div>
     </footer>
   );

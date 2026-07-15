@@ -2988,12 +2988,26 @@ h1 {
   transform: translateX(-50%);
 }
 
+.page-shell.discover-mode:not(.mobile-layout) .controls {
+  width: min(42rem, calc(100vw - 2 * var(--split-settings-width) - 3rem));
+}
+
 .controls-bar {
   display: flex;
   width: 100%;
   align-items: flex-end;
   justify-content: center;
   gap: 2rem;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .controls-bar {
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .controls-bar .saved-toggle {
+  padding-bottom: 0;
 }
 
 .controls-bar .saved-toggle {
@@ -3739,6 +3753,12 @@ button.about-drawer-close:hover {
   line-height: 1.45;
 }
 
+.about-drawer-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: .12em;
+}
+
 .about-drawer-body {
   display: flex;
   flex-direction: column;
@@ -3759,6 +3779,15 @@ button.about-drawer-close:hover {
 
 .about-drawer-body section p {
   margin: 0;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+.about-drawer-credit {
+  margin: .35rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid #F6F5F4;
   color: var(--muted);
   font-size: .88rem;
   line-height: 1.5;

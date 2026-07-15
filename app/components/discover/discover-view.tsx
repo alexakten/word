@@ -304,10 +304,12 @@ export function DiscoverView(props: DiscoverViewProps) {
 
   return (
     <>
-      <div className="discover-top-brand">
-        <WordmarkLink />
-        <ApiHealthStatus health={apiHealth} />
-      </div>
+      {!isMobileLayout ? (
+        <div className="discover-top-brand">
+          <WordmarkLink />
+          <ApiHealthStatus health={apiHealth} />
+        </div>
+      ) : null}
       <section className="split-word-stage" id="top" aria-live="polite">
         {isMobileLayout ? (
           <aside
