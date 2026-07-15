@@ -1,10 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, Copy, Focus, Lock, Minus, Plus, RefreshCw, Unlock, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, Copy, Lock, Minus, Plus, RefreshCw, Unlock, X } from "lucide-react";
 import { cardo } from "./fonts";
 import { normalizePronunciation } from "./pronunciation";
+import {
+  type MixSideSettings,
+  type SliceMode,
+  type SyllablePick,
+  type SyllableTake,
+  buildSyllablePickOptions,
+  buildSyllableTakeOptions,
+  defaultCustomMixLeftSettings,
+  defaultCustomMixRightSettings,
+  defaultMixLeftSettings,
+  defaultMixRightSettings,
+  effectiveMixSettings,
+  getSyllableSegments,
+  inferSideSliceMode,
+  maxTakeFromPick,
+  mixWordParts,
+  normalizeCustomMixSettings,
+  normalizeSyllablePick,
+  parseMixSideSettingsFromUrl,
+  parseSliceMode,
+  resolveRandomDisplaySettings,
+  resolveWordSyllableCount,
+} from "./syllables";
 
 type PartOfSpeech = "any" | "n" | "v" | "adj" | "adv";
 type LengthMode = "less" | "exact" | "more";
@@ -21,6 +43,8 @@ type WordResult = {
   splitLeft?: WordResult;
   splitRight?: WordResult;
 };
+
+const emptyWordResult: WordResult = { word: "", definition: "", partOfSpeech: "" };
 
 type AdvancedMode = "ml" | "sl" | "spell" | "pattern" | "jjb" | "jja" | "trg" | "lc";
 
@@ -51,6 +75,37 @@ type SplitHistoryEntry = {
 
 const POS_VALUES = new Set<PartOfSpeech>(["any", "n", "v", "adj", "adv"]);
 const LENGTH_MODES = new Set<LengthMode>(["less", "exact", "more"]);
+const COUNT_LONG_VALUE = "+";
+const MAX_SYLLABLE_FILTER = 8;
+const MAX_LENGTH_FILTER = 22;
+
+function normalizeSyllableSelection(value: string): string {
+  if (!value || value === "any") return "";
+  if (value === COUNT_LONG_VALUE) return "6";
+  const count = Number(value);
+  if (!Number.isFinite(count) || count < 1) return "";
+  return String(Math.min(Math.floor(count), MAX_SYLLABLE_FILTER));
+}
+
+function resolveSyllableFilter(value: string, mode: LengthMode): { syllables: string; mode: LengthMode } | null {
+  const normalized = normalizeSyllableSelection(value);
+  if (!normalized) return null;
+  return { syllables: normalized, mode };
+}
+
+function normalizeLengthSelection(value: string): string {
+  if (!value || value === "any") return "";
+  if (value === COUNT_LONG_VALUE) return "9";
+  const count = Number(value);
+  if (!Number.isFinite(count) || count < 1) return "";
+  return String(Math.min(Math.floor(count), MAX_LENGTH_FILTER));
+}
+
+function resolveLengthFilter(value: string, mode: LengthMode): { length: string; mode: LengthMode } | null {
+  const normalized = normalizeLengthSelection(value);
+  if (!normalized) return null;
+  return { length: normalized, mode };
+}
 
 type SideSettings = {
   text: string;
@@ -64,11 +119,8 @@ type SideSettings = {
   lengthMode: LengthMode;
 };
 
-function parseViewModeParam(search: string): boolean | null {
-  const view = new URLSearchParams(search).get("view");
-  if (view === "split") return true;
-  if (view === "single") return false;
-  return null;
+function parseMixSideSettings(search: URLSearchParams, prefix: string): Partial<MixSideSettings> {
+  return parseMixSideSettingsFromUrl(search, prefix);
 }
 
 function parsePartOfSpeech(value: string | null): PartOfSpeech | null {
@@ -95,12 +147,32 @@ function parseSideSettings(search: URLSearchParams, prefix: "l" | "r"): Partial<
   if (text) settings.text = text.slice(0, 40);
   if (related) settings.related = related;
   if (pos) settings.pos = pos;
-  if (syllables) settings.syllables = syllables;
-  if (syllableMode) settings.syllableMode = syllableMode;
+  if (syllables === COUNT_LONG_VALUE) {
+    settings.syllables = "6";
+    settings.syllableMode = "more";
+  } else if (syllables) {
+    const normalizedSyllables = normalizeSyllableSelection(syllables);
+    if (normalizedSyllables) {
+      settings.syllables = normalizedSyllables;
+      if (syllableMode) settings.syllableMode = syllableMode;
+    }
+  } else if (syllableMode) {
+    settings.syllableMode = syllableMode;
+  }
   if (startsWith) settings.startsWith = startsWith;
   if (endsWith) settings.endsWith = endsWith;
-  if (letters) settings.letters = letters;
-  if (lengthMode) settings.lengthMode = lengthMode;
+  if (letters === COUNT_LONG_VALUE) {
+    settings.letters = "9";
+    settings.lengthMode = "more";
+  } else if (letters) {
+    const normalizedLetters = normalizeLengthSelection(letters);
+    if (normalizedLetters) {
+      settings.letters = normalizedLetters;
+      if (lengthMode) settings.lengthMode = lengthMode;
+    }
+  } else if (lengthMode) {
+    settings.lengthMode = lengthMode;
+  }
   return settings;
 }
 
@@ -124,11 +196,35 @@ function writeSideSettings(params: URLSearchParams, prefix: "l" | "r", settings:
   }
 }
 
-function syncDiscoverUrlParams(splitView: boolean, left: SideSettings, right: SideSettings) {
+function syncDiscoverUrlParams(
+  left: SideSettings,
+  right: SideSettings,
+  mixLeft: MixSideSettings,
+  mixRight: MixSideSettings,
+  leftSliceMode: SliceMode,
+  rightSliceMode: SliceMode,
+) {
   const url = new URL(window.location.href);
-  url.searchParams.set("view", splitView ? "split" : "single");
+  url.searchParams.set("view", "split");
   writeSideSettings(url.searchParams, "l", left);
   writeSideSettings(url.searchParams, "r", right);
+  url.searchParams.set("mlSlice", leftSliceMode);
+  url.searchParams.set("mrSlice", rightSliceMode);
+  url.searchParams.delete("slice");
+  const effectiveLeft = effectiveMixSettings(leftSliceMode, mixLeft);
+  const effectiveRight = effectiveMixSettings(rightSliceMode, mixRight);
+  url.searchParams.set("mlPos", String(effectiveLeft.syllablePick));
+  url.searchParams.set("mlAmt", String(effectiveLeft.syllableTake));
+  url.searchParams.set("mrPos", String(effectiveRight.syllablePick));
+  url.searchParams.set("mrAmt", String(effectiveRight.syllableTake));
+  url.searchParams.set("mlCustomPos", String(mixLeft.syllablePick));
+  url.searchParams.set("mlCustomAmt", String(mixLeft.syllableTake));
+  url.searchParams.set("mrCustomPos", String(mixRight.syllablePick));
+  url.searchParams.set("mrCustomAmt", String(mixRight.syllableTake));
+  url.searchParams.delete("mlCount");
+  url.searchParams.delete("mlPick");
+  url.searchParams.delete("mrCount");
+  url.searchParams.delete("mrPick");
   window.history.replaceState(window.history.state, "", url);
 }
 
@@ -292,38 +388,28 @@ function WordTypeTabs({ value, label, className = "", onChange }: WordTypeTabsPr
   );
 }
 
-function ViewModeToggle({ splitView, onChange }: { splitView: boolean; onChange: (split: boolean) => void }) {
-  const [selectedSplitView, setSelectedSplitView] = useState(splitView);
-  const pendingChangeRef = useRef(0);
-  const { activeTabRef, containerRef } = useActiveTabClipPath(selectedSplitView);
-  const options = [
-    { value: false, label: "Single" },
-    { value: true, label: "Split" },
-  ];
-
-  useEffect(() => () => window.cancelAnimationFrame(pendingChangeRef.current), []);
-
-  useEffect(() => {
-    setSelectedSplitView(splitView);
-  }, [splitView]);
-
-  const selectView = (nextSplit: boolean) => {
-    if (nextSplit === selectedSplitView) return;
-    setSelectedSplitView(nextSplit);
-    window.cancelAnimationFrame(pendingChangeRef.current);
-    pendingChangeRef.current = window.requestAnimationFrame(() => onChange(nextSplit));
-  };
+function MixSegmentToggle<T extends string>({ value, label, options, disabled = false, className = "", onChange }: {
+  value: T;
+  label: string;
+  options: { value: T; label: string }[];
+  disabled?: boolean;
+  className?: string;
+  onChange: (value: T) => void;
+}) {
+  const { activeTabRef, containerRef } = useActiveTabClipPath(value);
+  const rootClass = ["mix-segment-toggle", className, disabled ? "disabled" : ""].filter(Boolean).join(" ");
 
   return (
-    <div className="word-type-tabs view-mode-toggle" role="group" aria-label="View mode">
+    <div className={rootClass} role="group" aria-label={label} aria-disabled={disabled}>
       <ul className="word-type-tab-list">
         {options.map((option) => (
-          <li key={option.label}>
+          <li key={option.value}>
             <button
-              ref={selectedSplitView === option.value ? activeTabRef : null}
+              ref={value === option.value ? activeTabRef : null}
               type="button"
-              aria-pressed={selectedSplitView === option.value}
-              onClick={() => selectView(option.value)}
+              aria-pressed={value === option.value}
+              disabled={disabled}
+              onClick={() => onChange(option.value)}
             >
               {option.label}
             </button>
@@ -333,7 +419,7 @@ function ViewModeToggle({ splitView, onChange }: { splitView: boolean; onChange:
       <div className="word-type-active-layer" aria-hidden="true" ref={containerRef}>
         <ul className="word-type-tab-list word-type-tab-list-overlay">
           {options.map((option) => (
-            <li key={option.label}><button type="button" tabIndex={-1}>{option.label}</button></li>
+            <li key={option.value}><button type="button" tabIndex={-1}>{option.label}</button></li>
           ))}
         </ul>
       </div>
@@ -341,113 +427,525 @@ function ViewModeToggle({ splitView, onChange }: { splitView: boolean; onChange:
   );
 }
 
-type CounterSettingProps = {
-  label: string;
-  value: string;
-  max: number;
-  onChange: (value: string) => void;
-};
-
-function CounterSetting({ label, value, max, onChange }: CounterSettingProps) {
-  const count = Number(value) || 0;
-  const setCount = (next: number) => onChange(next > 0 ? String(next) : "");
-
-  return (
-    <div className="counter-setting">
-      <span>{label}</span>
-      <div className="counter-control">
-        <button type="button" disabled={count === 0} aria-label={`Decrease ${label.toLowerCase()}`} onClick={() => setCount(Math.max(0, count - 1))}>
-          <Minus size={14} strokeWidth={1.6} aria-hidden="true" />
-        </button>
-        <output aria-label={`${label}: ${count || "Any"}`}>{count || "Any"}</output>
-        <button type="button" disabled={count >= max} aria-label={`Increase ${label.toLowerCase()}`} onClick={() => setCount(Math.min(max, count + 1))}>
-          <Plus size={15} strokeWidth={1.6} aria-hidden="true" />
-        </button>
-      </div>
-    </div>
-  );
+function parseSyllablePickValue(value: string): SyllablePick {
+  if (value === "full" || value === "random") return value;
+  if (value === "start" || value === "middle" || value === "end") return value;
+  const pick = Number(value);
+  if (pick >= 1 && pick <= 8) return pick as SyllablePick;
+  return "start";
 }
 
-function LengthModeToggle({ value, label = "Word length comparison", disabled = false, onChange }: {
-  value: LengthMode;
-  label?: string;
-  disabled?: boolean;
-  onChange: (value: LengthMode) => void;
+function parseSyllableTakeValue(value: string): SyllableTake {
+  const take = Number(value);
+  if (take >= 1 && take <= 3) return take as SyllableTake;
+  return 1;
+}
+
+const SLICE_MODE_OPTIONS: { value: SliceMode; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "random", label: "Random" },
+  { value: "custom", label: "Custom" },
+];
+
+function MixSideSetting({ labelPrefix, word, settings, sliceMode, syllableCount, hasWord, onChange, onSliceModeChange }: {
+  labelPrefix: string;
+  word: string;
+  settings: MixSideSettings;
+  sliceMode: SliceMode;
+  syllableCount?: number;
+  hasWord: boolean;
+  onChange: (settings: MixSideSettings) => void;
+  onSliceModeChange: (mode: SliceMode) => void;
 }) {
-  const { activeTabRef, containerRef } = useActiveTabClipPath(value);
-  const options = [
-    { value: "less" as const, label: "Less than or equal", symbol: "≤" },
-    { value: "exact" as const, label: "Equal", symbol: "=" },
-    { value: "more" as const, label: "More than or equal", symbol: "≥" },
-  ];
+  const resolvedSyllableCount = useMemo(
+    () => resolveWordSyllableCount(word, syllableCount),
+    [syllableCount, word],
+  );
+  const positionOptionsOnly = sliceMode === "custom" || sliceMode === "random";
+  const syllablePick = normalizeSyllablePick(
+    settings.syllablePick,
+    "",
+    undefined,
+    resolvedSyllableCount,
+    "exact",
+  );
+  const pickOptions = useMemo(
+    () => buildSyllablePickOptions("", resolvedSyllableCount, "exact", positionOptionsOnly),
+    [positionOptionsOnly, resolvedSyllableCount],
+  );
+  const takeOptions = useMemo(
+    () => buildSyllableTakeOptions(syllablePick, resolvedSyllableCount),
+    [resolvedSyllableCount, syllablePick],
+  );
+  const maxTake = maxTakeFromPick(syllablePick, resolvedSyllableCount);
+  const singleSyllableOnly = hasWord && resolvedSyllableCount === 1;
+  const sliceDisabled = !hasWord || sliceMode !== "custom";
+  const positionDisabled = sliceDisabled || singleSyllableOnly;
+  const previewLocked = sliceMode === "random";
+  const takeValue = settings.syllablePick === "full"
+    ? takeOptions[0]?.value ?? "1"
+    : String(settings.syllableTake);
+  const noneDisplaySettings = useMemo<MixSideSettings>(
+    () => ({ syllablePick: "full", syllableTake: 1 }),
+    [],
+  );
+  const randomPreview = useMemo(
+    () => resolveRandomDisplaySettings(word, resolvedSyllableCount),
+    [resolvedSyllableCount, word],
+  );
+  const displaySettings = sliceMode === "none"
+    ? noneDisplaySettings
+    : sliceMode === "random"
+      ? randomPreview
+      : settings;
+  const displayPick = normalizeSyllablePick(
+    displaySettings.syllablePick,
+    "",
+    undefined,
+    resolvedSyllableCount,
+    "exact",
+  );
+  const displayTakeOptions = useMemo(
+    () => buildSyllableTakeOptions(displayPick, resolvedSyllableCount),
+    [displayPick, resolvedSyllableCount],
+  );
+  const displayTakeValue = displaySettings.syllablePick === "full"
+    ? displayTakeOptions[0]?.value ?? "1"
+    : String(displaySettings.syllableTake);
+
+  useEffect(() => {
+    if (!hasWord || sliceMode !== "custom") return;
+
+    const normalizedPick = normalizeSyllablePick(settings.syllablePick, "", undefined, resolvedSyllableCount, "exact");
+    const nextSettings = normalizedPick !== settings.syllablePick
+      ? { ...settings, syllablePick: normalizedPick }
+      : settings;
+    const nextMaxTake = maxTakeFromPick(normalizedPick, resolvedSyllableCount);
+    if (nextSettings.syllableTake > nextMaxTake) {
+      onChange({ ...nextSettings, syllableTake: nextMaxTake });
+      return;
+    }
+    if (nextSettings !== settings) onChange(nextSettings);
+  }, [hasWord, onChange, resolvedSyllableCount, settings, sliceMode]);
+
+  useEffect(() => {
+    if (!hasWord || sliceDisabled) return;
+    if (settings.syllableTake > maxTake) {
+      onChange({ ...settings, syllableTake: maxTake });
+    }
+  }, [hasWord, maxTake, onChange, settings, sliceDisabled]);
 
   return (
-    <div className={disabled ? "length-mode-toggle disabled" : "length-mode-toggle"} role="group" aria-label={label} aria-disabled={disabled}>
-      <ul className="word-type-tab-list">
-        {options.map((option) => (
-          <li key={option.value}>
-            <button
-              ref={value === option.value ? activeTabRef : null}
-              type="button"
-              aria-label={option.label}
-              title={option.label}
-              aria-pressed={value === option.value}
-              disabled={disabled}
-              onClick={() => onChange(option.value)}
-            >
-              <span className="inequality-symbol" aria-hidden="true">{option.symbol}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div className="word-type-active-layer" aria-hidden="true" ref={containerRef}>
-        <ul className="word-type-tab-list word-type-tab-list-overlay">
-          {options.map((option) => (
-            <li key={option.value}><button type="button" tabIndex={-1}><span className="inequality-symbol">{option.symbol}</span></button></li>
-          ))}
-        </ul>
+    <div className="mix-side-settings">
+      <div className="mix-position-row">
+        <MixSegmentToggle
+          className="slice-mode-toggle"
+          value={sliceMode}
+          label={`${labelPrefix} slice mode`}
+          options={SLICE_MODE_OPTIONS}
+          onChange={onSliceModeChange}
+        />
+      </div>
+      <div
+        className={`mix-position-setting-wrap${sliceMode !== "none" ? " is-expanded" : ""}`}
+        aria-hidden={sliceMode === "none"}
+      >
+        <div className="mix-position-setting-wrap-inner">
+          <div className={`mix-position-setting${previewLocked ? " mix-position-setting-locked" : ""}`}>
+            <div className="mix-position-row">
+              <span className="mix-position-label">Slice start position</span>
+              {singleSyllableOnly && sliceMode !== "none" ? (
+                <div
+                  className="mix-segment-toggle mix-syllable-amount-toggle mix-segment-toggle-message disabled"
+                  role="group"
+                  aria-label={`${labelPrefix} slice start position`}
+                  aria-disabled="true"
+                >
+                  <span>Only 1 syllable available</span>
+                </div>
+              ) : (
+                <MixSegmentToggle
+                  className="mix-syllable-amount-toggle"
+                  value={String(displayPick)}
+                  label={`${labelPrefix} slice start position`}
+                  options={pickOptions}
+                  disabled={positionDisabled}
+                  onChange={(pick) => onChange({ ...settings, syllablePick: parseSyllablePickValue(pick) })}
+                />
+              )}
+            </div>
+            <div className="mix-position-row">
+              <span className="mix-position-label">Include</span>
+              <MixSegmentToggle
+                className="mix-syllable-count-toggle"
+                value={displayTakeValue}
+                label={`${labelPrefix} include`}
+                options={displayTakeOptions}
+                disabled={sliceDisabled || displaySettings.syllablePick === "full"}
+                onChange={(take) => onChange({ ...settings, syllableTake: parseSyllableTakeValue(take) })}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function WordLengthSetting({ value, mode, onValueChange, onModeChange }: {
+function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSliceMode, leftSettings, rightSettings, leftSyllables, rightSyllables, onLeftSliceModeChange, onRightSliceModeChange, onLeftChange, onRightChange, onReset, settingsApplied }: {
+  leftWord: string;
+  rightWord: string;
+  leftSliceMode: SliceMode;
+  rightSliceMode: SliceMode;
+  leftSettings: MixSideSettings;
+  rightSettings: MixSideSettings;
+  leftSyllables?: number;
+  rightSyllables?: number;
+  onLeftSliceModeChange: (mode: SliceMode) => void;
+  onRightSliceModeChange: (mode: SliceMode) => void;
+  onLeftChange: (settings: MixSideSettings) => void;
+  onRightChange: (settings: MixSideSettings) => void;
+  onReset: () => void;
+  settingsApplied: boolean;
+}) {
+  return (
+    <aside className="split-slice-panel rounded-3xl" aria-label="Slice settings">
+      <div className="settings-panel-header">
+        <p>Slice words</p>
+        <button
+          className={settingsApplied ? undefined : "settings-reset-placeholder"}
+          type="button"
+          aria-hidden={!settingsApplied}
+          tabIndex={settingsApplied ? undefined : -1}
+          onClick={onReset}
+        >
+          <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
+          Reset
+        </button>
+      </div>
+      <div className="slice-settings-grid">
+        <div className="slice-settings-side">
+          <MixSideSetting
+            labelPrefix="Left word"
+            word={leftWord}
+            settings={leftSettings}
+            sliceMode={leftSliceMode}
+            syllableCount={leftSyllables}
+            hasWord={Boolean(leftWord)}
+            onChange={onLeftChange}
+            onSliceModeChange={onLeftSliceModeChange}
+          />
+        </div>
+        <div className="slice-settings-side">
+          <MixSideSetting
+            labelPrefix="Right word"
+            word={rightWord}
+            settings={rightSettings}
+            sliceMode={rightSliceMode}
+            syllableCount={rightSyllables}
+            hasWord={Boolean(rightWord)}
+            onChange={onRightChange}
+            onSliceModeChange={onRightSliceModeChange}
+          />
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function FilterCountStepper({ id, groupLabel, decreaseLabel, increaseLabel, count, max, onChange }: {
+  id: string;
+  groupLabel: string;
+  decreaseLabel: string;
+  increaseLabel: string;
+  count: number;
+  max: number;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <div className="filter-count-stepper" id={id} role="group" aria-label={groupLabel}>
+      <button
+        type="button"
+        className="filter-count-step"
+        disabled={count === 0}
+        aria-label={decreaseLabel}
+        onClick={() => onChange(count - 1)}
+      >
+        <Minus size={16} strokeWidth={2} color="currentColor" aria-hidden="true" />
+      </button>
+      <output
+        className={["filter-count-value", count === 0 && "is-unset"].filter(Boolean).join(" ")}
+        aria-live="polite"
+      >
+        {count === 0 ? "—" : count}
+      </output>
+      <button
+        type="button"
+        className="filter-count-step"
+        disabled={count >= max}
+        aria-label={increaseLabel}
+        onClick={() => onChange(count + 1)}
+      >
+        <Plus size={16} strokeWidth={2} color="currentColor" aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+function FilterCountSetting({ id, className = "", label, modeLabel, stepperGroupLabel, decreaseLabel, increaseLabel, value, mode, max, normalize, onValueChange, onModeChange }: {
+  id: string;
+  className?: string;
+  label: string;
+  modeLabel: string;
+  stepperGroupLabel: string;
+  decreaseLabel: string;
+  increaseLabel: string;
+  value: string;
+  mode: LengthMode;
+  max: number;
+  normalize: (value: string) => string;
+  onValueChange: (value: string) => void;
+  onModeChange: (value: LengthMode) => void;
+}) {
+  const count = Number(normalize(value)) || 0;
+  const hasCount = count > 0;
+
+  const setCount = (next: number) => {
+    if (next <= 0) {
+      onModeChange("exact");
+      onValueChange("");
+      return;
+    }
+    onValueChange(String(Math.min(next, max)));
+  };
+
+  return (
+    <div className={["filter-count-setting", className].filter(Boolean).join(" ")}>
+      <span className="counter-with-mode-name">{label}</span>
+      <LengthModeDropdown
+        inline
+        value={mode}
+        label={modeLabel}
+        disabled={!hasCount}
+        onChange={onModeChange}
+      />
+      <FilterCountStepper
+        id={id}
+        groupLabel={stepperGroupLabel}
+        decreaseLabel={decreaseLabel}
+        increaseLabel={increaseLabel}
+        count={count}
+        max={max}
+        onChange={setCount}
+      />
+    </div>
+  );
+}
+
+function SyllableCountSetting({ id, value, mode, onValueChange, onModeChange }: {
+  id: string;
   value: string;
   mode: LengthMode;
   onValueChange: (value: string) => void;
   onModeChange: (value: LengthMode) => void;
 }) {
   return (
-    <div className="word-length-setting">
-      <CounterSetting label="Word length" value={value} max={22} onChange={onValueChange} />
-      <LengthModeToggle value={mode} disabled={!value} onChange={onModeChange} />
+    <FilterCountSetting
+      id={id}
+      className="syllable-count-setting"
+      label="Syllables"
+      modeLabel="Syllable count comparison"
+      stepperGroupLabel="Syllable count"
+      decreaseLabel="Decrease syllable count"
+      increaseLabel="Increase syllable count"
+      value={value}
+      mode={mode}
+      max={MAX_SYLLABLE_FILTER}
+      normalize={normalizeSyllableSelection}
+      onValueChange={onValueChange}
+      onModeChange={onModeChange}
+    />
+  );
+}
+
+function WordLengthSetting({ id, value, mode, onValueChange, onModeChange }: {
+  id: string;
+  value: string;
+  mode: LengthMode;
+  onValueChange: (value: string) => void;
+  onModeChange: (value: LengthMode) => void;
+}) {
+  return (
+    <FilterCountSetting
+      id={id}
+      className="word-length-setting"
+      label="Length"
+      modeLabel="Length comparison"
+      stepperGroupLabel="Word length"
+      decreaseLabel="Decrease word length"
+      increaseLabel="Increase word length"
+      value={value}
+      mode={mode}
+      max={MAX_LENGTH_FILTER}
+      normalize={normalizeLengthSelection}
+      onValueChange={onValueChange}
+      onModeChange={onModeChange}
+    />
+  );
+}
+
+const LENGTH_MODE_OPTIONS: { value: LengthMode; label: string; symbol: string }[] = [
+  { value: "less", label: "Less or equal", symbol: "≤" },
+  { value: "exact", label: "Equal", symbol: "=" },
+  { value: "more", label: "More or equal", symbol: "≥" },
+];
+
+function LengthModeDropdown({ value, label = "Comparison", disabled = false, inline = false, onChange }: {
+  value: LengthMode;
+  label?: string;
+  disabled?: boolean;
+  inline?: boolean;
+  onChange: (value: LengthMode) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const selected = LENGTH_MODE_OPTIONS.find((option) => option.value === value) ?? LENGTH_MODE_OPTIONS[1];
+
+  useEffect(() => {
+    if (!open) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) setActiveIndex(-1);
+  }, [open]);
+
+  const selectOption = (nextValue: LengthMode) => {
+    onChange(nextValue);
+    setOpen(false);
+  };
+
+  return (
+    <div
+      className={[
+        "length-mode-dropdown",
+        inline ? "length-mode-dropdown-inline" : "",
+        disabled ? "disabled" : "",
+        open ? "open" : "",
+      ].filter(Boolean).join(" ")}
+      ref={rootRef}
+    >
+      <button
+        type="button"
+        className="length-mode-dropdown-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`${label}: ${selected.label}`}
+        disabled={disabled}
+        onClick={() => {
+          if (disabled) return;
+          setOpen((current) => !current);
+        }}
+        onKeyDown={(event) => {
+          if (disabled) return;
+          if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setOpen(true);
+            setActiveIndex(Math.max(0, LENGTH_MODE_OPTIONS.findIndex((option) => option.value === value)));
+          } else if (event.key === "Escape") {
+            setOpen(false);
+          }
+        }}
+      >
+        <span>{selected.label}</span>
+        <ChevronDown size={12} strokeWidth={1.6} aria-hidden="true" />
+      </button>
+      {open ? (
+        <ul className="length-mode-dropdown-menu" role="listbox" aria-label={label}>
+          {LENGTH_MODE_OPTIONS.map((option, index) => (
+            <li key={option.value}>
+              <button
+                type="button"
+                role="option"
+                aria-label={option.label}
+                aria-selected={value === option.value}
+                className={[
+                  value === option.value ? "selected" : "",
+                  activeIndex === index ? "active" : "",
+                ].filter(Boolean).join(" ") || undefined}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => selectOption(option.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    setActiveIndex((current) => Math.min(current + 1, LENGTH_MODE_OPTIONS.length - 1));
+                  } else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    setActiveIndex((current) => Math.max(current - 1, 0));
+                  } else if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    selectOption(option.value);
+                  } else if (event.key === "Escape") {
+                    event.preventDefault();
+                    setOpen(false);
+                  }
+                }}
+              >
+                <span>{option.label}</span>
+                <span className="length-mode-option-symbol" aria-hidden="true">{option.symbol}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
 
-function AffixSetting({ kind, value, onChange }: {
-  kind: "starts" | "ends";
-  value: string;
-  onChange: (value: string) => void;
+function AffixSettings({ startsWith, endsWith, onStartsChange, onEndsChange }: {
+  startsWith: string;
+  endsWith: string;
+  onStartsChange: (value: string) => void;
+  onEndsChange: (value: string) => void;
 }) {
-  const label = kind === "starts" ? "Starts with" : "Ends with";
   const line = <span className="affix-line" aria-hidden="true" />;
 
   return (
-    <label className={`split-setting-field affix-setting ${kind}`}>
-      <span>{label}</span>
-      <span className="affix-control">
-        {kind === "ends" ? line : null}
-        <input
-          value={value}
-          aria-label={label}
-          placeholder="Any"
-          maxLength={12}
-          onChange={(event) => onChange(event.target.value.replace(/[^a-z]/gi, ""))}
-        />
-        {kind === "starts" ? line : null}
-      </span>
-    </label>
+    <div className="affix-settings-row">
+      <label className="affix-setting starts">
+        <span>Starts with</span>
+        <span className="affix-control">
+          <input
+            value={startsWith}
+            aria-label="Starts with"
+            placeholder="—"
+            maxLength={12}
+            onChange={(event) => onStartsChange(event.target.value.replace(/[^a-z]/gi, ""))}
+          />
+          {line}
+        </span>
+      </label>
+      <label className="affix-setting ends">
+        <span>Ends with</span>
+        <span className="affix-control">
+          {line}
+          <input
+            value={endsWith}
+            aria-label="Ends with"
+            placeholder="—"
+            maxLength={12}
+            onChange={(event) => onEndsChange(event.target.value.replace(/[^a-z]/gi, ""))}
+          />
+        </span>
+      </label>
+    </div>
   );
 }
 
@@ -652,6 +1150,44 @@ function RelatedToSetting({ id, value, onChange }: {
   );
 }
 
+function MixWordSyllables({ word, settings, syllableCount, className }: {
+  word: string;
+  settings: MixSideSettings;
+  syllableCount?: number;
+  className?: string;
+}) {
+  const segments = useMemo(
+    () => getSyllableSegments(word, settings, syllableCount),
+    [settings, syllableCount, word],
+  );
+
+  return (
+    <span className={className}>
+      {segments.map((segment, index) => (
+        <span
+          key={`${segment.text}-${index}`}
+          className={segment.used ? "mix-syllable-used" : "mix-syllable-unused"}
+        >
+          {segment.text}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function MixSourceWord({ word, settings, syllableCount, className }: {
+  word: string;
+  settings: MixSideSettings;
+  syllableCount?: number;
+  className: string;
+}) {
+  return (
+    <h2 className={`split-source-word mix-source-word ${className}`}>
+      <MixWordSyllables word={word} settings={settings} syllableCount={syllableCount} />
+    </h2>
+  );
+}
+
 function SplitDescription({ children }: { children: string }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -683,10 +1219,21 @@ function WordCopyHint({ status }: { status: WordCopyStatus }) {
   );
 }
 
+function DiscoverStartPrompt() {
+  return (
+    <p className="discover-start-prompt">
+      Press <kbd>space</kbd> to start
+    </p>
+  );
+}
+
 export default function Home() {
   const [appMode, setAppMode] = useState<AppMode>("discover");
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
-  const [splitView, setSplitView] = useState(true);
+  const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>("none");
+  const [rightSliceMode, setRightSliceMode] = useState<SliceMode>("none");
+  const [mixLeftSettings, setMixLeftSettings] = useState<MixSideSettings>(defaultCustomMixLeftSettings);
+  const [mixRightSettings, setMixRightSettings] = useState<MixSideSettings>(defaultCustomMixRightSettings);
   const [focusMode, setFocusMode] = useState(false);
   const [wordCopyStatus, setWordCopyStatus] = useState<WordCopyStatus>("idle");
   const [wordSyllables, setWordSyllables] = useState("");
@@ -738,7 +1285,6 @@ export default function Home() {
   const [splitHistoryRevision, setSplitHistoryRevision] = useState(0);
   const requestRef = useRef<AbortController | null>(null);
   const secondaryRequestRef = useRef<AbortController | null>(null);
-  const splitEntryRequestFrameRef = useRef(0);
   const splitBatchRequestRef = useRef(0);
   const wordCopyTimerRef = useRef(0);
   const savedMenuRef = useRef<HTMLDivElement | null>(null);
@@ -752,8 +1298,7 @@ export default function Home() {
   const splitHistoryBatchDepthRef = useRef(0);
   const settingsUrlSyncedRef = useRef(false);
 
-  const resetPrimarySettings = useCallback(() => {
-    setLeftWordDraft("");
+  const resetPrimaryFilters = useCallback(() => {
     setWordRelatedTo("");
     setWordType("any");
     setWordSyllables("");
@@ -764,8 +1309,7 @@ export default function Home() {
     setWordLengthMode("exact");
   }, []);
 
-  const resetSecondarySettings = useCallback(() => {
-    setRightWordDraft("");
+  const resetSecondaryFilters = useCallback(() => {
     setSecondaryWordRelatedTo("");
     setSecondaryWordType("any");
     setSecondaryWordSyllables("");
@@ -775,6 +1319,58 @@ export default function Home() {
     setSecondaryWordLetters("");
     setSecondaryWordLengthMode("exact");
   }, []);
+
+  const resetSliceSettings = useCallback(() => {
+    setLeftSliceMode("none");
+    setRightSliceMode("none");
+    setMixLeftSettings({ ...defaultCustomMixLeftSettings });
+    setMixRightSettings({ ...defaultCustomMixRightSettings });
+  }, []);
+
+  const handleLeftSliceModeChange = useCallback((mode: SliceMode) => {
+    setLeftSliceMode(mode);
+    if (mode === "custom") {
+      setMixLeftSettings((current) => normalizeCustomMixSettings(current));
+    }
+  }, []);
+
+  const handleRightSliceModeChange = useCallback((mode: SliceMode) => {
+    setRightSliceMode(mode);
+    if (mode === "custom") {
+      setMixRightSettings((current) => normalizeCustomMixSettings(current));
+    }
+  }, []);
+
+  const resetPrimarySettings = useCallback(() => {
+    setLeftWordDraft("");
+    resetPrimaryFilters();
+    setResult(emptyWordResult);
+  }, [resetPrimaryFilters]);
+
+  const resetSecondarySettings = useCallback(() => {
+    setRightWordDraft("");
+    resetSecondaryFilters();
+    setSecondaryResult(emptyWordResult);
+  }, [resetSecondaryFilters]);
+
+  const resetAllDiscoverSettings = useCallback(() => {
+    requestRef.current?.abort();
+    requestRef.current = null;
+    secondaryRequestRef.current?.abort();
+    secondaryRequestRef.current = null;
+    splitBatchRequestRef.current += 1;
+    setLoading(false);
+    setSecondaryLoading(false);
+    setSplitBatchLoading(false);
+    resetPrimaryFilters();
+    resetSecondaryFilters();
+    resetSliceSettings();
+    setLeftWordDraft("");
+    setRightWordDraft("");
+    setResult(emptyWordResult);
+    setSecondaryResult(emptyWordResult);
+    setMessage("");
+  }, [resetPrimaryFilters, resetSecondaryFilters, resetSliceSettings]);
 
   const selectAppMode = useCallback((mode: AppMode) => {
     setAppMode(mode);
@@ -789,18 +1385,6 @@ export default function Home() {
     wordHistoryRef.current = updatedHistory;
     historyIndexRef.current = updatedHistory.length - 1;
     setResult(word);
-  }, []);
-
-  const moveThroughHistory = useCallback((direction: -1 | 1) => {
-    const nextIndex = historyIndexRef.current + direction;
-    if (nextIndex < 0 || nextIndex >= wordHistoryRef.current.length) return;
-
-    historyIndexRef.current = nextIndex;
-    const nextWord = wordHistoryRef.current[nextIndex];
-    setResult(nextWord);
-    setSecondaryResult(nextWord);
-    setRightWordDraft("");
-    setMessage("");
   }, []);
 
   useEffect(() => {
@@ -841,44 +1425,56 @@ export default function Home() {
     }
   }, []);
 
-  const isSaved = savedWords.some((item) => item.word.toLowerCase() === result.word.toLowerCase());
   const displayedPronunciation = normalizePronunciation(result.pronunciation);
   const secondaryPronunciation = normalizePronunciation(secondaryResult.pronunciation);
   const leftWordValue = leftWordDraft || result.word;
   const rightWordValue = rightWordDraft || secondaryResult.word;
-  const combinedSplitWord = `${leftWordValue}${rightWordValue}`.replace(/\s+/g, "").toLowerCase();
-  const combinedSplitIsSaved = Boolean(combinedSplitWord)
-    && savedWords.some((item) => item.word.toLowerCase() === combinedSplitWord);
-
-  const toggleSaved = useCallback(() => {
-    if (isSaved) {
-      saveWords(savedWords.filter((item) => item.word.toLowerCase() !== result.word.toLowerCase()));
-    } else {
-      saveWords([result, ...savedWords]);
-    }
-  }, [isSaved, result, saveWords, savedWords]);
+  const effectiveMixLeftSettings = useMemo(
+    () => effectiveMixSettings(leftSliceMode, mixLeftSettings),
+    [leftSliceMode, mixLeftSettings],
+  );
+  const effectiveMixRightSettings = useMemo(
+    () => effectiveMixSettings(rightSliceMode, mixRightSettings),
+    [mixRightSettings, rightSliceMode],
+  );
+  const mixedWordParts = useMemo(
+    () => mixWordParts(
+      leftWordValue,
+      rightWordValue,
+      effectiveMixLeftSettings,
+      effectiveMixRightSettings,
+      result.syllables,
+      secondaryResult.syllables,
+    ),
+    [effectiveMixLeftSettings, effectiveMixRightSettings, leftWordValue, rightWordValue, result.syllables, secondaryResult.syllables],
+  );
+  const displayedCombinedWord = mixedWordParts.mixed;
+  const combinedSplitIsSaved = Boolean(displayedCombinedWord)
+    && savedWords.some((item) => item.word.toLowerCase() === displayedCombinedWord);
+  const discoverHasNoWords = !leftWordValue && !rightWordValue;
 
   const toggleCombinedSaved = useCallback(() => {
-    if (!combinedSplitWord) return;
+    if (!displayedCombinedWord) return;
     if (combinedSplitIsSaved) {
-      saveWords(savedWords.filter((item) => item.word.toLowerCase() !== combinedSplitWord));
+      saveWords(savedWords.filter((item) => item.word.toLowerCase() !== displayedCombinedWord));
       return;
     }
+    const definition = `A coined word mixing “${mixedWordParts.leftChunk}” from “${leftWordValue}” with “${mixedWordParts.rightChunk}” from “${rightWordValue}”.`;
     saveWords([{
-      word: combinedSplitWord,
-      definition: `A coined word combining “${leftWordValue}” and “${rightWordValue}”.`,
+      word: displayedCombinedWord,
+      definition,
       partOfSpeech: "combined word",
       splitLeft: stripSplitFields(result),
       splitRight: stripSplitFields(secondaryResult),
     }, ...savedWords]);
-  }, [combinedSplitIsSaved, combinedSplitWord, leftWordValue, result, rightWordValue, saveWords, savedWords, secondaryResult]);
+  }, [combinedSplitIsSaved, displayedCombinedWord, leftWordValue, mixedWordParts.leftChunk, mixedWordParts.rightChunk, result, rightWordValue, saveWords, savedWords, secondaryResult]);
 
   const loadSavedWord = useCallback(async (saved: WordResult) => {
     setMessage("From your saved words");
     setSavedOpen(false);
     selectAppMode("discover");
 
-    if (splitView && saved.partOfSpeech === "combined word") {
+    if (saved.partOfSpeech === "combined word") {
       const parts = parseCombinedParts(saved);
       if (parts) {
         const [left, right] = parts;
@@ -922,16 +1518,11 @@ export default function Home() {
       }
     }
 
-    if (splitView) {
-      commitWord(saved);
-      setSecondaryResult({ word: "", definition: "", partOfSpeech: "" });
-      setLeftWordDraft("");
-      setRightWordDraft("");
-      return;
-    }
-
     commitWord(saved);
-  }, [commitWord, selectAppMode, splitView]);
+    setSecondaryResult(emptyWordResult);
+    setLeftWordDraft("");
+    setRightWordDraft("");
+  }, [commitWord, selectAppMode]);
 
   const copyDisplayedWord = useCallback(async (word: string) => {
     if (!word) return;
@@ -1266,7 +1857,7 @@ export default function Home() {
   });
 
   const findWord = useCallback(
-    async (relation?: (typeof relations)[number], requestedType: PartOfSpeech = wordType, syncSecondary = !splitView) => {
+    async (relation?: (typeof relations)[number], requestedType: PartOfSpeech = wordType) => {
       requestRef.current?.abort();
       setLeftWordDraft("");
       const controller = new AbortController();
@@ -1280,14 +1871,20 @@ export default function Home() {
         params.set("word", result.word);
       } else {
         if (wordSyllables) {
-          params.set("syllables", wordSyllables);
-          params.set("syllablesMode", wordSyllableMode);
+          const syllableFilter = resolveSyllableFilter(wordSyllables, wordSyllableMode);
+          if (syllableFilter) {
+            params.set("syllables", syllableFilter.syllables);
+            params.set("syllablesMode", syllableFilter.mode);
+          }
         }
         if (wordStartsWith) params.set("startsWith", wordStartsWith);
         if (wordEndsWith) params.set("endsWith", wordEndsWith);
         if (wordLetters) {
-          params.set("length", wordLetters);
-          params.set("lengthMode", wordLengthMode);
+          const lengthFilter = resolveLengthFilter(wordLetters, wordLengthMode);
+          if (lengthFilter) {
+            params.set("length", lengthFilter.length);
+            params.set("lengthMode", lengthFilter.mode);
+          }
         }
       }
 
@@ -1303,14 +1900,25 @@ export default function Home() {
           const candidates = (await response.json() as WordResult[]).filter((word) => {
             if (partName && word.partOfSpeech !== partName) return false;
             if (wordSyllables && !word.syllables) return false;
-            if (wordSyllables && wordSyllableMode === "exact" && word.syllables !== Number(wordSyllables)) return false;
-            if (wordSyllables && wordSyllableMode === "less" && word.syllables! > Number(wordSyllables)) return false;
-            if (wordSyllables && wordSyllableMode === "more" && word.syllables! < Number(wordSyllables)) return false;
+            const syllableFilter = resolveSyllableFilter(wordSyllables, wordSyllableMode);
+            if (syllableFilter) {
+              const syllableCount = word.syllables!;
+              const targetSyllables = Number(syllableFilter.syllables);
+              if (syllableFilter.mode === "exact" && syllableCount !== targetSyllables) return false;
+              if (syllableFilter.mode === "less" && syllableCount > targetSyllables) return false;
+              if (syllableFilter.mode === "more" && syllableCount < targetSyllables) return false;
+            }
             if (wordStartsWith && !word.word.toLowerCase().startsWith(wordStartsWith.toLowerCase())) return false;
             if (wordEndsWith && !word.word.toLowerCase().endsWith(wordEndsWith.toLowerCase())) return false;
-            if (wordLetters && wordLengthMode === "exact" && word.word.length !== Number(wordLetters)) return false;
-            if (wordLetters && wordLengthMode === "less" && word.word.length > Number(wordLetters)) return false;
-            return !wordLetters || wordLengthMode !== "more" || word.word.length >= Number(wordLetters);
+            const lengthFilter = resolveLengthFilter(wordLetters, wordLengthMode);
+            if (lengthFilter) {
+              const wordLength = word.word.length;
+              const targetLength = Number(lengthFilter.length);
+              if (lengthFilter.mode === "exact" && wordLength !== targetLength) return false;
+              if (lengthFilter.mode === "less" && wordLength > targetLength) return false;
+              if (lengthFilter.mode === "more" && wordLength < targetLength) return false;
+            }
+            return true;
           });
           if (!candidates.length) throw new Error("No word found");
           const alternatives = candidates.filter((word) => word.word !== result.word);
@@ -1324,7 +1932,6 @@ export default function Home() {
         }
         if (controller.signal.aborted || requestRef.current !== controller) return;
         commitWord(next);
-        if (syncSecondary) setSecondaryResult(next);
         setMessage(relation ? `${relation.label} to “${result.word}”` : "");
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
@@ -1335,7 +1942,7 @@ export default function Home() {
         if (requestRef.current === controller) setLoading(false);
       }
     },
-    [commitWord, result.word, splitView, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllableMode, wordSyllables, wordType],
+    [commitWord, result.word, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllableMode, wordSyllables, wordType],
   );
 
   const findSecondaryWord = useCallback(async (requestedType: PartOfSpeech = secondaryWordType) => {
@@ -1346,14 +1953,20 @@ export default function Home() {
     setSecondaryLoading(true);
     const params = new URLSearchParams({ pos: requestedType });
     if (secondaryWordSyllables) {
-      params.set("syllables", secondaryWordSyllables);
-      params.set("syllablesMode", secondaryWordSyllableMode);
+      const syllableFilter = resolveSyllableFilter(secondaryWordSyllables, secondaryWordSyllableMode);
+      if (syllableFilter) {
+        params.set("syllables", syllableFilter.syllables);
+        params.set("syllablesMode", syllableFilter.mode);
+      }
     }
     if (secondaryWordStartsWith) params.set("startsWith", secondaryWordStartsWith);
     if (secondaryWordEndsWith) params.set("endsWith", secondaryWordEndsWith);
     if (secondaryWordLetters) {
-      params.set("length", secondaryWordLetters);
-      params.set("lengthMode", secondaryWordLengthMode);
+      const lengthFilter = resolveLengthFilter(secondaryWordLetters, secondaryWordLengthMode);
+      if (lengthFilter) {
+        params.set("length", lengthFilter.length);
+        params.set("lengthMode", lengthFilter.mode);
+      }
     }
 
     try {
@@ -1367,14 +1980,25 @@ export default function Home() {
         const candidates = (await response.json() as WordResult[]).filter((word) => {
           if (partName && word.partOfSpeech !== partName) return false;
           if (secondaryWordSyllables && !word.syllables) return false;
-          if (secondaryWordSyllables && secondaryWordSyllableMode === "exact" && word.syllables !== Number(secondaryWordSyllables)) return false;
-          if (secondaryWordSyllables && secondaryWordSyllableMode === "less" && word.syllables! > Number(secondaryWordSyllables)) return false;
-          if (secondaryWordSyllables && secondaryWordSyllableMode === "more" && word.syllables! < Number(secondaryWordSyllables)) return false;
+          const syllableFilter = resolveSyllableFilter(secondaryWordSyllables, secondaryWordSyllableMode);
+          if (syllableFilter) {
+            const syllableCount = word.syllables!;
+            const targetSyllables = Number(syllableFilter.syllables);
+            if (syllableFilter.mode === "exact" && syllableCount !== targetSyllables) return false;
+            if (syllableFilter.mode === "less" && syllableCount > targetSyllables) return false;
+            if (syllableFilter.mode === "more" && syllableCount < targetSyllables) return false;
+          }
           if (secondaryWordStartsWith && !word.word.toLowerCase().startsWith(secondaryWordStartsWith.toLowerCase())) return false;
           if (secondaryWordEndsWith && !word.word.toLowerCase().endsWith(secondaryWordEndsWith.toLowerCase())) return false;
-          if (secondaryWordLetters && secondaryWordLengthMode === "exact" && word.word.length !== Number(secondaryWordLetters)) return false;
-          if (secondaryWordLetters && secondaryWordLengthMode === "less" && word.word.length > Number(secondaryWordLetters)) return false;
-          return !secondaryWordLetters || secondaryWordLengthMode !== "more" || word.word.length >= Number(secondaryWordLetters);
+          const lengthFilter = resolveLengthFilter(secondaryWordLetters, secondaryWordLengthMode);
+          if (lengthFilter) {
+            const wordLength = word.word.length;
+            const targetLength = Number(lengthFilter.length);
+            if (lengthFilter.mode === "exact" && wordLength !== targetLength) return false;
+            if (lengthFilter.mode === "less" && wordLength > targetLength) return false;
+            if (lengthFilter.mode === "more" && wordLength < targetLength) return false;
+          }
+          return true;
         });
         if (!candidates.length) throw new Error("No word found");
         const alternatives = candidates.filter((word) => word.word !== secondaryResult.word);
@@ -1382,7 +2006,6 @@ export default function Home() {
         const next = pool[Math.floor(Math.random() * pool.length)];
         if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
         setSecondaryResult(next);
-        if (!splitView) commitWord(next);
       } else {
         const response = await fetch(`/api/word?${params}`, { signal: controller.signal });
         applyApiHealth(response, setApiHealth);
@@ -1390,7 +2013,6 @@ export default function Home() {
         const next = await response.json() as WordResult;
         if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
         setSecondaryResult(next);
-        if (!splitView) commitWord(next);
       }
     } catch (error) {
       if ((error as Error).name !== "AbortError" && secondaryRequestRef.current === controller) {
@@ -1400,7 +2022,17 @@ export default function Home() {
     } finally {
       if (secondaryRequestRef.current === controller) setSecondaryLoading(false);
     }
-  }, [commitWord, secondaryResult.word, secondaryWordEndsWith, secondaryWordLengthMode, secondaryWordLetters, secondaryWordRelatedTo, secondaryWordStartsWith, secondaryWordSyllableMode, secondaryWordSyllables, secondaryWordType, splitView]);
+  }, [secondaryResult.word, secondaryWordEndsWith, secondaryWordLengthMode, secondaryWordLetters, secondaryWordRelatedTo, secondaryWordStartsWith, secondaryWordSyllableMode, secondaryWordSyllables, secondaryWordType]);
+
+  const handleLeftWordDraftChange = useCallback((value: string) => {
+    setLeftWordDraft(value);
+    if (value.trim()) resetPrimaryFilters();
+  }, [resetPrimaryFilters]);
+
+  const handleRightWordDraftChange = useCallback((value: string) => {
+    setRightWordDraft(value);
+    if (value.trim()) resetSecondaryFilters();
+  }, [resetSecondaryFilters]);
 
   const setExplicitSplitWord = useCallback(async (side: "left" | "right", draft: string) => {
     const word = draft.trim();
@@ -1445,21 +2077,17 @@ export default function Home() {
 
     if (controller.signal.aborted) return;
     if (side === "left") {
+      resetPrimaryFilters();
       commitWord(nextWord);
       setLeftWordDraft(word);
     } else {
+      resetSecondaryFilters();
       setSecondaryResult(nextWord);
       setRightWordDraft(word);
-      if (!splitView) commitWord(nextWord);
     }
-  }, [commitWord, result.word, secondaryResult.word, splitView]);
+  }, [commitWord, resetPrimaryFilters, resetSecondaryFilters, result.word, secondaryResult.word]);
 
   const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
-    if (!splitView) {
-      if (!rightWordDraft.trim()) void findSecondaryWord();
-      return;
-    }
-
     const requests: Promise<void>[] = [];
     if (!leftWordDraft.trim()) requests.push(findWord(undefined, requestedType));
     if (!rightWordDraft.trim()) requests.push(findSecondaryWord());
@@ -1476,7 +2104,7 @@ export default function Home() {
         setSplitHistoryRevision((revision) => revision + 1);
       }
     });
-  }, [findSecondaryWord, findWord, leftWordDraft, rightWordDraft, splitView, wordType]);
+  }, [findSecondaryWord, findWord, leftWordDraft, rightWordDraft, wordType]);
 
   const moveThroughSplitHistory = useCallback((direction: -1 | 1) => {
     const nextIndex = splitHistoryIndexRef.current + direction;
@@ -1492,8 +2120,48 @@ export default function Home() {
 
   useLayoutEffect(() => {
     const search = new URLSearchParams(window.location.search);
-    const splitFromUrl = parseViewModeParam(window.location.search);
-    if (splitFromUrl !== null) setSplitView(splitFromUrl);
+
+    const mixLeftEffective = parseMixSideSettings(search, "ml");
+    const mixRightEffective = parseMixSideSettings(search, "mr");
+    const mixLeftCustom = parseMixSideSettings(search, "mlCustom");
+    const mixRightCustom = parseMixSideSettings(search, "mrCustom");
+    const legacySliceMode = parseSliceMode(search.get("slice"));
+    const nextLeftSliceMode = parseSliceMode(search.get("mlSlice"))
+      ?? legacySliceMode
+      ?? inferSideSliceMode({ ...defaultMixLeftSettings, ...mixLeftEffective });
+    const nextRightSliceMode = parseSliceMode(search.get("mrSlice"))
+      ?? legacySliceMode
+      ?? inferSideSliceMode({ ...defaultMixRightSettings, ...mixRightEffective });
+
+    const nextLeftSettings = nextLeftSliceMode === "custom"
+      ? normalizeCustomMixSettings({
+        ...defaultCustomMixLeftSettings,
+        ...mixLeftEffective,
+        ...mixLeftCustom,
+      })
+      : {
+        ...defaultCustomMixLeftSettings,
+        syllableTake: mixLeftCustom.syllableTake
+          ?? mixLeftEffective.syllableTake
+          ?? defaultCustomMixLeftSettings.syllableTake,
+      };
+    const nextRightSettings = nextRightSliceMode === "custom"
+      ? normalizeCustomMixSettings({
+        ...defaultCustomMixRightSettings,
+        ...mixRightEffective,
+        ...mixRightCustom,
+      })
+      : {
+        ...defaultCustomMixRightSettings,
+        syllableTake: mixRightCustom.syllableTake
+          ?? mixRightEffective.syllableTake
+          ?? defaultCustomMixRightSettings.syllableTake,
+      };
+
+    setMixLeftSettings(nextLeftSettings);
+    setMixRightSettings(nextRightSettings);
+    setLeftSliceMode(nextLeftSliceMode);
+    setRightSliceMode(nextRightSliceMode);
 
     const left = parseSideSettings(search, "l");
     if (left.text !== undefined) setLeftWordDraft(left.text);
@@ -1522,29 +2190,28 @@ export default function Home() {
 
   useEffect(() => {
     if (!settingsUrlSyncedRef.current) return;
-    syncDiscoverUrlParams(splitView, {
+    syncDiscoverUrlParams({
       text: leftWordDraft,
       related: wordRelatedTo,
       pos: wordType,
-      syllables: wordSyllables,
+      syllables: normalizeSyllableSelection(wordSyllables),
       syllableMode: wordSyllableMode,
       startsWith: wordStartsWith,
       endsWith: wordEndsWith,
-      letters: wordLetters,
+      letters: normalizeLengthSelection(wordLetters),
       lengthMode: wordLengthMode,
     }, {
       text: rightWordDraft,
       related: secondaryWordRelatedTo,
       pos: secondaryWordType,
-      syllables: secondaryWordSyllables,
+      syllables: normalizeSyllableSelection(secondaryWordSyllables),
       syllableMode: secondaryWordSyllableMode,
       startsWith: secondaryWordStartsWith,
       endsWith: secondaryWordEndsWith,
-      letters: secondaryWordLetters,
+      letters: normalizeLengthSelection(secondaryWordLetters),
       lengthMode: secondaryWordLengthMode,
-    });
+    }, mixLeftSettings, mixRightSettings, leftSliceMode, rightSliceMode);
   }, [
-    splitView,
     leftWordDraft,
     wordRelatedTo,
     wordType,
@@ -1563,6 +2230,10 @@ export default function Home() {
     secondaryWordEndsWith,
     secondaryWordLetters,
     secondaryWordLengthMode,
+    mixLeftSettings,
+    mixRightSettings,
+    leftSliceMode,
+    rightSliceMode,
   ]);
 
   useEffect(() => {
@@ -1605,41 +2276,40 @@ export default function Home() {
       }
 
       if (event.key === "ArrowLeft") {
-        if (!splitView && appMode !== "combine") return;
         event.preventDefault();
-        if (splitView) void findWord();
+        if (appMode === "discover") void findWord();
         else modeActionsRef.current.moveThroughForgeHistory(-1);
         return;
       }
 
       if (event.key === "ArrowRight") {
-        if (!splitView && appMode !== "combine") return;
         event.preventDefault();
-        if (splitView) void findSecondaryWord();
+        if (appMode === "discover") void findSecondaryWord();
         else modeActionsRef.current.moveThroughForgeHistory(1);
         return;
       }
 
       if (event.key === "ArrowUp" && appMode === "discover") {
         event.preventDefault();
-        if (splitView) moveThroughSplitHistory(-1);
-        else moveThroughHistory(-1);
+        moveThroughSplitHistory(-1);
         return;
       }
 
       if (event.key === "ArrowDown" && appMode === "discover") {
         event.preventDefault();
-        if (splitView) moveThroughSplitHistory(1);
-        else moveThroughHistory(1);
+        moveThroughSplitHistory(1);
+        return;
+      }
+
+      if (event.key.toLowerCase() === "r" && appMode === "discover") {
+        event.preventDefault();
+        resetAllDiscoverSettings();
         return;
       }
 
       if (event.key.toLowerCase() === "s") {
         event.preventDefault();
-        if (appMode === "discover") {
-          if (splitView) toggleCombinedSaved();
-          else toggleSaved();
-        }
+        if (appMode === "discover") toggleCombinedSaved();
         if (appMode === "combine") modeActionsRef.current.toggleForgedSaved();
         return;
       }
@@ -1650,7 +2320,7 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [appMode, findSecondaryWord, findWord, focusMode, generateVisibleWords, moveThroughHistory, moveThroughSplitHistory, selectAppMode, splitView, toggleCombinedSaved, toggleSaved]);
+  }, [appMode, findSecondaryWord, findWord, focusMode, generateVisibleWords, moveThroughSplitHistory, resetAllDiscoverSettings, toggleCombinedSaved]);
 
   const forgeWords = forgeSlots.map((slot) => slot.candidates[slot.index]);
   const forgedWord = forgeWords.every(Boolean)
@@ -1672,7 +2342,7 @@ export default function Home() {
   const forgedIsSaved = Boolean(forgedWord) && savedWords.some((saved) => saved.word.toLowerCase() === forgedWord);
 
   useEffect(() => {
-    if (!splitView || splitHistoryBatchDepthRef.current > 0 || !result.word || !secondaryResult.word) return;
+    if (splitHistoryBatchDepthRef.current > 0 || !result.word || !secondaryResult.word) return;
     const current = splitHistoryRef.current[splitHistoryIndexRef.current];
     const entry = { left: result, right: secondaryResult };
     if (current?.left.word === result.word && current?.right.word === secondaryResult.word) {
@@ -1682,7 +2352,7 @@ export default function Home() {
     const branch = splitHistoryRef.current.slice(0, splitHistoryIndexRef.current + 1);
     splitHistoryRef.current = [...branch, entry].slice(-100);
     splitHistoryIndexRef.current = splitHistoryRef.current.length - 1;
-  }, [result, secondaryResult, splitHistoryRevision, splitView]);
+  }, [result, secondaryResult, splitHistoryRevision]);
 
   useEffect(() => {
     if (!forgedWord || !forgeWords[0] || !forgeWords[1]) return;
@@ -1715,6 +2385,13 @@ export default function Home() {
     || wordEndsWith
     || wordLetters
   );
+  const mixLeftApplied = leftSliceMode !== "none"
+    || mixLeftSettings.syllablePick !== defaultCustomMixLeftSettings.syllablePick
+    || mixLeftSettings.syllableTake !== defaultCustomMixLeftSettings.syllableTake;
+  const mixRightApplied = rightSliceMode !== "none"
+    || mixRightSettings.syllablePick !== defaultCustomMixRightSettings.syllablePick
+    || mixRightSettings.syllableTake !== defaultCustomMixRightSettings.syllableTake;
+  const sliceSettingsApplied = mixLeftApplied || mixRightApplied;
   const leftSettingsApplied = Boolean(leftWordDraft.trim()) || primaryFiltersApplied;
   const rightSettingsApplied = Boolean(
     rightWordDraft.trim()
@@ -1726,64 +2403,58 @@ export default function Home() {
     || secondaryWordLetters
   );
 
-  const changeViewMode = useCallback((nextSplit: boolean) => {
-    if (nextSplit === splitView) return;
-    window.cancelAnimationFrame(splitEntryRequestFrameRef.current);
-    const movingSelectors = ["[data-view-transition-word]", "[data-view-transition-card]"];
-    const previousPositions = new Map(
-      movingSelectors.map((selector) => [selector, document.querySelector<HTMLElement>(selector)?.getBoundingClientRect()]),
-    );
-    const updateLayout = () => {
-      requestRef.current?.abort();
-      requestRef.current = null;
-      secondaryRequestRef.current?.abort();
-      secondaryRequestRef.current = null;
-      setLoading(false);
-      setSecondaryLoading(false);
-      splitBatchRequestRef.current += 1;
-      setSplitBatchLoading(false);
-
-      if (nextSplit) {
-        setLeftWordDraft("");
-        setSecondaryResult(result);
-        setResult({ word: "", definition: "", partOfSpeech: "" });
-        setSplitView(true);
-      } else {
-        if (secondaryResult.word) commitWord(secondaryResult);
-        setLeftWordDraft("");
-        setSplitView(false);
-      }
-    };
-    flushSync(updateLayout);
-
-    // On entry, the existing word becomes the right-hand word. Animating that
-    // element from its single-view position makes it pass through the empty
-    // left slot, which looks like stale left-hand content. Keep the positional
-    // animation only when returning to single view.
-    if (!nextSplit && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      movingSelectors.forEach((selector) => {
-        const previousPosition = previousPositions.get(selector);
-        const element = document.querySelector<HTMLElement>(selector);
-        if (!previousPosition || !element) return;
-
-        const nextPosition = element.getBoundingClientRect();
-        const offsetX = previousPosition.left - nextPosition.left;
-        if (Math.abs(offsetX) < 1) return;
-        element.animate(
-          [{ transform: `translateX(${offsetX}px)` }, { transform: "translateX(0)" }],
-          { duration: 420, easing: "cubic-bezier(.22, 1, .36, 1)" },
-        );
-      });
-    }
-
-    if (nextSplit) {
-      splitEntryRequestFrameRef.current = window.requestAnimationFrame(() => void findWord(undefined, wordType, false));
-    }
-  }, [commitWord, findWord, result, secondaryResult, splitView, wordType]);
+  const savedWordsPanel = (
+    <div className="saved-menu" ref={savedMenuRef}>
+      <button
+        className={savedOpen ? "saved-toggle active" : "saved-toggle"}
+        type="button"
+        aria-expanded={savedOpen}
+        aria-controls="saved-words"
+        onClick={() => setSavedOpen((open) => !open)}
+      >
+        Saved <span>{savedWords.length}</span>
+      </button>
+      {savedOpen ? (
+        <div className="saved-panel" id="saved-words">
+          <p className="saved-heading">Saved words</p>
+          {savedWords.length ? (
+            <ul>
+              {savedWords.map((saved) => (
+                <li key={saved.word.toLowerCase()}>
+                  <button
+                    className="saved-word"
+                    type="button"
+                    onClick={() => void loadSavedWord(saved)}
+                  >
+                    <span style={{ fontFamily: cardo.style.fontFamily }}>{saved.word}</span>
+                    <small>{saved.partOfSpeech}</small>
+                  </button>
+                  <button
+                    className="remove-saved"
+                    type="button"
+                    aria-label={`Remove ${saved.word}`}
+                    onClick={() => saveWords(savedWords.filter((item) => item.word !== saved.word))}
+                  >
+                    <X size={13} strokeWidth={1.5} aria-hidden="true" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="saved-empty">Words you like will appear here.</p>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
 
   return (
     <main
-      className={focusMode ? "page-shell focus-mode" : "page-shell"}
+      className={[
+        "page-shell",
+        focusMode ? "focus-mode" : "",
+        appMode === "discover" ? "discover-mode" : "",
+      ].filter(Boolean).join(" ")}
       onPointerDown={() => {
         if (focusMode) setFocusMode(false);
       }}
@@ -1798,64 +2469,6 @@ export default function Home() {
             <span className="wordmark-name" style={{ fontFamily: cardo.style.fontFamily }}>Lexical.</span>
           </a>
           <ApiHealthStatus health={apiHealth} />
-        </div>
-        <ViewModeToggle splitView={splitView} onChange={changeViewMode} />
-        <div className="brand-group" ref={savedMenuRef}>
-          {appMode === "discover" ? (
-            <button
-              className="focus-toggle"
-              type="button"
-              aria-pressed={focusMode}
-              title="Focus mode (F). Press Escape to exit."
-              onClick={() => {
-                setSavedOpen(false);
-                setFocusMode(true);
-              }}
-            >
-              <Focus size={13} strokeWidth={1.5} aria-hidden="true" />
-              Focus
-            </button>
-          ) : null}
-          <button
-            className={savedOpen ? "saved-toggle active" : "saved-toggle"}
-            type="button"
-            aria-expanded={savedOpen}
-            aria-controls="saved-words"
-            onClick={() => setSavedOpen((open) => !open)}
-          >
-            Saved <span>{savedWords.length}</span>
-          </button>
-          {savedOpen ? (
-            <div className="saved-panel" id="saved-words">
-              <p className="saved-heading">Saved words</p>
-              {savedWords.length ? (
-                <ul>
-                  {savedWords.map((saved) => (
-                    <li key={saved.word.toLowerCase()}>
-                      <button
-                        className="saved-word"
-                        type="button"
-                        onClick={() => void loadSavedWord(saved)}
-                      >
-                        <span style={{ fontFamily: cardo.style.fontFamily }}>{saved.word}</span>
-                        <small>{saved.partOfSpeech}</small>
-                      </button>
-                      <button
-                        className="remove-saved"
-                        type="button"
-                        aria-label={`Remove ${saved.word}`}
-                        onClick={() => saveWords(savedWords.filter((item) => item.word !== saved.word))}
-                      >
-                        <X size={13} strokeWidth={1.5} aria-hidden="true" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="saved-empty">Words you like will appear here.</p>
-              )}
-            </div>
-          ) : null}
         </div>
 
         <form
@@ -2189,95 +2802,8 @@ export default function Home() {
         </form>
       </header>
 
-      {appMode === "discover" && !splitView ? (
-        <aside className="split-settings-panel right rounded-3xl" aria-label="Right word settings">
-          <div className="settings-panel-header">
-            <p>Right word</p>
-            <button
-              className={rightSettingsApplied ? undefined : "settings-reset-placeholder"}
-              type="button"
-              aria-hidden={!rightSettingsApplied}
-              tabIndex={rightSettingsApplied ? undefined : -1}
-              onClick={resetSecondarySettings}
-            >
-              <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
-              Reset
-            </button>
-          </div>
-          <div className="settings-group">
-            <label className="split-setting-field boxed-setting-field">
-              <span>Text</span>
-              <input
-                value={rightWordDraft}
-                placeholder="Optional fixed text"
-                maxLength={40}
-                onChange={(event) => setRightWordDraft(event.target.value)}
-                onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
-                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-              />
-            </label>
-          </div>
-          <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
-            <div className="settings-group">
-              <RelatedToSetting id="single-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
-            </div>
-            <div className="settings-group">
-              <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
-            </div>
-            <div className="settings-group">
-              <CounterSetting label="Syllables" value={secondaryWordSyllables} max={8} onChange={setSecondaryWordSyllables} />
-              <LengthModeToggle value={secondaryWordSyllableMode} label="Syllable count comparison" disabled={!secondaryWordSyllables} onChange={setSecondaryWordSyllableMode} />
-            </div>
-            <div className="settings-group">
-              <AffixSetting kind="starts" value={secondaryWordStartsWith} onChange={setSecondaryWordStartsWith} />
-              <AffixSetting kind="ends" value={secondaryWordEndsWith} onChange={setSecondaryWordEndsWith} />
-              <WordLengthSetting value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
-            </div>
-            <div className="settings-group settings-actions">
-              <button className="split-generate-button" type="button" onClick={() => void findSecondaryWord()}>Generate right</button>
-            </div>
-          </fieldset>
-        </aside>
-      ) : null}
-
-      {appMode === "discover" && !splitView ? <section className={loading || secondaryLoading ? "word-stage loading" : "word-stage"} id="top" aria-live="polite">
-        {result.word ? (
-          <div className="word-anchor split-word-anchor single-word-anchor">
-            <div className="single-content-column">
-              <h1 className="copyable-word-wrap single-copyable-word-wrap">
-                <WordCopyHint status={wordCopyStatus} />
-                <button
-                  className={`single-main-word copyable-word ${cardo.className}`}
-                  type="button"
-                  aria-label={`Copy ${result.word}`}
-                  onClick={() => void copyDisplayedWord(result.word)}
-                  onPointerEnter={() => {
-                    if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
-                  }}
-                >
-                  <span data-view-transition-word>{result.word}</span>
-                </button>
-              </h1>
-              <div className="single-details-row">
-                <article className="single-word-article" data-view-transition-card>
-                  <p className="split-eyebrow">
-                    {result.partOfSpeech || "word"}
-                    {displayedPronunciation ? <><span>·</span><span className="pronunciation-inline">{displayedPronunciation}</span></> : null}
-                  </p>
-                  <div className="rule" aria-hidden="true" />
-                  <SplitDescription key={result.word}>
-                    {result.definition}
-                  </SplitDescription>
-                  {message ? <p className="status">{message}</p> : null}
-                </article>
-              </div>
-            </div>
-          </div>
-        ) : null}
-      </section> : null}
-
-      {appMode === "discover" && splitView ? (
-        <section className="split-word-stage" aria-live="polite">
+      {appMode === "discover" ? (
+        <section className="split-word-stage" id="top" aria-live="polite">
           <aside className="split-settings-panel left rounded-3xl" aria-label="Left word settings">
             <div className="settings-panel-header">
               <p>Left word</p>
@@ -2292,81 +2818,112 @@ export default function Home() {
                 Reset
               </button>
             </div>
-            <div className="settings-group">
-              <label className="split-setting-field boxed-setting-field">
-                <span>Text</span>
-                <input
-                  value={leftWordDraft}
-                  placeholder="Optional fixed text"
-                  maxLength={40}
-                  onChange={(event) => setLeftWordDraft(event.target.value)}
-                  onBlur={() => void setExplicitSplitWord("left", leftWordDraft)}
-                  onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-                />
-              </label>
+            <div className="settings-panel-scroll">
+              <div className="settings-group">
+                <label className="split-setting-field boxed-setting-field">
+                  <span>Text</span>
+                  <input
+                    value={leftWordDraft}
+                    placeholder="Optional fixed text"
+                    maxLength={40}
+                    onChange={(event) => handleLeftWordDraftChange(event.target.value)}
+                    onBlur={() => void setExplicitSplitWord("left", leftWordDraft)}
+                    onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+                  />
+                </label>
+              </div>
+              <fieldset className="settings-filter-set" disabled={Boolean(leftWordDraft.trim())}>
+                <div className="settings-group">
+                  <WordTypeTabs className="split-side-types" value={wordType} label="Left word type" onChange={setWordType} />
+                </div>
+                <div className="settings-group">
+                  <RelatedToSetting id="split-left-related" value={wordRelatedTo} onChange={setWordRelatedTo} />
+                </div>
+                <div className="settings-group">
+                  <SyllableCountSetting
+                    id="left-syllable-count"
+                    value={wordSyllables}
+                    mode={wordSyllableMode}
+                    onValueChange={setWordSyllables}
+                    onModeChange={setWordSyllableMode}
+                  />
+                </div>
+                <div className="settings-group">
+                  <AffixSettings startsWith={wordStartsWith} endsWith={wordEndsWith} onStartsChange={setWordStartsWith} onEndsChange={setWordEndsWith} />
+                  <WordLengthSetting id="left-word-length" value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
+                </div>
+              </fieldset>
             </div>
-            <fieldset className="settings-filter-set" disabled={Boolean(leftWordDraft.trim())}>
-              <div className="settings-group">
-                <RelatedToSetting id="split-left-related" value={wordRelatedTo} onChange={setWordRelatedTo} />
-              </div>
-              <div className="settings-group">
-                <WordTypeTabs className="split-side-types" value={wordType} label="Left word type" onChange={setWordType} />
-              </div>
-              <div className="settings-group">
-                <CounterSetting label="Syllables" value={wordSyllables} max={8} onChange={setWordSyllables} />
-                <LengthModeToggle value={wordSyllableMode} label="Syllable count comparison" disabled={!wordSyllables} onChange={setWordSyllableMode} />
-              </div>
-              <div className="settings-group">
-                <AffixSetting kind="starts" value={wordStartsWith} onChange={setWordStartsWith} />
-                <AffixSetting kind="ends" value={wordEndsWith} onChange={setWordEndsWith} />
-                <WordLengthSetting value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
-              </div>
-              <div className="settings-group settings-actions">
-                <button className="split-generate-button" type="button" onClick={() => void findWord()}>Generate left</button>
-              </div>
-            </fieldset>
           </aside>
 
           <div className="split-word-anchor">
-            <div className="copyable-word-wrap split-copyable-word-wrap">
-              <WordCopyHint status={wordCopyStatus} />
-              <button
-                className={`split-combined-word copyable-word ${cardo.className}`}
-                type="button"
-                disabled={!leftWordValue || !rightWordValue}
-                aria-label={`Copy ${leftWordValue}${rightWordValue}`}
-                onClick={() => void copyDisplayedWord(`${leftWordValue}${rightWordValue}`)}
-                onPointerEnter={() => {
-                  if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
-                }}
-              >
-                <span className={`split-word-part${(loading || splitBatchLoading) && leftWordValue ? " loading" : ""}`} key={`left-${leftWordValue}`}>{leftWordValue}</span>
-                <span className={`split-word-part${(secondaryLoading || splitBatchLoading) && rightWordValue ? " loading" : ""}`} data-view-transition-word key={`right-${rightWordValue}`}>{rightWordValue || "——"}</span>
-              </button>
-            </div>
-            <div className="split-definitions">
-              {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
-                <article
-                  className={item.word.word && (splitBatchLoading || (index === 0 ? loading : secondaryLoading)) ? "loading" : ""}
-                  data-view-transition-card={index === 1 ? "" : undefined}
-                  key={index}
-                >
-                  {item.word.word ? <div className="split-word-details" key={`${index}-${item.word.word}`}>
-                    <h2 className={`split-source-word ${cardo.className}`}>{item.word.word || "——"}</h2>
-                    <p className="split-eyebrow">
-                      {index === 0 && item.pronunciation ? <><span className="pronunciation-inline">{item.pronunciation}</span><span>·</span></> : null}
-                      {item.word.partOfSpeech || "word"}
-                      {index === 1 && item.pronunciation ? <><span>·</span><span className="pronunciation-inline">{item.pronunciation}</span></> : null}
-                    </p>
-                    <div className="rule" aria-hidden="true" />
-                    <SplitDescription>
-                      {item.word.definition || "Generate a word to begin."}
-                    </SplitDescription>
-                  </div> : null}
-                </article>
-              ))}
-            </div>
+            {discoverHasNoWords ? (
+              <DiscoverStartPrompt />
+            ) : (
+              <>
+                <div className="copyable-word-wrap split-copyable-word-wrap">
+                  <WordCopyHint status={wordCopyStatus} />
+                  <button
+                    className={`split-combined-word copyable-word mix-combined-word ${cardo.className}`}
+                    type="button"
+                    disabled={!leftWordValue || !rightWordValue}
+                    aria-label={`Copy ${displayedCombinedWord}`}
+                    onClick={() => void copyDisplayedWord(displayedCombinedWord)}
+                    onPointerEnter={() => {
+                      if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
+                    }}
+                  >
+                    <span className={`mix-word-part${(loading || splitBatchLoading) && mixedWordParts.leftChunk ? " loading" : ""}`} key={`mix-left-${mixedWordParts.leftChunk}`}>{mixedWordParts.leftChunk || "——"}</span>
+                    <span className={`mix-word-part${(secondaryLoading || splitBatchLoading) && mixedWordParts.rightChunk ? " loading" : ""}`} data-view-transition-word key={`mix-right-${mixedWordParts.rightChunk}`}>{mixedWordParts.rightChunk || "——"}</span>
+                  </button>
+                </div>
+                <div className="split-definitions">
+                  {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
+                    <article
+                      className={item.word.word && (splitBatchLoading || (index === 0 ? loading : secondaryLoading)) ? "loading" : ""}
+                      data-view-transition-card={index === 1 ? "" : undefined}
+                      key={index}
+                    >
+                      {item.word.word ? <div className="split-word-details" key={`${index}-${item.word.word}`}>
+                        <MixSourceWord
+                          word={item.word.word}
+                          settings={index === 0 ? effectiveMixLeftSettings : effectiveMixRightSettings}
+                          syllableCount={item.word.syllables}
+                          className={cardo.className}
+                        />
+                        <p className="split-eyebrow">
+                          {index === 0 && item.pronunciation ? <><span className="pronunciation-inline">{item.pronunciation}</span><span>·</span></> : null}
+                          {item.word.partOfSpeech || "word"}
+                          {index === 1 && item.pronunciation ? <><span>·</span><span className="pronunciation-inline">{item.pronunciation}</span></> : null}
+                        </p>
+                        <div className="rule" aria-hidden="true" />
+                        <SplitDescription>
+                          {item.word.definition || "Generate a word to begin."}
+                        </SplitDescription>
+                      </div> : null}
+                    </article>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
+
+          <SliceSettingsPanel
+            leftWord={leftWordValue}
+            rightWord={rightWordValue}
+            leftSliceMode={leftSliceMode}
+            rightSliceMode={rightSliceMode}
+            leftSettings={mixLeftSettings}
+            rightSettings={mixRightSettings}
+            leftSyllables={result.syllables}
+            rightSyllables={secondaryResult.syllables}
+            onLeftSliceModeChange={handleLeftSliceModeChange}
+            onRightSliceModeChange={handleRightSliceModeChange}
+            onLeftChange={setMixLeftSettings}
+            onRightChange={setMixRightSettings}
+            onReset={resetSliceSettings}
+            settingsApplied={sliceSettingsApplied}
+          />
 
           <aside className="split-settings-panel right rounded-3xl" aria-label="Right word settings">
             <div className="settings-panel-header">
@@ -2382,55 +2939,69 @@ export default function Home() {
                 Reset
               </button>
             </div>
-            <div className="settings-group">
-              <label className="split-setting-field boxed-setting-field">
-                <span>Text</span>
-                <input
-                  value={rightWordDraft}
-                  placeholder="Optional fixed text"
-                  maxLength={40}
-                  onChange={(event) => setRightWordDraft(event.target.value)}
-                  onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
-                  onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-                />
-              </label>
+            <div className="settings-panel-scroll">
+              <div className="settings-group">
+                <label className="split-setting-field boxed-setting-field">
+                  <span>Text</span>
+                  <input
+                    value={rightWordDraft}
+                    placeholder="Optional fixed text"
+                    maxLength={40}
+                    onChange={(event) => handleRightWordDraftChange(event.target.value)}
+                    onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
+                    onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+                  />
+                </label>
+              </div>
+              <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
+                <div className="settings-group">
+                  <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
+                </div>
+                <div className="settings-group">
+                  <RelatedToSetting id="split-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
+                </div>
+                <div className="settings-group">
+                  <SyllableCountSetting
+                    id="right-syllable-count"
+                    value={secondaryWordSyllables}
+                    mode={secondaryWordSyllableMode}
+                    onValueChange={setSecondaryWordSyllables}
+                    onModeChange={setSecondaryWordSyllableMode}
+                  />
+                </div>
+                <div className="settings-group">
+                  <AffixSettings startsWith={secondaryWordStartsWith} endsWith={secondaryWordEndsWith} onStartsChange={setSecondaryWordStartsWith} onEndsChange={setSecondaryWordEndsWith} />
+                  <WordLengthSetting id="right-word-length" value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
+                </div>
+              </fieldset>
             </div>
-            <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
-              <div className="settings-group">
-                <RelatedToSetting id="split-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
-              </div>
-              <div className="settings-group">
-                <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
-              </div>
-              <div className="settings-group">
-                <CounterSetting label="Syllables" value={secondaryWordSyllables} max={8} onChange={setSecondaryWordSyllables} />
-                <LengthModeToggle value={secondaryWordSyllableMode} label="Syllable count comparison" disabled={!secondaryWordSyllables} onChange={setSecondaryWordSyllableMode} />
-              </div>
-              <div className="settings-group">
-                <AffixSetting kind="starts" value={secondaryWordStartsWith} onChange={setSecondaryWordStartsWith} />
-                <AffixSetting kind="ends" value={secondaryWordEndsWith} onChange={setSecondaryWordEndsWith} />
-                <WordLengthSetting value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
-              </div>
-              <div className="settings-group settings-actions">
-                <button className="split-generate-button" type="button" onClick={() => void findSecondaryWord()}>Generate right</button>
-              </div>
-            </fieldset>
           </aside>
         </section>
       ) : null}
 
       <footer className="controls">
-        {appMode === "discover" ? <div className="shortcut-row" aria-label="Word exploration shortcuts">
-          <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
-            <kbd>space</kbd>
-            <span>Generate</span>
-          </button>
-          <button type="button" onClick={() => setFocusMode(true)}>
-            <kbd>F</kbd>
-            <span>Focus</span>
-          </button>
-          {splitView ? (
-            <>
+        <div className="controls-bar">
+          {appMode === "discover" ? discoverHasNoWords ? (
+            <div className="shortcut-row discover-start-shortcuts" aria-label="Start exploring">
+              <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
+                <kbd>space</kbd>
+                <span>Start</span>
+              </button>
+            </div>
+          ) : (
+            <div className="shortcut-row" aria-label="Word exploration shortcuts">
+              <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
+                <kbd>space</kbd>
+                <span>Generate</span>
+              </button>
+              <button type="button" onClick={() => setFocusMode(true)}>
+                <kbd>F</kbd>
+                <span>Focus</span>
+              </button>
+              <button type="button" onClick={resetAllDiscoverSettings}>
+                <kbd>R</kbd>
+                <span>Reset</span>
+              </button>
               <button type="button" onClick={() => void findWord()}>
                 <kbd><ArrowLeft size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
                 <span>Left</span>
@@ -2442,7 +3013,7 @@ export default function Home() {
               <button
                 className={combinedSplitIsSaved ? "save-legend liked" : "save-legend"}
                 type="button"
-                disabled={!combinedSplitWord}
+                disabled={!displayedCombinedWord}
                 aria-pressed={combinedSplitIsSaved}
                 onClick={toggleCombinedSaved}
               >
@@ -2454,53 +3025,37 @@ export default function Home() {
                 <kbd><ArrowDown size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
                 <span>History</span>
               </span>
-            </>
-          ) : (
-            <>
-              <button
-                className={isSaved ? "save-legend liked" : "save-legend"}
-                type="button"
-                aria-pressed={isSaved}
-                onClick={toggleSaved}
-              >
-                <kbd>S</kbd>
-                <span>Save</span>
-              </button>
-              <span className="history-shortcut" aria-label="Use up and down arrow keys to browse word history">
-                <kbd><ArrowUp size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
-                <kbd><ArrowDown size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
-                <span>History</span>
-              </span>
-            </>
-          )}
-        </div> : null}
-        {appMode === "combine" ? <div className="shortcut-row" aria-label="Word combination shortcuts">
-          <button className="space-button" type="button" onClick={() => void runForgePrimary()}>
-            <kbd>space</kbd>
-            <span>{forgeSourcesReady ? "Remix" : "Generate"}</span>
-          </button>
-          <span className="history-shortcut" aria-label="Use left and right arrow keys to browse combination history">
-            <kbd><ArrowLeft size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
-            <kbd><ArrowRight size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
-            <span>History</span>
-          </span>
-          <button
-            className={forgedIsSaved ? "save-legend liked" : "save-legend"}
-            type="button"
-            disabled={!forgeReady}
-            aria-pressed={forgedIsSaved}
-            onClick={toggleForgedSaved}
-          >
-            <kbd>S</kbd>
-            <span>{forgedIsSaved ? "Saved" : "Save word"}</span>
-          </button>
-        </div> : null}
-        {appMode === "find" ? <div className="shortcut-row" aria-label="Word search shortcuts">
-          <button className="space-button" type="button" onClick={() => void runAdvancedSearch()}>
-            <kbd>space</kbd>
-            <span>Find words</span>
-          </button>
-        </div> : null}
+            </div>
+          ) : null}
+          {appMode === "combine" ? <div className="shortcut-row" aria-label="Word combination shortcuts">
+            <button className="space-button" type="button" onClick={() => void runForgePrimary()}>
+              <kbd>space</kbd>
+              <span>{forgeSourcesReady ? "Remix" : "Generate"}</span>
+            </button>
+            <span className="history-shortcut" aria-label="Use left and right arrow keys to browse combination history">
+              <kbd><ArrowLeft size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
+              <kbd><ArrowRight size={13} strokeWidth={1.5} aria-hidden="true" /></kbd>
+              <span>History</span>
+            </span>
+            <button
+              className={forgedIsSaved ? "save-legend liked" : "save-legend"}
+              type="button"
+              disabled={!forgeReady}
+              aria-pressed={forgedIsSaved}
+              onClick={toggleForgedSaved}
+            >
+              <kbd>S</kbd>
+              <span>{forgedIsSaved ? "Saved" : "Save word"}</span>
+            </button>
+          </div> : null}
+          {appMode === "find" ? <div className="shortcut-row" aria-label="Word search shortcuts">
+            <button className="space-button" type="button" onClick={() => void runAdvancedSearch()}>
+              <kbd>space</kbd>
+              <span>Find words</span>
+            </button>
+          </div> : null}
+          {savedWordsPanel}
+        </div>
       </footer>
     </main>
   );
