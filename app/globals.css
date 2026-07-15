@@ -1217,8 +1217,12 @@ button { color: inherit; font: inherit; }
   margin-right: -.45rem;
   padding-right: .45rem;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   overscroll-behavior: contain;
+}
+
+.settings-panel-scroll.is-scrollable {
+  overflow-y: auto;
 }
 
 .settings-panel-scroll::-webkit-scrollbar {

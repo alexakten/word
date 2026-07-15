@@ -6,6 +6,7 @@ import { DiscoverStartPrompt } from "../discover/discover-start-prompt";
 import { MixSourceWord } from "../discover/mix-source-word";
 import { RelatedToSetting } from "../discover/related-to-setting";
 import { SliceSettingsPanel, SliceSidePanel } from "../discover/slice-settings-panel";
+import { SettingsPanelScroll } from "../discover/settings-panel-scroll";
 import { SplitDescription } from "../discover/split-description";
 import { SyllableCountSetting } from "../discover/syllable-count-setting";
 import { WordCopyHint } from "../discover/word-copy-hint";
@@ -196,7 +197,7 @@ export function DiscoverView(props: DiscoverViewProps) {
           ) : null}
         </div>
       </div>
-      <div className="settings-panel-scroll">
+      <SettingsPanelScroll>
         <div className="settings-group">
           <label className="split-setting-field boxed-setting-field">
             <span>Text</span>
@@ -231,7 +232,7 @@ export function DiscoverView(props: DiscoverViewProps) {
             <WordLengthSetting id="left-word-length" value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
           </div>
         </fieldset>
-      </div>
+      </SettingsPanelScroll>
     </>
   );
 
@@ -257,7 +258,7 @@ export function DiscoverView(props: DiscoverViewProps) {
           ) : null}
         </div>
       </div>
-      <div className="settings-panel-scroll">
+      <SettingsPanelScroll>
         <div className="settings-group">
           <label className="split-setting-field boxed-setting-field">
             <span>Text</span>
@@ -292,7 +293,7 @@ export function DiscoverView(props: DiscoverViewProps) {
             <WordLengthSetting id="right-word-length" value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
           </div>
         </fieldset>
-      </div>
+      </SettingsPanelScroll>
     </>
   );
 
