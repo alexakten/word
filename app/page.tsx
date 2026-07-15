@@ -1240,7 +1240,7 @@ function DiscoverStartPrompt() {
   );
 }
 
-type DiscoverMobilePanel = "left" | "slice" | "right" | "saved";
+type DiscoverMobilePanel = "left" | "slice" | "right";
 
 export default function Home() {
   const [appMode, setAppMode] = useState<AppMode>("discover");
@@ -2522,22 +2522,6 @@ export default function Home() {
         />
       ) : null}
 
-      {isMobileLayout && mobileDiscoverPanel === "saved" ? (
-        <aside className="saved-mobile-panel mobile-panel-active rounded-3xl" id="saved-words-mobile" aria-label="Saved words">
-          <div className="settings-panel-header">
-            <p>Saved words</p>
-            <div className="settings-panel-header-actions">
-              <button className="mobile-panel-close" type="button" aria-label="Close saved words" onClick={closeMobileDiscoverPanel}>
-                <X size={14} strokeWidth={1.5} aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-          <div className="settings-panel-scroll saved-mobile-panel-scroll">
-            {savedWordsList}
-          </div>
-        </aside>
-      ) : null}
-
       <header className="site-header">
         <div className="header-brand">
           <a className="wordmark" href="#top" aria-label="Lexicon home">
@@ -3088,22 +3072,11 @@ export default function Home() {
         </section>
       ) : null}
 
-      {isMobileLayout ? (
+      {isMobileLayout && appMode === "discover" ? (
         <div className="mobile-bottom-bar">
-          <button
-            className={["mobile-saved-button", mobileDiscoverPanel === "saved" ? "active" : ""].filter(Boolean).join(" ")}
-            type="button"
-            aria-expanded={mobileDiscoverPanel === "saved"}
-            aria-controls="saved-words-mobile"
-            onClick={() => toggleMobileDiscoverPanel("saved")}
-          >
-            Saved <span>{savedWords.length}</span>
+          <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
+            {discoverHasNoWords ? "Start exploring" : "Generate"}
           </button>
-          {appMode === "discover" ? (
-            <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
-              {discoverHasNoWords ? "Start exploring" : "Generate"}
-            </button>
-          ) : null}
         </div>
       ) : null}
 
