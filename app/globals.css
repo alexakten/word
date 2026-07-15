@@ -173,7 +173,7 @@ button {
   width: max-content;
   height: 38px;
   align-items: center;
-  gap: .65rem;
+  gap: .50rem;
   text-decoration: none;
   pointer-events: auto;
   transform: none;
@@ -221,8 +221,8 @@ button {
 
 .wordmark-name {
   color: var(--ink);
-  font-size: 18px;
-  font-weight: 450;
+  font-size: 22px;
+  font-weight: 400;
   letter-spacing: -.062em;
 }
 
@@ -1405,6 +1405,26 @@ button {
 .page-shell.discover-mode:not(.mobile-layout) .split-slice-panel.left,
 .page-shell.discover-mode:not(.mobile-layout) .split-slice-panel.right {
   display: flex;
+}
+
+.page-shell.discover-mode .site-header .header-brand {
+  display: none;
+}
+
+.discover-top-brand {
+  position: fixed;
+  top: 1.5rem;
+  left: 50%;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.discover-top-brand .wordmark {
+  pointer-events: auto;
 }
 
 .settings-panel-scroll {
@@ -2953,6 +2973,7 @@ h1 {
 }
 
 .site-header,
+.discover-top-brand,
 .split-settings-panel,
 .split-slice-panel,
 .split-sidebar-stack,
@@ -2967,6 +2988,7 @@ h1 {
 }
 
 .page-shell.focus-mode .site-header,
+.page-shell.focus-mode .discover-top-brand,
 .page-shell.focus-mode .split-settings-panel,
 .page-shell.focus-mode .split-slice-panel,
 .page-shell.focus-mode .split-sidebar-stack,
@@ -3196,6 +3218,10 @@ kbd {
     top: .75rem;
     height: 58px;
     min-height: 0;
+  }
+
+  .discover-top-brand {
+    top: .75rem;
   }
 
   .brand-group {

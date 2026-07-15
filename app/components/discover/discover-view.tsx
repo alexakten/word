@@ -11,6 +11,7 @@ import { SplitDescription } from "../discover/split-description";
 import { SyllableCountSetting } from "../discover/syllable-count-setting";
 import { WordCopyHint } from "../discover/word-copy-hint";
 import { WordLengthSetting } from "../discover/word-length-setting";
+import { WordmarkLink } from "../layout/wordmark-link";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
@@ -299,6 +300,9 @@ export function DiscoverView(props: DiscoverViewProps) {
 
   return (
     <>
+      <div className="discover-top-brand">
+        <WordmarkLink />
+      </div>
       <section className="split-word-stage" id="top" aria-live="polite">
         {isMobileLayout ? (
           <aside

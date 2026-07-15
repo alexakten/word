@@ -3,8 +3,8 @@ import { inter } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Lexicon — a word at a time",
-  description: "A quiet, keyboard-driven word discovery tool powered by Datamuse.",
+  title: "Spellsurf",
+  description: "Discover and create new words.",
 };
 
 export default function RootLayout({

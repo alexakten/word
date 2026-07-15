@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { ApiHealthStatus } from "../ui/api-health-status";
-import { cardo } from "../../fonts";
+import { WordmarkLink } from "./wordmark-link";
 import type { HomeState } from "../../hooks/use-home";
 import { WordToolsPanel } from "./word-tools-panel";
 
@@ -30,13 +30,7 @@ export function SiteHeader({
   return (
     <header className="site-header">
       <div className="header-brand">
-        <a className="wordmark" href="#top" aria-label="Lexicon home">
-          <span className="logo-tile" aria-hidden="true">
-            <span className="logo-cursor-shadow" />
-            <span className="logo-cursor" />
-          </span>
-          <span className="wordmark-name" style={{ fontFamily: cardo.style.fontFamily }}>Lexical.</span>
-        </a>
+        <WordmarkLink />
         <ApiHealthStatus health={apiHealth} />
       </div>
 
