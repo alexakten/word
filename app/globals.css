@@ -2866,6 +2866,38 @@ kbd {
     font-size: clamp(2.4rem, 12vw, 3.35rem);
   }
 
+  .page-shell.discover-mode.mobile-layout .split-definitions {
+    margin-top: 2rem;
+  }
+
+  .page-shell.discover-mode.mobile-layout .split-definitions article {
+    padding-right: .85rem;
+  }
+
+  .page-shell.discover-mode.mobile-layout .split-definitions article + article {
+    padding-left: .85rem;
+  }
+
+  .page-shell.discover-mode.mobile-layout .split-source-word {
+    margin-bottom: .4rem;
+    font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+    letter-spacing: -.03em;
+  }
+
+  .page-shell.discover-mode.mobile-layout .split-eyebrow {
+    font-size: .54rem;
+    letter-spacing: .11em;
+  }
+
+  .page-shell.discover-mode.mobile-layout .split-definitions .rule {
+    margin: .7rem 0;
+  }
+
+  .page-shell.discover-mode.mobile-layout .split-definition {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
   .mobile-generate-bar {
     position: fixed;
     right: var(--page-padding-x);
