@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import favicon from "./favicon.png";
 import { inter } from "./fonts";
 import "./globals.css";
@@ -60,7 +61,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className={`${inter.className} min-h-full flex flex-col`}>{children}</body>
+      <body className={`${inter.className} min-h-full flex flex-col`}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
