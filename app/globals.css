@@ -1092,6 +1092,11 @@ button { color: inherit; font: inherit; }
   pointer-events: none;
 }
 
+.page-shell.discover-mode.mobile-layout.mobile-panel-open .split-word-stage {
+  z-index: 32;
+  pointer-events: auto;
+}
+
 .split-settings-panel,
 .split-slice-panel {
   position: absolute;
@@ -2745,6 +2750,18 @@ kbd {
     display: none;
   }
 
+  .mobile-panel-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    border: 0;
+    padding: 0;
+    background: rgba(21, 21, 19, .28);
+    cursor: pointer;
+    pointer-events: auto;
+    animation: mobile-backdrop-enter .18s ease both;
+  }
+
   .page-shell.discover-mode.mobile-layout .split-settings-panel.mobile-panel-active,
   .page-shell.discover-mode.mobile-layout .split-slice-panel.mobile-panel-active {
     position: fixed;
@@ -2752,10 +2769,12 @@ kbd {
     right: var(--page-padding-x);
     bottom: calc(var(--page-padding-y) + 5.25rem);
     left: var(--page-padding-x);
-    z-index: 35;
+    z-index: 2;
     display: flex;
     width: auto;
     max-height: none;
+    opacity: 1;
+    filter: none;
     animation: panel-enter .22s ease both;
   }
 
@@ -2767,15 +2786,8 @@ kbd {
     display: inline-flex;
   }
 
-  .mobile-panel-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    border: 0;
-    padding: 0;
-    background: rgba(21, 21, 19, .28);
-    cursor: pointer;
-    animation: mobile-backdrop-enter .18s ease both;
+  .page-shell.discover-mode.mobile-layout.mobile-panel-open .split-word-anchor {
+    pointer-events: none;
   }
 
   .mobile-discover-toolbar {

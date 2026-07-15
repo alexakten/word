@@ -2849,17 +2849,17 @@ export default function Home() {
         </form>
       </header>
 
-      {appMode === "discover" && isMobileLayout && mobileDiscoverPanel ? (
-        <button
-          className="mobile-panel-backdrop"
-          type="button"
-          aria-label="Close settings"
-          onClick={closeMobileDiscoverPanel}
-        />
-      ) : null}
-
       {appMode === "discover" ? (
         <section className="split-word-stage" id="top" aria-live="polite">
+          {isMobileLayout && mobileDiscoverPanel ? (
+            <button
+              className="mobile-panel-backdrop"
+              type="button"
+              aria-label="Close settings"
+              onClick={closeMobileDiscoverPanel}
+            />
+          ) : null}
+
           <aside
             className={[
               "split-settings-panel left rounded-3xl",
