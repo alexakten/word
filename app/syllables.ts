@@ -8,6 +8,7 @@ export type SyllablePick = "full" | "random" | RelativeSyllablePick | 1 | 2 | 3 
 export type SyllableTake = 1 | 2 | 3;
 
 export type SliceMode = "none" | "random" | "custom";
+export const DEFAULT_SLICE_MODE: SliceMode = "random";
 
 export type MixSideSettings = {
   syllablePick: SyllablePick;

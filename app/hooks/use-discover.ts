@@ -22,6 +22,7 @@ import {
   defaultCustomMixRightSettings,
   defaultMixLeftSettings,
   defaultMixRightSettings,
+  DEFAULT_SLICE_MODE,
   effectiveMixSettings,
   inferSideSliceMode,
   mixWordParts,
@@ -38,8 +39,8 @@ type UseDiscoverOptions = {
 
 export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
-  const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>("none");
-  const [rightSliceMode, setRightSliceMode] = useState<SliceMode>("none");
+  const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
+  const [rightSliceMode, setRightSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
   const [mixLeftSettings, setMixLeftSettings] = useState<MixSideSettings>(defaultCustomMixLeftSettings);
   const [mixRightSettings, setMixRightSettings] = useState<MixSideSettings>(defaultCustomMixRightSettings);
   const [wordCopyStatus, setWordCopyStatus] = useState<WordCopyStatus>("idle");
@@ -105,12 +106,12 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, []);
 
   const resetLeftSliceSettings = useCallback(() => {
-    setLeftSliceMode("none");
+    setLeftSliceMode(DEFAULT_SLICE_MODE);
     setMixLeftSettings({ ...defaultCustomMixLeftSettings });
   }, []);
 
   const resetRightSliceSettings = useCallback(() => {
-    setRightSliceMode("none");
+    setRightSliceMode(DEFAULT_SLICE_MODE);
     setMixRightSettings({ ...defaultCustomMixRightSettings });
   }, []);
 
@@ -498,12 +499,14 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     const mixLeftCustom = parseMixSideSettings(search, "mlCustom");
     const mixRightCustom = parseMixSideSettings(search, "mrCustom");
     const legacySliceMode = parseSliceMode(search.get("slice"));
+    const inferredLeftSliceMode = inferSideSliceMode({ ...defaultMixLeftSettings, ...mixLeftEffective });
+    const inferredRightSliceMode = inferSideSliceMode({ ...defaultMixRightSettings, ...mixRightEffective });
     const nextLeftSliceMode = parseSliceMode(search.get("mlSlice"))
       ?? legacySliceMode
-      ?? inferSideSliceMode({ ...defaultMixLeftSettings, ...mixLeftEffective });
+      ?? (inferredLeftSliceMode === "none" ? DEFAULT_SLICE_MODE : inferredLeftSliceMode);
     const nextRightSliceMode = parseSliceMode(search.get("mrSlice"))
       ?? legacySliceMode
-      ?? inferSideSliceMode({ ...defaultMixRightSettings, ...mixRightEffective });
+      ?? (inferredRightSliceMode === "none" ? DEFAULT_SLICE_MODE : inferredRightSliceMode);
 
     const nextLeftSettings = nextLeftSliceMode === "custom"
       ? normalizeCustomMixSettings({
@@ -641,10 +644,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     || wordEndsWith
     || wordLetters
   );
-  const mixLeftApplied = leftSliceMode !== "none"
+  const mixLeftApplied = leftSliceMode !== DEFAULT_SLICE_MODE
     || mixLeftSettings.syllablePick !== defaultCustomMixLeftSettings.syllablePick
     || mixLeftSettings.syllableTake !== defaultCustomMixLeftSettings.syllableTake;
-  const mixRightApplied = rightSliceMode !== "none"
+  const mixRightApplied = rightSliceMode !== DEFAULT_SLICE_MODE
     || mixRightSettings.syllablePick !== defaultCustomMixRightSettings.syllablePick
     || mixRightSettings.syllableTake !== defaultCustomMixRightSettings.syllableTake;
   const sliceSettingsApplied = mixLeftApplied || mixRightApplied;
