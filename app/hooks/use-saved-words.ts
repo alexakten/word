@@ -30,12 +30,12 @@ export function useSavedWords(isMobileLayout: boolean) {
   useEffect(() => {
     if (!savedOpen || isMobileLayout) return;
 
-    const closeOnOutsideClick = (event: PointerEvent) => {
-      if (!savedMenuRef.current?.contains(event.target as Node)) setSavedOpen(false);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSavedOpen(false);
     };
 
-    document.addEventListener("pointerdown", closeOnOutsideClick);
-    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
   }, [isMobileLayout, savedOpen]);
 
   const saveWords = useCallback((words: WordResult[]) => {

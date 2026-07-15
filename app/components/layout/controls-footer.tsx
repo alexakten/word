@@ -179,6 +179,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
           savedMenuRef={savedMenuRef}
           saveWords={saveWords}
           loadSavedWord={loadSavedWord}
+          isMobileLayout={isMobileLayout}
         />
       </div>
     </footer>
