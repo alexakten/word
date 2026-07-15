@@ -3407,11 +3407,11 @@ kbd {
 .page-shell.mobile-layout .mobile-discover-toolbar-button {
   position: relative;
   min-height: 38px;
-  border: 1px solid rgba(21, 21, 19, .1);
+  border: 0;
   border-radius: 999px;
   padding: .55rem .65rem;
-  background: var(--surface);
-  box-shadow: 0 1px 4px rgba(21, 21, 19, .05);
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .1);
   color: var(--muted);
   cursor: pointer;
   font-size: .58rem;
@@ -3420,15 +3420,15 @@ kbd {
   text-align: center;
 }
 
-.page-shell.mobile-layout .mobile-discover-toolbar-button:hover,
-.page-shell.mobile-layout .mobile-discover-toolbar-button.active {
-  border-color: rgba(21, 21, 19, .18);
+.page-shell.mobile-layout .mobile-discover-toolbar-button:hover {
+  background: #F4F3F1;
   color: var(--ink);
 }
 
 .page-shell.mobile-layout .mobile-discover-toolbar-button.active {
-  background: #f6f5f4;
-  box-shadow: inset 0 0 0 1px rgba(21, 21, 19, .06);
+  background: #F4F3F1;
+  color: var(--ink);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .1);
 }
 
 .page-shell.mobile-layout .mobile-discover-toolbar-count {
@@ -3535,9 +3535,159 @@ kbd {
   display: flex;
   width: var(--mobile-column-width);
   flex-direction: column;
-  align-items: center;
-  gap: .65rem;
+  align-items: stretch;
+  gap: .55rem;
   pointer-events: auto;
+}
+
+.page-shell.mobile-layout .about-drawer-trigger {
+  display: inline-flex;
+  align-self: flex-end;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: #F6F5F4;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.page-shell.mobile-layout .about-drawer-trigger:hover {
+  background: #EFEDE9;
+  color: var(--ink);
+}
+
+.about-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(21, 21, 19, .28);
+}
+
+.about-drawer-content {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 61;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  max-height: 88dvh;
+  border-radius: 1.5rem 1.5rem 0 0;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .06), 0 -8px 32px rgba(0, 0, 0, .1);
+  touch-action: none;
+  will-change: transform;
+}
+
+.about-drawer-content[data-vaul-drawer][data-state="open"] {
+  animation: about-drawer-slide-in .5s cubic-bezier(.32, .72, 0, 1);
+}
+
+.about-drawer-content[data-vaul-drawer][data-state="closed"] {
+  animation: about-drawer-slide-out .5s cubic-bezier(.32, .72, 0, 1);
+}
+
+.about-drawer-overlay[data-state="open"] {
+  animation: about-drawer-fade-in .5s cubic-bezier(.32, .72, 0, 1);
+}
+
+.about-drawer-overlay[data-state="closed"] {
+  animation: about-drawer-fade-out .5s cubic-bezier(.32, .72, 0, 1);
+}
+
+@keyframes about-drawer-slide-in {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes about-drawer-slide-out {
+  to {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+@keyframes about-drawer-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes about-drawer-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.about-drawer-inner {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  padding: .55rem 1.35rem 1.75rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.about-drawer-handle {
+  margin: .15rem auto .35rem;
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(21, 21, 19, .14);
+}
+
+.about-drawer-brand {
+  margin: 0;
+}
+
+.about-drawer-brand .wordmark {
+  pointer-events: none;
+}
+
+.about-drawer-lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.45;
+}
+
+.about-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  margin-top: .35rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F6F5F4;
+}
+
+.about-drawer-body section h3 {
+  margin: 0 0 .35rem;
+  color: var(--ink);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.about-drawer-body section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.5;
 }
 
 .page-shell.mobile-layout .mobile-generate-button {

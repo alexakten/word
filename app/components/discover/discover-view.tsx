@@ -12,6 +12,7 @@ import { SyllableCountSetting } from "../discover/syllable-count-setting";
 import { WordCopyHint } from "../discover/word-copy-hint";
 import { WordLengthSetting } from "../discover/word-length-setting";
 import { WordmarkLink } from "../layout/wordmark-link";
+import { AboutDrawer } from "../layout/about-drawer";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
@@ -440,6 +441,7 @@ export function DiscoverView(props: DiscoverViewProps) {
 
       {isMobileLayout ? (
         <div className="mobile-bottom-bar">
+          <AboutDrawer />
           <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
             {discoverHasNoWords ? "Start exploring" : "Generate"}
           </button>
