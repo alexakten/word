@@ -592,7 +592,7 @@ function MixSideSetting({ labelPrefix, word, settings, sliceMode, syllableCount,
   );
 }
 
-function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSliceMode, leftSettings, rightSettings, leftSyllables, rightSyllables, onLeftSliceModeChange, onRightSliceModeChange, onLeftChange, onRightChange, onReset, settingsApplied }: {
+function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSliceMode, leftSettings, rightSettings, leftSyllables, rightSyllables, onLeftSliceModeChange, onRightSliceModeChange, onLeftChange, onRightChange, onReset, settingsApplied, mobileActive = false, onMobileClose }: {
   leftWord: string;
   rightWord: string;
   leftSliceMode: SliceMode;
@@ -607,21 +607,34 @@ function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSliceMode
   onRightChange: (settings: MixSideSettings) => void;
   onReset: () => void;
   settingsApplied: boolean;
+  mobileActive?: boolean;
+  onMobileClose?: () => void;
 }) {
   return (
-    <aside className="split-slice-panel rounded-3xl" aria-label="Slice settings">
+    <aside
+      className={["split-slice-panel rounded-3xl", mobileActive ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+      aria-label="Slice settings"
+      aria-hidden={onMobileClose ? !mobileActive : undefined}
+    >
       <div className="settings-panel-header">
         <p>Slice words</p>
-        <button
-          className={settingsApplied ? undefined : "settings-reset-placeholder"}
-          type="button"
-          aria-hidden={!settingsApplied}
-          tabIndex={settingsApplied ? undefined : -1}
-          onClick={onReset}
-        >
-          <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
-          Reset
-        </button>
+        <div className="settings-panel-header-actions">
+          <button
+            className={settingsApplied ? undefined : "settings-reset-placeholder"}
+            type="button"
+            aria-hidden={!settingsApplied}
+            tabIndex={settingsApplied ? undefined : -1}
+            onClick={onReset}
+          >
+            <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
+            Reset
+          </button>
+          {onMobileClose ? (
+            <button className="mobile-panel-close" type="button" aria-label="Close slice settings" onClick={onMobileClose}>
+              <X size={14} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
       </div>
       <div className="slice-settings-grid">
         <div className="slice-settings-side">
@@ -1227,6 +1240,8 @@ function DiscoverStartPrompt() {
   );
 }
 
+type DiscoverMobilePanel = "left" | "slice" | "right";
+
 export default function Home() {
   const [appMode, setAppMode] = useState<AppMode>("discover");
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
@@ -1282,6 +1297,8 @@ export default function Home() {
   const [forgeRemixing, setForgeRemixing] = useState(false);
   const [savedWords, setSavedWords] = useState<WordResult[]>([]);
   const [savedOpen, setSavedOpen] = useState(false);
+  const [mobileDiscoverPanel, setMobileDiscoverPanel] = useState<DiscoverMobilePanel | null>(null);
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [splitHistoryRevision, setSplitHistoryRevision] = useState(0);
   const requestRef = useRef<AbortController | null>(null);
   const secondaryRequestRef = useRef<AbortController | null>(null);
@@ -1375,8 +1392,30 @@ export default function Home() {
   const selectAppMode = useCallback((mode: AppMode) => {
     setAppMode(mode);
     setAdvancedOpen(mode !== "discover");
-    if (mode !== "discover") setFocusMode(false);
+    if (mode !== "discover") {
+      setFocusMode(false);
+      setMobileDiscoverPanel(null);
+    }
     if (mode !== "discover") setAdvancedTool(mode === "combine" ? "forge" : "search");
+  }, []);
+
+  const toggleMobileDiscoverPanel = useCallback((panel: DiscoverMobilePanel) => {
+    setMobileDiscoverPanel((current) => (current === panel ? null : panel));
+  }, []);
+
+  const closeMobileDiscoverPanel = useCallback(() => {
+    setMobileDiscoverPanel(null);
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 760px)");
+    const syncMobileLayout = () => {
+      setIsMobileLayout(mediaQuery.matches);
+      if (!mediaQuery.matches) setMobileDiscoverPanel(null);
+    };
+    syncMobileLayout();
+    mediaQuery.addEventListener("change", syncMobileLayout);
+    return () => mediaQuery.removeEventListener("change", syncMobileLayout);
   }, []);
 
   const commitWord = useCallback((word: WordResult) => {
@@ -2257,12 +2296,18 @@ export default function Home() {
         else setFocusMode(false);
         return;
       }
+      if (event.key === "Escape" && mobileDiscoverPanel) {
+        event.preventDefault();
+        setMobileDiscoverPanel(null);
+        return;
+      }
       if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement;
       if (target.matches("button, input, select, textarea")) return;
 
       if (event.key.toLowerCase() === "f" && appMode === "discover") {
         event.preventDefault();
+        setMobileDiscoverPanel(null);
         setFocusMode((focused) => !focused);
         return;
       }
@@ -2320,7 +2365,7 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [appMode, findSecondaryWord, findWord, focusMode, generateVisibleWords, moveThroughSplitHistory, resetAllDiscoverSettings, toggleCombinedSaved]);
+  }, [appMode, findSecondaryWord, findWord, focusMode, generateVisibleWords, mobileDiscoverPanel, moveThroughSplitHistory, resetAllDiscoverSettings, toggleCombinedSaved]);
 
   const forgeWords = forgeSlots.map((slot) => slot.candidates[slot.index]);
   const forgedWord = forgeWords.every(Boolean)
@@ -2454,6 +2499,8 @@ export default function Home() {
         "page-shell",
         focusMode ? "focus-mode" : "",
         appMode === "discover" ? "discover-mode" : "",
+        isMobileLayout ? "mobile-layout" : "",
+        mobileDiscoverPanel ? "mobile-panel-open" : "",
       ].filter(Boolean).join(" ")}
       onPointerDown={() => {
         if (focusMode) setFocusMode(false);
@@ -2802,21 +2849,44 @@ export default function Home() {
         </form>
       </header>
 
+      {appMode === "discover" && isMobileLayout && mobileDiscoverPanel ? (
+        <button
+          className="mobile-panel-backdrop"
+          type="button"
+          aria-label="Close settings"
+          onClick={closeMobileDiscoverPanel}
+        />
+      ) : null}
+
       {appMode === "discover" ? (
         <section className="split-word-stage" id="top" aria-live="polite">
-          <aside className="split-settings-panel left rounded-3xl" aria-label="Left word settings">
+          <aside
+            className={[
+              "split-settings-panel left rounded-3xl",
+              isMobileLayout && mobileDiscoverPanel === "left" ? "mobile-panel-active" : "",
+            ].filter(Boolean).join(" ")}
+            aria-label="Left word settings"
+            aria-hidden={isMobileLayout ? mobileDiscoverPanel !== "left" : undefined}
+          >
             <div className="settings-panel-header">
               <p>Left word</p>
-              <button
-                className={leftSettingsApplied ? undefined : "settings-reset-placeholder"}
-                type="button"
-                aria-hidden={!leftSettingsApplied}
-                tabIndex={leftSettingsApplied ? undefined : -1}
-                onClick={resetPrimarySettings}
-              >
-                <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
-                Reset
-              </button>
+              <div className="settings-panel-header-actions">
+                <button
+                  className={leftSettingsApplied ? undefined : "settings-reset-placeholder"}
+                  type="button"
+                  aria-hidden={!leftSettingsApplied}
+                  tabIndex={leftSettingsApplied ? undefined : -1}
+                  onClick={resetPrimarySettings}
+                >
+                  <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
+                  Reset
+                </button>
+                {isMobileLayout ? (
+                  <button className="mobile-panel-close" type="button" aria-label="Close left word settings" onClick={closeMobileDiscoverPanel}>
+                    <X size={14} strokeWidth={1.5} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
             </div>
             <div className="settings-panel-scroll">
               <div className="settings-group">
@@ -2923,21 +2993,37 @@ export default function Home() {
             onRightChange={setMixRightSettings}
             onReset={resetSliceSettings}
             settingsApplied={sliceSettingsApplied}
+            mobileActive={isMobileLayout && mobileDiscoverPanel === "slice"}
+            onMobileClose={isMobileLayout ? closeMobileDiscoverPanel : undefined}
           />
 
-          <aside className="split-settings-panel right rounded-3xl" aria-label="Right word settings">
+          <aside
+            className={[
+              "split-settings-panel right rounded-3xl",
+              isMobileLayout && mobileDiscoverPanel === "right" ? "mobile-panel-active" : "",
+            ].filter(Boolean).join(" ")}
+            aria-label="Right word settings"
+            aria-hidden={isMobileLayout ? mobileDiscoverPanel !== "right" : undefined}
+          >
             <div className="settings-panel-header">
               <p>Right word</p>
-              <button
-                className={rightSettingsApplied ? undefined : "settings-reset-placeholder"}
-                type="button"
-                aria-hidden={!rightSettingsApplied}
-                tabIndex={rightSettingsApplied ? undefined : -1}
-                onClick={resetSecondarySettings}
-              >
-                <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
-                Reset
-              </button>
+              <div className="settings-panel-header-actions">
+                <button
+                  className={rightSettingsApplied ? undefined : "settings-reset-placeholder"}
+                  type="button"
+                  aria-hidden={!rightSettingsApplied}
+                  tabIndex={rightSettingsApplied ? undefined : -1}
+                  onClick={resetSecondarySettings}
+                >
+                  <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
+                  Reset
+                </button>
+                {isMobileLayout ? (
+                  <button className="mobile-panel-close" type="button" aria-label="Close right word settings" onClick={closeMobileDiscoverPanel}>
+                    <X size={14} strokeWidth={1.5} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
             </div>
             <div className="settings-panel-scroll">
               <div className="settings-group">
@@ -2979,7 +3065,43 @@ export default function Home() {
         </section>
       ) : null}
 
+      {appMode === "discover" && isMobileLayout ? (
+        <div className="mobile-generate-bar">
+          <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
+            {discoverHasNoWords ? "Start exploring" : "Generate"}
+          </button>
+        </div>
+      ) : null}
+
       <footer className="controls">
+        {appMode === "discover" && isMobileLayout ? (
+          <div className="mobile-discover-toolbar" role="toolbar" aria-label="Word settings panels">
+            <button
+              className={["mobile-discover-toolbar-button", mobileDiscoverPanel === "left" ? "active" : "", leftSettingsApplied ? "has-settings" : ""].filter(Boolean).join(" ")}
+              type="button"
+              aria-expanded={mobileDiscoverPanel === "left"}
+              onClick={() => toggleMobileDiscoverPanel("left")}
+            >
+              Left word
+            </button>
+            <button
+              className={["mobile-discover-toolbar-button", mobileDiscoverPanel === "slice" ? "active" : "", sliceSettingsApplied ? "has-settings" : ""].filter(Boolean).join(" ")}
+              type="button"
+              aria-expanded={mobileDiscoverPanel === "slice"}
+              onClick={() => toggleMobileDiscoverPanel("slice")}
+            >
+              Slice
+            </button>
+            <button
+              className={["mobile-discover-toolbar-button", mobileDiscoverPanel === "right" ? "active" : "", rightSettingsApplied ? "has-settings" : ""].filter(Boolean).join(" ")}
+              type="button"
+              aria-expanded={mobileDiscoverPanel === "right"}
+              onClick={() => toggleMobileDiscoverPanel("right")}
+            >
+              Right word
+            </button>
+          </div>
+        ) : null}
         <div className="controls-bar">
           {appMode === "discover" ? discoverHasNoWords ? (
             <div className="shortcut-row discover-start-shortcuts" aria-label="Start exploring">
