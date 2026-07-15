@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { relations } from "../lib/constants";
-import type { AppMode, DiscoverMobilePanel } from "../lib/types";
+import type { AppMode, DiscoverMobilePanel, PartOfSpeech, WordResult } from "../lib/types";
 
 type KeyboardActions = {
   runAdvancedSearch: () => void | Promise<void>;
@@ -18,8 +18,15 @@ type UseKeyboardShortcutsOptions = {
   mobileDiscoverPanel: DiscoverMobilePanel | null;
   setMobileDiscoverPanel: (panel: DiscoverMobilePanel | null) => void;
   generateVisibleWords: () => void;
-  findWord: (relation?: (typeof relations)[number]) => void | Promise<void>;
-  findSecondaryWord: () => void | Promise<void>;
+  findWord: (
+    relation?: (typeof relations)[number],
+    requestedType?: PartOfSpeech,
+    options?: { apply?: boolean },
+  ) => void | Promise<WordResult | undefined>;
+  findSecondaryWord: (
+    requestedType?: PartOfSpeech,
+    options?: { apply?: boolean },
+  ) => void | Promise<WordResult | undefined>;
   moveThroughSplitHistory: (direction: -1 | 1) => void;
   resetAllDiscoverSettings: () => void;
   toggleCombinedSaved: () => void;
