@@ -1728,7 +1728,19 @@ button {
   display: inline;
   flex: none;
   width: auto;
-  animation: word-fade-in .14s ease;
+}
+
+.mix-combined-word.is-generating,
+.split-definitions.is-generating {
+  opacity: .3;
+  filter: blur(8px);
+  pointer-events: none;
+  transition: none;
+}
+
+.mix-combined-word.is-generating .mix-word-part,
+.split-definitions.is-generating .split-word-details {
+  animation: none;
 }
 
 .mix-syllable-used {
@@ -2572,8 +2584,7 @@ button {
   text-align: left;
 }
 
-.split-word-part,
-.split-word-details {
+.split-word-part {
   animation: word-fade-in .14s ease;
 }
 
@@ -2587,6 +2598,7 @@ button {
   gap: 0;
   margin-top: 3rem;
   pointer-events: auto;
+  transition: none;
 }
 
 .split-definitions article {

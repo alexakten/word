@@ -54,7 +54,7 @@ export function useKeyboardShortcuts({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (focusMode) {
         event.preventDefault();
-        if (event.code === "Space") generateVisibleWords();
+        if (event.code === "Space" || event.key === "Enter") generateVisibleWords();
         else setFocusMode(false);
         return;
       }
@@ -74,7 +74,7 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      if (event.code === "Space") {
+      if (event.code === "Space" || event.key === "Enter") {
         event.preventDefault();
         if (appMode === "discover") generateVisibleWords();
         if (appMode === "combine") void actionsRef.current.runForgePrimary();

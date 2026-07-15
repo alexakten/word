@@ -72,6 +72,9 @@ export type DiscoverViewProps = Pick<
   | "displayedCombinedWord"
   | "copyDisplayedWord"
   | "mixedWordParts"
+  | "loading"
+  | "secondaryLoading"
+  | "splitBatchLoading"
   | "result"
   | "secondaryResult"
   | "displayedPronunciation"
@@ -150,6 +153,9 @@ export function DiscoverView(props: DiscoverViewProps) {
     displayedCombinedWord,
     copyDisplayedWord,
     mixedWordParts,
+    loading,
+    secondaryLoading,
+    splitBatchLoading,
     result,
     secondaryResult,
     displayedPronunciation,
@@ -343,9 +349,13 @@ export function DiscoverView(props: DiscoverViewProps) {
               <div className="copyable-word-wrap split-copyable-word-wrap">
                 <WordCopyHint status={wordCopyStatus} />
                 <button
-                  className={`split-combined-word copyable-word mix-combined-word ${cardo.className}`}
+                  className={[
+                    "split-combined-word copyable-word mix-combined-word",
+                    cardo.className,
+                    loading || secondaryLoading || splitBatchLoading ? "is-generating" : "",
+                  ].filter(Boolean).join(" ")}
                   type="button"
-                  disabled={!leftWordValue || !rightWordValue}
+                  disabled={!leftWordValue || !rightWordValue || loading || secondaryLoading || splitBatchLoading}
                   aria-label={`Copy ${displayedCombinedWord}`}
                   onClick={() => void copyDisplayedWord(displayedCombinedWord)}
                   onPointerEnter={() => {
@@ -356,7 +366,12 @@ export function DiscoverView(props: DiscoverViewProps) {
                   <span className="mix-word-part" data-view-transition-word key={`mix-right-${mixedWordParts.rightChunk}`}>{mixedWordParts.rightChunk || "——"}</span>
                 </button>
               </div>
-              <div className="split-definitions">
+              <div
+                className={[
+                  "split-definitions",
+                  loading || secondaryLoading || splitBatchLoading ? "is-generating" : "",
+                ].filter(Boolean).join(" ")}
+              >
                 {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
                   <article
                     data-view-transition-card={index === 1 ? "" : undefined}
