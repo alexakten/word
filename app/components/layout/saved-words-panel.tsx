@@ -8,7 +8,7 @@ import type { WordResult } from "../../lib/types";
 
 type SavedWordsPanelProps = Pick<
   HomeState,
-  "savedWords" | "savedOpen" | "setSavedOpen" | "savedMenuRef" | "saveWords" | "loadSavedWord" | "isMobileLayout"
+  "savedWords" | "savedOpen" | "setSavedOpen" | "savedMenuRef" | "saveWords" | "loadSavedWord"
 >;
 
 function SavedWordsList({
@@ -57,7 +57,6 @@ export function SavedWordsPanel({
   savedMenuRef,
   saveWords,
   loadSavedWord,
-  isMobileLayout,
 }: SavedWordsPanelProps) {
   const closeSaved = () => setSavedOpen(false);
 
@@ -72,7 +71,7 @@ export function SavedWordsPanel({
       >
         Saved <span>{savedWords.length}</span>
       </button>
-      {savedOpen && !isMobileLayout
+      {savedOpen
         ? createPortal(
           <>
             <button

@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import type { HomeState } from "../../hooks/use-home";
+import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
 
 export type ControlsFooterProps = Pick<
@@ -193,15 +194,17 @@ export function ControlsFooter(props: ControlsFooterProps) {
             <span>Find words</span>
           </button>
         </div> : null}
-        <SavedWordsPanel
-          savedWords={savedWords}
-          savedOpen={savedOpen}
-          setSavedOpen={setSavedOpen}
-          savedMenuRef={savedMenuRef}
-          saveWords={saveWords}
-          loadSavedWord={loadSavedWord}
-          isMobileLayout={isMobileLayout}
-        />
+        <div className="controls-end">
+          <SavedWordsPanel
+            savedWords={savedWords}
+            savedOpen={savedOpen}
+            setSavedOpen={setSavedOpen}
+            savedMenuRef={savedMenuRef}
+            saveWords={saveWords}
+            loadSavedWord={loadSavedWord}
+          />
+          {!isMobileLayout ? <AboutDrawer /> : null}
+        </div>
       </div>
     </footer>
   );

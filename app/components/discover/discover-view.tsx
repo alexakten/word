@@ -441,7 +441,7 @@ export function DiscoverView(props: DiscoverViewProps) {
 
       {isMobileLayout ? (
         <div className="mobile-bottom-bar">
-          <AboutDrawer />
+          <AboutDrawer showBrand />
           <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
             {discoverHasNoWords ? "Start exploring" : "Generate"}
           </button>

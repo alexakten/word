@@ -5,7 +5,7 @@ import { Info, X } from "lucide-react";
 import { Drawer } from "vaul";
 import { WordmarkLink } from "./wordmark-link";
 
-export function AboutDrawer() {
+export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -35,11 +35,15 @@ export function AboutDrawer() {
           </button>
           <div className="about-drawer-inner">
             <Drawer.Handle className="about-drawer-handle" />
-            <Drawer.Title asChild>
-              <div className="about-drawer-brand">
-                <WordmarkLink />
-              </div>
-            </Drawer.Title>
+            {showBrand ? (
+              <Drawer.Title asChild>
+                <div className="about-drawer-brand">
+                  <WordmarkLink />
+                </div>
+              </Drawer.Title>
+            ) : (
+              <Drawer.Title className="about-drawer-title">About Spellsurf</Drawer.Title>
+            )}
             <Drawer.Description className="about-drawer-lead">
               Discover and create new words by blending two random words.{" "}
               Powered by the{" "}

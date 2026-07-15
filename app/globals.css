@@ -377,6 +377,13 @@ button {
   background: rgba(21, 21, 19, .14);
 }
 
+.controls-end {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: .55rem;
+}
+
 .saved-menu {
   position: relative;
   flex: none;
@@ -3540,23 +3547,26 @@ kbd {
   pointer-events: auto;
 }
 
-.page-shell.mobile-layout .about-drawer-trigger {
+.about-drawer-trigger {
   display: inline-flex;
-  align-self: flex-end;
   width: 32px;
   height: 32px;
   flex: none;
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   padding: 0;
   background: #F6F5F4;
   color: var(--muted);
   cursor: pointer;
 }
 
-.page-shell.mobile-layout .about-drawer-trigger:hover {
+.page-shell.mobile-layout .about-drawer-trigger {
+  align-self: flex-end;
+}
+
+.about-drawer-trigger:hover {
   background: #EFEDE9;
   color: var(--ink);
 }
@@ -3660,6 +3670,9 @@ button.about-drawer-close:hover {
 
 .about-drawer-inner {
   display: flex;
+  width: min(600px, 100%);
+  max-width: 600px;
+  margin: 0 auto;
   flex-direction: column;
   gap: .85rem;
   padding: .55rem 1.35rem 1.75rem;
@@ -3673,6 +3686,15 @@ button.about-drawer-close:hover {
   height: 4px;
   border-radius: 999px;
   background: rgba(21, 21, 19, .14);
+}
+
+.about-drawer-title {
+  margin: 0;
+  padding-right: 2.5rem;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -.02em;
 }
 
 .about-drawer-brand {
