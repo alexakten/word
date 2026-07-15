@@ -5,7 +5,7 @@ import { AffixSettings } from "../discover/affix-settings";
 import { DiscoverStartPrompt } from "../discover/discover-start-prompt";
 import { MixSourceWord } from "../discover/mix-source-word";
 import { RelatedToSetting } from "../discover/related-to-setting";
-import { SliceSettingsPanel } from "../discover/slice-settings-panel";
+import { SliceSettingsPanel, SliceSidePanel } from "../discover/slice-settings-panel";
 import { SplitDescription } from "../discover/split-description";
 import { SyllableCountSetting } from "../discover/syllable-count-setting";
 import { WordCopyHint } from "../discover/word-copy-hint";
@@ -86,7 +86,11 @@ export type DiscoverViewProps = Pick<
   | "setMixLeftSettings"
   | "setMixRightSettings"
   | "resetSliceSettings"
+  | "resetLeftSliceSettings"
+  | "resetRightSliceSettings"
   | "sliceSettingsApplied"
+  | "leftSliceSettingsApplied"
+  | "rightSliceSettingsApplied"
   | "generateVisibleWords"
 >;
 
@@ -162,78 +166,168 @@ export function DiscoverView(props: DiscoverViewProps) {
     setMixLeftSettings,
     setMixRightSettings,
     resetSliceSettings,
+    resetLeftSliceSettings,
+    resetRightSliceSettings,
     sliceSettingsApplied,
+    leftSliceSettingsApplied,
+    rightSliceSettingsApplied,
     generateVisibleWords,
   } = props;
+
+  const leftSettingsContent = (
+    <>
+      <div className="settings-panel-header">
+        <p>Left word</p>
+        <div className="settings-panel-header-actions">
+          <button
+            className={leftSettingsApplied ? undefined : "settings-reset-placeholder"}
+            type="button"
+            aria-hidden={!leftSettingsApplied}
+            tabIndex={leftSettingsApplied ? undefined : -1}
+            onClick={resetPrimarySettings}
+          >
+            <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
+            Reset
+          </button>
+          {isMobileLayout ? (
+            <button className="mobile-panel-close" type="button" aria-label="Close left word settings" onClick={closeMobileDiscoverPanel}>
+              <X size={14} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <div className="settings-panel-scroll">
+        <div className="settings-group">
+          <label className="split-setting-field boxed-setting-field">
+            <span>Text</span>
+            <input
+              value={leftWordDraft}
+              placeholder="Optional fixed text"
+              maxLength={40}
+              onChange={(event) => handleLeftWordDraftChange(event.target.value)}
+              onBlur={() => void setExplicitSplitWord("left", leftWordDraft)}
+              onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+            />
+          </label>
+        </div>
+        <fieldset className="settings-filter-set" disabled={Boolean(leftWordDraft.trim())}>
+          <div className="settings-group">
+            <WordTypeTabs className="split-side-types" value={wordType} label="Left word type" onChange={setWordType} />
+          </div>
+          <div className="settings-group">
+            <RelatedToSetting id="split-left-related" value={wordRelatedTo} onChange={setWordRelatedTo} />
+          </div>
+          <div className="settings-group">
+            <SyllableCountSetting
+              id="left-syllable-count"
+              value={wordSyllables}
+              mode={wordSyllableMode}
+              onValueChange={setWordSyllables}
+              onModeChange={setWordSyllableMode}
+            />
+          </div>
+          <div className="settings-group">
+            <AffixSettings startsWith={wordStartsWith} endsWith={wordEndsWith} onStartsChange={setWordStartsWith} onEndsChange={setWordEndsWith} />
+            <WordLengthSetting id="left-word-length" value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
+          </div>
+        </fieldset>
+      </div>
+    </>
+  );
+
+  const rightSettingsContent = (
+    <>
+      <div className="settings-panel-header">
+        <p>Right word</p>
+        <div className="settings-panel-header-actions">
+          <button
+            className={rightSettingsApplied ? undefined : "settings-reset-placeholder"}
+            type="button"
+            aria-hidden={!rightSettingsApplied}
+            tabIndex={rightSettingsApplied ? undefined : -1}
+            onClick={resetSecondarySettings}
+          >
+            <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
+            Reset
+          </button>
+          {isMobileLayout ? (
+            <button className="mobile-panel-close" type="button" aria-label="Close right word settings" onClick={closeMobileDiscoverPanel}>
+              <X size={14} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <div className="settings-panel-scroll">
+        <div className="settings-group">
+          <label className="split-setting-field boxed-setting-field">
+            <span>Text</span>
+            <input
+              value={rightWordDraft}
+              placeholder="Optional fixed text"
+              maxLength={40}
+              onChange={(event) => handleRightWordDraftChange(event.target.value)}
+              onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
+              onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+            />
+          </label>
+        </div>
+        <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
+          <div className="settings-group">
+            <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
+          </div>
+          <div className="settings-group">
+            <RelatedToSetting id="split-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
+          </div>
+          <div className="settings-group">
+            <SyllableCountSetting
+              id="right-syllable-count"
+              value={secondaryWordSyllables}
+              mode={secondaryWordSyllableMode}
+              onValueChange={setSecondaryWordSyllables}
+              onModeChange={setSecondaryWordSyllableMode}
+            />
+          </div>
+          <div className="settings-group">
+            <AffixSettings startsWith={secondaryWordStartsWith} endsWith={secondaryWordEndsWith} onStartsChange={setSecondaryWordStartsWith} onEndsChange={setSecondaryWordEndsWith} />
+            <WordLengthSetting id="right-word-length" value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
+          </div>
+        </fieldset>
+      </div>
+    </>
+  );
 
   return (
     <>
       <section className="split-word-stage" id="top" aria-live="polite">
-        <aside
-          className={[
-            "split-settings-panel left rounded-3xl",
-            isMobileLayout && mobileDiscoverPanel === "left" ? "mobile-panel-active" : "",
-          ].filter(Boolean).join(" ")}
-          aria-label="Left word settings"
-          aria-hidden={isMobileLayout ? mobileDiscoverPanel !== "left" : undefined}
-        >
-          <div className="settings-panel-header">
-            <p>Left word</p>
-            <div className="settings-panel-header-actions">
-              <button
-                className={leftSettingsApplied ? undefined : "settings-reset-placeholder"}
-                type="button"
-                aria-hidden={!leftSettingsApplied}
-                tabIndex={leftSettingsApplied ? undefined : -1}
-                onClick={resetPrimarySettings}
-              >
-                <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
-                Reset
-              </button>
-              {isMobileLayout ? (
-                <button className="mobile-panel-close" type="button" aria-label="Close left word settings" onClick={closeMobileDiscoverPanel}>
-                  <X size={14} strokeWidth={1.5} aria-hidden="true" />
-                </button>
-              ) : null}
-            </div>
+        {isMobileLayout ? (
+          <aside
+            className={[
+              "split-settings-panel left rounded-3xl",
+              mobileDiscoverPanel === "left" ? "mobile-panel-active" : "",
+            ].filter(Boolean).join(" ")}
+            aria-label="Left word settings"
+            aria-hidden={mobileDiscoverPanel !== "left"}
+          >
+            {leftSettingsContent}
+          </aside>
+        ) : (
+          <div className="split-sidebar-stack left">
+            <aside className="split-settings-panel left rounded-3xl" aria-label="Left word settings">
+              {leftSettingsContent}
+            </aside>
+            <SliceSidePanel
+              side="left"
+              word={leftWordValue}
+              sliceMode={leftSliceMode}
+              settings={mixLeftSettings}
+              syllables={result.syllables}
+              onSliceModeChange={handleLeftSliceModeChange}
+              onChange={setMixLeftSettings}
+              onReset={resetLeftSliceSettings}
+              settingsApplied={leftSliceSettingsApplied}
+            />
           </div>
-          <div className="settings-panel-scroll">
-            <div className="settings-group">
-              <label className="split-setting-field boxed-setting-field">
-                <span>Text</span>
-                <input
-                  value={leftWordDraft}
-                  placeholder="Optional fixed text"
-                  maxLength={40}
-                  onChange={(event) => handleLeftWordDraftChange(event.target.value)}
-                  onBlur={() => void setExplicitSplitWord("left", leftWordDraft)}
-                  onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-                />
-              </label>
-            </div>
-            <fieldset className="settings-filter-set" disabled={Boolean(leftWordDraft.trim())}>
-              <div className="settings-group">
-                <WordTypeTabs className="split-side-types" value={wordType} label="Left word type" onChange={setWordType} />
-              </div>
-              <div className="settings-group">
-                <RelatedToSetting id="split-left-related" value={wordRelatedTo} onChange={setWordRelatedTo} />
-              </div>
-              <div className="settings-group">
-                <SyllableCountSetting
-                  id="left-syllable-count"
-                  value={wordSyllables}
-                  mode={wordSyllableMode}
-                  onValueChange={setWordSyllables}
-                  onModeChange={setWordSyllableMode}
-                />
-              </div>
-              <div className="settings-group">
-                <AffixSettings startsWith={wordStartsWith} endsWith={wordEndsWith} onStartsChange={setWordStartsWith} onEndsChange={setWordEndsWith} />
-                <WordLengthSetting id="left-word-length" value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
-              </div>
-            </fieldset>
-          </div>
-        </aside>
+        )}
 
         <div className="split-word-anchor">
           {discoverHasNoWords ? (
@@ -287,90 +381,56 @@ export function DiscoverView(props: DiscoverViewProps) {
           )}
         </div>
 
-        <SliceSettingsPanel
-          leftWord={leftWordValue}
-          rightWord={rightWordValue}
-          leftSliceMode={leftSliceMode}
-          rightSliceMode={rightSliceMode}
-          leftSettings={mixLeftSettings}
-          rightSettings={mixRightSettings}
-          leftSyllables={result.syllables}
-          rightSyllables={secondaryResult.syllables}
-          onLeftSliceModeChange={handleLeftSliceModeChange}
-          onRightSliceModeChange={handleRightSliceModeChange}
-          onLeftChange={setMixLeftSettings}
-          onRightChange={setMixRightSettings}
-          onReset={resetSliceSettings}
-          settingsApplied={sliceSettingsApplied}
-          mobileActive={isMobileLayout && mobileDiscoverPanel === "slice"}
-          onMobileClose={isMobileLayout ? closeMobileDiscoverPanel : undefined}
-        />
+        {isMobileLayout ? (
+          <SliceSettingsPanel
+            leftWord={leftWordValue}
+            rightWord={rightWordValue}
+            leftSliceMode={leftSliceMode}
+            rightSliceMode={rightSliceMode}
+            leftSettings={mixLeftSettings}
+            rightSettings={mixRightSettings}
+            leftSyllables={result.syllables}
+            rightSyllables={secondaryResult.syllables}
+            onLeftSliceModeChange={handleLeftSliceModeChange}
+            onRightSliceModeChange={handleRightSliceModeChange}
+            onLeftChange={setMixLeftSettings}
+            onRightChange={setMixRightSettings}
+            onReset={resetSliceSettings}
+            settingsApplied={sliceSettingsApplied}
+            mobileActive={mobileDiscoverPanel === "slice"}
+            onMobileClose={closeMobileDiscoverPanel}
+          />
+        ) : null}
 
-        <aside
-          className={[
-            "split-settings-panel right rounded-3xl",
-            isMobileLayout && mobileDiscoverPanel === "right" ? "mobile-panel-active" : "",
-          ].filter(Boolean).join(" ")}
-          aria-label="Right word settings"
-          aria-hidden={isMobileLayout ? mobileDiscoverPanel !== "right" : undefined}
-        >
-          <div className="settings-panel-header">
-            <p>Right word</p>
-            <div className="settings-panel-header-actions">
-              <button
-                className={rightSettingsApplied ? undefined : "settings-reset-placeholder"}
-                type="button"
-                aria-hidden={!rightSettingsApplied}
-                tabIndex={rightSettingsApplied ? undefined : -1}
-                onClick={resetSecondarySettings}
-              >
-                <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
-                Reset
-              </button>
-              {isMobileLayout ? (
-                <button className="mobile-panel-close" type="button" aria-label="Close right word settings" onClick={closeMobileDiscoverPanel}>
-                  <X size={14} strokeWidth={1.5} aria-hidden="true" />
-                </button>
-              ) : null}
-            </div>
+        {isMobileLayout ? (
+          <aside
+            className={[
+              "split-settings-panel right rounded-3xl",
+              mobileDiscoverPanel === "right" ? "mobile-panel-active" : "",
+            ].filter(Boolean).join(" ")}
+            aria-label="Right word settings"
+            aria-hidden={mobileDiscoverPanel !== "right"}
+          >
+            {rightSettingsContent}
+          </aside>
+        ) : (
+          <div className="split-sidebar-stack right">
+            <aside className="split-settings-panel right rounded-3xl" aria-label="Right word settings">
+              {rightSettingsContent}
+            </aside>
+            <SliceSidePanel
+              side="right"
+              word={rightWordValue}
+              sliceMode={rightSliceMode}
+              settings={mixRightSettings}
+              syllables={secondaryResult.syllables}
+              onSliceModeChange={handleRightSliceModeChange}
+              onChange={setMixRightSettings}
+              onReset={resetRightSliceSettings}
+              settingsApplied={rightSliceSettingsApplied}
+            />
           </div>
-          <div className="settings-panel-scroll">
-            <div className="settings-group">
-              <label className="split-setting-field boxed-setting-field">
-                <span>Text</span>
-                <input
-                  value={rightWordDraft}
-                  placeholder="Optional fixed text"
-                  maxLength={40}
-                  onChange={(event) => handleRightWordDraftChange(event.target.value)}
-                  onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
-                  onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-                />
-              </label>
-            </div>
-            <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
-              <div className="settings-group">
-                <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
-              </div>
-              <div className="settings-group">
-                <RelatedToSetting id="split-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
-              </div>
-              <div className="settings-group">
-                <SyllableCountSetting
-                  id="right-syllable-count"
-                  value={secondaryWordSyllables}
-                  mode={secondaryWordSyllableMode}
-                  onValueChange={setSecondaryWordSyllables}
-                  onModeChange={setSecondaryWordSyllableMode}
-                />
-              </div>
-              <div className="settings-group">
-                <AffixSettings startsWith={secondaryWordStartsWith} endsWith={secondaryWordEndsWith} onStartsChange={setSecondaryWordStartsWith} onEndsChange={setSecondaryWordEndsWith} />
-                <WordLengthSetting id="right-word-length" value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
-              </div>
-            </fieldset>
-          </div>
-        </aside>
+        )}
       </section>
 
       {isMobileLayout ? (

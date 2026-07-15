@@ -4,6 +4,71 @@ import { RefreshCw, X } from "lucide-react";
 import type { MixSideSettings, SliceMode } from "../../syllables";
 import { MixSideSetting } from "./mix-side-setting";
 
+type SliceSide = "left" | "right";
+
+function SlicePanelHeader({ title, settingsApplied, onReset, onMobileClose }: {
+  title: string;
+  settingsApplied: boolean;
+  onReset: () => void;
+  onMobileClose?: () => void;
+}) {
+  return (
+    <div className="settings-panel-header">
+      <p>{title}</p>
+      <div className="settings-panel-header-actions">
+        <button
+          className={settingsApplied ? undefined : "settings-reset-placeholder"}
+          type="button"
+          aria-hidden={!settingsApplied}
+          tabIndex={settingsApplied ? undefined : -1}
+          onClick={onReset}
+        >
+          <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
+          Reset
+        </button>
+        {onMobileClose ? (
+          <button className="mobile-panel-close" type="button" aria-label={`Close ${title.toLowerCase()}`} onClick={onMobileClose}>
+            <X size={14} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export function SliceSidePanel({ side, word, sliceMode, settings, syllables, onSliceModeChange, onChange, onReset, settingsApplied }: {
+  side: SliceSide;
+  word: string;
+  sliceMode: SliceMode;
+  settings: MixSideSettings;
+  syllables?: number;
+  onSliceModeChange: (mode: SliceMode) => void;
+  onChange: (settings: MixSideSettings) => void;
+  onReset: () => void;
+  settingsApplied: boolean;
+}) {
+  const labelPrefix = side === "left" ? "Left word" : "Right word";
+
+  return (
+    <aside
+      className={`split-slice-panel ${side} rounded-3xl`}
+      aria-label={`${labelPrefix} slice settings`}
+    >
+      <SlicePanelHeader title="Slice word" settingsApplied={settingsApplied} onReset={onReset} />
+      <MixSideSetting
+        labelPrefix={labelPrefix}
+        word={word}
+        settings={settings}
+        sliceMode={sliceMode}
+        syllableCount={syllables}
+        hasWord={Boolean(word)}
+        onChange={onChange}
+        onSliceModeChange={onSliceModeChange}
+      />
+    </aside>
+  );
+}
+
 export function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSliceMode, leftSettings, rightSettings, leftSyllables, rightSyllables, onLeftSliceModeChange, onRightSliceModeChange, onLeftChange, onRightChange, onReset, settingsApplied, mobileActive = false, onMobileClose }: {
   leftWord: string;
   rightWord: string;
@@ -28,26 +93,12 @@ export function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSl
       aria-label="Slice settings"
       aria-hidden={onMobileClose ? !mobileActive : undefined}
     >
-      <div className="settings-panel-header">
-        <p>Slice words</p>
-        <div className="settings-panel-header-actions">
-          <button
-            className={settingsApplied ? undefined : "settings-reset-placeholder"}
-            type="button"
-            aria-hidden={!settingsApplied}
-            tabIndex={settingsApplied ? undefined : -1}
-            onClick={onReset}
-          >
-            <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
-            Reset
-          </button>
-          {onMobileClose ? (
-            <button className="mobile-panel-close" type="button" aria-label="Close slice settings" onClick={onMobileClose}>
-              <X size={14} strokeWidth={1.5} aria-hidden="true" />
-            </button>
-          ) : null}
-        </div>
-      </div>
+      <SlicePanelHeader
+        title="Slice words"
+        settingsApplied={settingsApplied}
+        onReset={onReset}
+        onMobileClose={onMobileClose}
+      />
       <div className="slice-settings-grid">
         <div className="slice-settings-side">
           <MixSideSetting

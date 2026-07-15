@@ -104,12 +104,20 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setSecondaryWordLengthMode("exact");
   }, []);
 
-  const resetSliceSettings = useCallback(() => {
+  const resetLeftSliceSettings = useCallback(() => {
     setLeftSliceMode("none");
-    setRightSliceMode("none");
     setMixLeftSettings({ ...defaultCustomMixLeftSettings });
+  }, []);
+
+  const resetRightSliceSettings = useCallback(() => {
+    setRightSliceMode("none");
     setMixRightSettings({ ...defaultCustomMixRightSettings });
   }, []);
+
+  const resetSliceSettings = useCallback(() => {
+    resetLeftSliceSettings();
+    resetRightSliceSettings();
+  }, [resetLeftSliceSettings, resetRightSliceSettings]);
 
   const handleLeftSliceModeChange = useCallback((mode: SliceMode) => {
     setLeftSliceMode(mode);
@@ -721,11 +729,15 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     resetSecondarySettings,
     resetAllDiscoverSettings,
     resetSliceSettings,
+    resetLeftSliceSettings,
+    resetRightSliceSettings,
     handleLeftSliceModeChange,
     handleRightSliceModeChange,
     commitWord,
     moveThroughSplitHistory,
     sliceSettingsApplied,
+    leftSliceSettingsApplied: mixLeftApplied,
+    rightSliceSettingsApplied: mixRightApplied,
     leftSettingsApplied,
     rightSettingsApplied,
     setResult,

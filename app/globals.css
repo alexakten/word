@@ -1124,6 +1124,63 @@ button { color: inherit; font: inherit; }
   pointer-events: auto;
 }
 
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack {
+  position: absolute;
+  top: var(--page-padding-y);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  width: var(--split-settings-width);
+  height: calc(100dvh - 2 * var(--page-padding-y));
+  max-height: calc(100dvh - 2 * var(--page-padding-y));
+  pointer-events: none;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.left {
+  left: 2.5rem;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.right {
+  right: 2.5rem;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-settings-panel,
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-slice-panel {
+  position: relative;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  transform: none;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-settings-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .settings-panel-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-slice-panel {
+  flex: 0 0 auto;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack:has(.related-tags-field:focus-within),
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack:has(.related-suggestions) {
+  z-index: 50;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack:has(.related-tags-field:focus-within) .split-settings-panel,
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack:has(.related-suggestions) .split-settings-panel {
+  overflow: visible;
+}
+
 .split-settings-panel {
   top: var(--page-padding-y);
   bottom: var(--page-padding-y);
@@ -1132,12 +1189,22 @@ button { color: inherit; font: inherit; }
   max-height: none;
 }
 
+.page-shell.discover-mode.mobile-layout .split-settings-panel {
+  top: var(--page-padding-y);
+  bottom: var(--page-padding-y);
+}
+
 .split-slice-panel {
   bottom: var(--page-padding-y);
   top: auto;
   left: 50%;
   width: min(var(--content-width), calc(100vw - 2 * var(--split-settings-width) - 5rem));
   transform: translateX(-50%);
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-slice-panel.left,
+.page-shell.discover-mode:not(.mobile-layout) .split-slice-panel.right {
+  display: flex;
 }
 
 .page-shell.discover-mode .header-brand {
@@ -1178,9 +1245,17 @@ button { color: inherit; font: inherit; }
   overflow: visible;
 }
 
+.page-shell.discover-mode:not(.mobile-layout) .split-settings-panel:has(.related-tags-field:focus-within) {
+  z-index: auto;
+}
+
 .split-settings-panel:has(.related-suggestions) {
   z-index: 50;
   overflow: visible;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-settings-panel:has(.related-suggestions) {
+  z-index: auto;
 }
 
 .split-settings-panel.left {
@@ -1260,6 +1335,11 @@ button { color: inherit; font: inherit; }
 
 .split-slice-panel .settings-panel-header {
   margin-bottom: 1rem;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-slice-panel.left .settings-panel-header,
+.page-shell.discover-mode:not(.mobile-layout) .split-slice-panel.right .settings-panel-header {
+  margin-bottom: .85rem;
 }
 
 .mix-position-setting {
@@ -2368,6 +2448,8 @@ button { color: inherit; font: inherit; }
   .brand-group { right: 1.5rem; }
   .split-settings-panel.left { left: 1.5rem; }
   .split-settings-panel.right { right: 1.5rem; }
+  .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.left { left: 1.5rem; }
+  .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.right { right: 1.5rem; }
   .split-word-anchor { width: min(36rem, calc(100vw - 41rem)); }
 }
 
@@ -2527,6 +2609,7 @@ h1 {
 .site-header,
 .split-settings-panel,
 .split-slice-panel,
+.split-sidebar-stack,
 .controls,
 .status,
 .mobile-bottom-bar,
@@ -2538,6 +2621,7 @@ h1 {
 .page-shell.focus-mode .site-header,
 .page-shell.focus-mode .split-settings-panel,
 .page-shell.focus-mode .split-slice-panel,
+.page-shell.focus-mode .split-sidebar-stack,
 .page-shell.focus-mode .controls,
 .page-shell.focus-mode .status,
 .page-shell.focus-mode .mobile-bottom-bar,
@@ -2688,6 +2772,8 @@ kbd {
   .page-shell { padding: 0 var(--page-padding-x) var(--page-padding-y); }
   .split-settings-panel.left { left: var(--page-padding-x); }
   .split-settings-panel.right { right: var(--page-padding-x); }
+  .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.left { left: var(--page-padding-x); }
+  .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.right { right: var(--page-padding-x); }
   .split-slice-panel {
     width: min(var(--content-width), calc(100vw - 2 * var(--page-padding-x)));
   }
