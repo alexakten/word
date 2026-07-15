@@ -176,10 +176,16 @@ button {
   top: 50%;
   left: 50%;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: .75rem;
+  gap: .45rem;
   pointer-events: none;
   transform: translate(-50%, -50%);
+}
+
+.header-brand .wordmark,
+.header-brand .api-health-status {
+  pointer-events: auto;
 }
 
 .wordmark {
@@ -1443,13 +1449,16 @@ button {
   left: 50%;
   z-index: 25;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: .45rem;
   pointer-events: none;
   transform: translateX(-50%);
 }
 
-.discover-top-brand .wordmark {
+.discover-top-brand .wordmark,
+.discover-top-brand .api-health-status {
   pointer-events: auto;
 }
 
@@ -3545,6 +3554,22 @@ kbd {
   align-items: stretch;
   gap: .55rem;
   pointer-events: auto;
+}
+
+.page-shell.mobile-layout .mobile-generate-wrap {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-shell.mobile-layout .mobile-generate-wrap .api-health-status {
+  position: absolute;
+  bottom: calc(100% + .45rem);
+  left: 50%;
+  justify-content: center;
+  transform: translateX(-50%);
 }
 
 .about-drawer-trigger {

@@ -13,6 +13,7 @@ import { WordCopyHint } from "../discover/word-copy-hint";
 import { WordLengthSetting } from "../discover/word-length-setting";
 import { WordmarkLink } from "../layout/wordmark-link";
 import { AboutDrawer } from "../layout/about-drawer";
+import { ApiHealthStatus } from "../ui/api-health-status";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
@@ -95,6 +96,7 @@ export type DiscoverViewProps = Pick<
   | "leftSliceSettingsApplied"
   | "rightSliceSettingsApplied"
   | "generateVisibleWords"
+  | "apiHealth"
 >;
 
 export function DiscoverView(props: DiscoverViewProps) {
@@ -175,6 +177,7 @@ export function DiscoverView(props: DiscoverViewProps) {
     leftSliceSettingsApplied,
     rightSliceSettingsApplied,
     generateVisibleWords,
+    apiHealth,
   } = props;
 
   const leftSettingsContent = (
@@ -303,6 +306,7 @@ export function DiscoverView(props: DiscoverViewProps) {
     <>
       <div className="discover-top-brand">
         <WordmarkLink />
+        <ApiHealthStatus health={apiHealth} />
       </div>
       <section className="split-word-stage" id="top" aria-live="polite">
         {isMobileLayout ? (
@@ -442,9 +446,12 @@ export function DiscoverView(props: DiscoverViewProps) {
       {isMobileLayout ? (
         <div className="mobile-bottom-bar">
           <AboutDrawer showBrand />
-          <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
-            {discoverHasNoWords ? "Start exploring" : "Generate"}
-          </button>
+          <div className="mobile-generate-wrap">
+            <ApiHealthStatus health={apiHealth} />
+            <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
+              {discoverHasNoWords ? "Start exploring" : "Generate"}
+            </button>
+          </div>
         </div>
       ) : null}
     </>
