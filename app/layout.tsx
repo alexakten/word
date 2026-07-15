@@ -2,9 +2,22 @@ import type { Metadata } from "next";
 import { inter } from "./fonts";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Spellsurf",
   description: "Discover and create new words.",
+  openGraph: {
+    title: "Spellsurf",
+    description: "Discover and create new words.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Spellsurf",
+    description: "Discover and create new words.",
+  },
   icons: {
     icon: [{ url: "/favicon.png", type: "image/png" }],
     apple: [{ url: "/favicon.png", type: "image/png" }],
