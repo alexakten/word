@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import favicon from "./favicon.png";
 import { inter } from "./fonts";
 import "./globals.css";
 
@@ -19,8 +20,8 @@ export const metadata: Metadata = {
     description: "Discover and create new words.",
   },
   icons: {
-    icon: [{ url: "/favicon.png", type: "image/png" }],
-    apple: [{ url: "/favicon.png", type: "image/png" }],
+    icon: [{ url: favicon.src, type: "image/png", sizes: `${favicon.width}x${favicon.height}` }],
+    apple: [{ url: favicon.src, type: "image/png" }],
   },
 };
 
