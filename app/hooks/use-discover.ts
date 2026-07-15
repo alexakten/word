@@ -231,7 +231,12 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
   useEffect(() => () => window.clearTimeout(wordCopyTimerRef.current), []);
   const findWord = useCallback(
-    async (relation?: (typeof relations)[number], requestedType: PartOfSpeech = wordType) => {
+    async (
+      relation?: (typeof relations)[number],
+      requestedType: PartOfSpeech = wordType,
+      options?: { apply?: boolean },
+    ): Promise<WordResult | undefined> => {
+      const apply = options?.apply !== false;
       requestRef.current?.abort();
       setLeftWordDraft("");
       const controller = new AbortController();
@@ -305,8 +310,11 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
           next = (await response.json()) as WordResult;
         }
         if (controller.signal.aborted || requestRef.current !== controller) return;
-        commitWord(next);
-        setMessage(relation ? `${relation.label} to “${result.word}”` : "");
+        if (apply) {
+          commitWord(next);
+          setMessage(relation ? `${relation.label} to “${result.word}”` : "");
+        }
+        return next;
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
@@ -319,7 +327,11 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     [commitWord, result.word, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllableMode, wordSyllables, wordType],
   );
 
-  const findSecondaryWord = useCallback(async (requestedType: PartOfSpeech = secondaryWordType) => {
+  const findSecondaryWord = useCallback(async (
+    requestedType: PartOfSpeech = secondaryWordType,
+    options?: { apply?: boolean },
+  ): Promise<WordResult | undefined> => {
+    const apply = options?.apply !== false;
     secondaryRequestRef.current?.abort();
     setRightWordDraft("");
     const controller = new AbortController();
@@ -344,6 +356,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     }
 
     try {
+      let next: WordResult;
       if (secondaryWordRelatedTo.trim()) {
         const response = await fetch(`/api/forge?idea=${encodeURIComponent(secondaryWordRelatedTo.trim())}`, { signal: controller.signal });
         applyApiHealth(response, setApiHealth);
@@ -377,21 +390,22 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
         if (!candidates.length) throw new Error("No word found");
         const alternatives = candidates.filter((word) => word.word !== secondaryResult.word);
         const pool = alternatives.length ? alternatives : candidates;
-        const next = pool[Math.floor(Math.random() * pool.length)];
-        if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
-        setSecondaryResult(next);
+        next = pool[Math.floor(Math.random() * pool.length)];
       } else {
         const response = await fetch(`/api/word?${params}`, { signal: controller.signal });
         applyApiHealth(response, setApiHealth);
         if (!response.ok) throw new Error("No word found");
-        const next = await response.json() as WordResult;
-        if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
-        setSecondaryResult(next);
+        next = await response.json() as WordResult;
       }
+      if (controller.signal.aborted || secondaryRequestRef.current !== controller) return;
+      if (apply) setSecondaryResult(next);
+      return next;
     } catch (error) {
       if ((error as Error).name !== "AbortError" && secondaryRequestRef.current === controller) {
         if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
-        setSecondaryResult({ word: "", definition: "No word matches these settings.", partOfSpeech: "word" });
+        const fallback = { word: "", definition: "No word matches these settings.", partOfSpeech: "word" };
+        if (apply) setSecondaryResult(fallback);
+        return fallback;
       }
     } finally {
       if (secondaryRequestRef.current === controller) setSecondaryLoading(false);
@@ -462,23 +476,43 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, [commitWord, resetPrimaryFilters, resetSecondaryFilters, result.word, secondaryResult.word]);
 
   const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
-    const requests: Promise<void>[] = [];
-    if (!leftWordDraft.trim()) requests.push(findWord(undefined, requestedType));
-    if (!rightWordDraft.trim()) requests.push(findSecondaryWord());
-    if (!requests.length) return;
+    const fetchLeft = !leftWordDraft.trim();
+    const fetchRight = !rightWordDraft.trim();
+    if (!fetchLeft && !fetchRight) return;
 
     const batchRequest = splitBatchRequestRef.current + 1;
     splitBatchRequestRef.current = batchRequest;
-    if (requests.length > 1) setSplitBatchLoading(true);
+    const both = fetchLeft && fetchRight;
+    if (both) setSplitBatchLoading(true);
     splitHistoryBatchDepthRef.current += 1;
-    void Promise.all(requests).finally(() => {
-      if (splitBatchRequestRef.current === batchRequest) setSplitBatchLoading(false);
-      splitHistoryBatchDepthRef.current = Math.max(0, splitHistoryBatchDepthRef.current - 1);
-      if (splitHistoryBatchDepthRef.current === 0) {
-        setSplitHistoryRevision((revision) => revision + 1);
+
+    void (async () => {
+      try {
+        if (both) {
+          const [left, right] = await Promise.all([
+            findWord(undefined, requestedType, { apply: false }),
+            findSecondaryWord(secondaryWordType, { apply: false }),
+          ]);
+          if (splitBatchRequestRef.current !== batchRequest) return;
+          if (left) {
+            commitWord(left);
+            setMessage("");
+          }
+          if (right) setSecondaryResult(right);
+        } else if (fetchLeft) {
+          await findWord(undefined, requestedType);
+        } else {
+          await findSecondaryWord();
+        }
+      } finally {
+        if (splitBatchRequestRef.current === batchRequest) setSplitBatchLoading(false);
+        splitHistoryBatchDepthRef.current = Math.max(0, splitHistoryBatchDepthRef.current - 1);
+        if (splitHistoryBatchDepthRef.current === 0) {
+          setSplitHistoryRevision((revision) => revision + 1);
+        }
       }
-    });
-  }, [findSecondaryWord, findWord, leftWordDraft, rightWordDraft, wordType]);
+    })();
+  }, [commitWord, findSecondaryWord, findWord, leftWordDraft, rightWordDraft, secondaryWordType, wordType]);
 
   const moveThroughSplitHistory = useCallback((direction: -1 | 1) => {
     const nextIndex = splitHistoryIndexRef.current + direction;
