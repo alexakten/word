@@ -62,7 +62,7 @@ export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
               <section>
                 <h3>How it works</h3>
                 <p>
-                  Each result combines a left word and a right word. Parts of both are joined together. Meanings and pronunciations for the source words are shown underneath.
+                  Each result combines parts from a left word and a right word.
                 </p>
               </section>
               <section>
