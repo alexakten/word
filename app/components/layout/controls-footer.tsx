@@ -17,7 +17,6 @@ export type ControlsFooterProps = Pick<
   | "leftSettingsCount"
   | "sliceSettingsCount"
   | "rightSettingsCount"
-  | "discoverHasNoWords"
   | "generateVisibleWords"
   | "setFocusMode"
   | "resetAllDiscoverSettings"
@@ -52,7 +51,6 @@ export function ControlsFooter(props: ControlsFooterProps) {
     leftSettingsCount,
     sliceSettingsCount,
     rightSettingsCount,
-    discoverHasNoWords,
     generateVisibleWords,
     setFocusMode,
     resetAllDiscoverSettings,
@@ -77,7 +75,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
 
   return (
     <footer className="controls">
-      {appMode === "discover" && isMobileLayout ? (
+      {appMode === "discover" ? (
         <div className="mobile-discover-toolbar" role="toolbar" aria-label="Word settings panels">
           <button
             className={["mobile-discover-toolbar-button", mobileDiscoverPanel === "left" ? "active" : "", leftSettingsApplied ? "has-settings" : ""].filter(Boolean).join(" ")}
@@ -121,7 +119,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
         </div>
       ) : null}
       <div className="controls-bar">
-        {appMode === "discover" && !isMobileLayout ? (
+        {appMode === "discover" ? (
           <SavedWordsPanel
             savedWords={savedWords}
             savedOpen={savedOpen}
@@ -131,14 +129,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
             loadSavedWord={loadSavedWord}
           />
         ) : null}
-        {appMode === "discover" ? discoverHasNoWords ? (
-          <div className="shortcut-row discover-start-shortcuts" aria-label="Start exploring">
-            <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
-              <kbd>space</kbd>
-              <span>Start</span>
-            </button>
-          </div>
-        ) : (
+        {appMode === "discover" ? (
           <div className="shortcut-row" aria-label="Word exploration shortcuts">
             <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
               <kbd>space</kbd>
@@ -204,9 +195,9 @@ export function ControlsFooter(props: ControlsFooterProps) {
             <span>Find words</span>
           </button>
         </div> : null}
-        {appMode === "discover" && !isMobileLayout ? (
+        {appMode === "discover" ? (
           <AboutDrawer />
-        ) : appMode !== "discover" ? (
+        ) : (
           <div className="controls-end">
             <SavedWordsPanel
               savedWords={savedWords}
@@ -218,7 +209,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
             />
             {!isMobileLayout ? <AboutDrawer /> : null}
           </div>
-        ) : null}
+        )}
       </div>
     </footer>
   );

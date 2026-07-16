@@ -2,7 +2,6 @@
 
 import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
 import { AffixSettings } from "../discover/affix-settings";
-import { DiscoverStartPrompt } from "../discover/discover-start-prompt";
 import { MixSourceWord } from "../discover/mix-source-word";
 import { RelatedToSetting } from "../discover/related-to-setting";
 import { SliceSettingsPanel, SliceSidePanel } from "../discover/slice-settings-panel";
@@ -20,7 +19,6 @@ import type { HomeState } from "../../hooks/use-home";
 
 export type DiscoverViewProps = Pick<
   HomeState,
-  | "isMobileLayout"
   | "mobileDiscoverPanel"
   | "closeMobileDiscoverPanel"
   | "leftSettingsApplied"
@@ -64,7 +62,6 @@ export type DiscoverViewProps = Pick<
   | "setSecondaryWordLetters"
   | "secondaryWordLengthMode"
   | "setSecondaryWordLengthMode"
-  | "discoverHasNoWords"
   | "wordCopyStatus"
   | "setWordCopyStatus"
   | "leftWordValue"
@@ -103,7 +100,6 @@ export type DiscoverViewProps = Pick<
 
 export function DiscoverView(props: DiscoverViewProps) {
   const {
-    isMobileLayout,
     mobileDiscoverPanel,
     closeMobileDiscoverPanel,
     leftSettingsApplied,
@@ -147,7 +143,6 @@ export function DiscoverView(props: DiscoverViewProps) {
     setSecondaryWordLetters,
     secondaryWordLengthMode,
     setSecondaryWordLengthMode,
-    discoverHasNoWords,
     wordCopyStatus,
     setWordCopyStatus,
     leftWordValue,
@@ -199,25 +194,25 @@ export function DiscoverView(props: DiscoverViewProps) {
             <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
             Reset
           </button>
-          {isMobileLayout ? (
-            <button className="mobile-panel-close" type="button" aria-label="Close left word settings" onClick={closeMobileDiscoverPanel}>
-              <X size={14} strokeWidth={1.5} aria-hidden="true" />
-            </button>
-          ) : null}
+          <button className="mobile-panel-close" type="button" aria-label="Close left word settings" onClick={closeMobileDiscoverPanel}>
+            <X size={14} strokeWidth={1.5} aria-hidden="true" />
+          </button>
         </div>
       </div>
       <SettingsPanelScroll>
         <div className="settings-group">
           <label className="split-setting-field boxed-setting-field">
             <span>Text</span>
-            <input
-              value={leftWordDraft}
-              placeholder="Optional fixed text"
-              maxLength={40}
-              onChange={(event) => handleLeftWordDraftChange(event.target.value)}
-              onBlur={() => void setExplicitSplitWord("left", leftWordDraft)}
-              onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-            />
+            <span className="boxed-input-shell">
+              <input
+                value={leftWordDraft}
+                placeholder="Optional fixed text"
+                maxLength={40}
+                onChange={(event) => handleLeftWordDraftChange(event.target.value)}
+                onBlur={() => void setExplicitSplitWord("left", leftWordDraft)}
+                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+              />
+            </span>
           </label>
         </div>
         <fieldset className="settings-filter-set" disabled={Boolean(leftWordDraft.trim())}>
@@ -260,25 +255,25 @@ export function DiscoverView(props: DiscoverViewProps) {
             <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
             Reset
           </button>
-          {isMobileLayout ? (
-            <button className="mobile-panel-close" type="button" aria-label="Close right word settings" onClick={closeMobileDiscoverPanel}>
-              <X size={14} strokeWidth={1.5} aria-hidden="true" />
-            </button>
-          ) : null}
+          <button className="mobile-panel-close" type="button" aria-label="Close right word settings" onClick={closeMobileDiscoverPanel}>
+            <X size={14} strokeWidth={1.5} aria-hidden="true" />
+          </button>
         </div>
       </div>
       <SettingsPanelScroll>
         <div className="settings-group">
           <label className="split-setting-field boxed-setting-field">
             <span>Text</span>
-            <input
-              value={rightWordDraft}
-              placeholder="Optional fixed text"
-              maxLength={40}
-              onChange={(event) => handleRightWordDraftChange(event.target.value)}
-              onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
-              onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-            />
+            <span className="boxed-input-shell">
+              <input
+                value={rightWordDraft}
+                placeholder="Optional fixed text"
+                maxLength={40}
+                onChange={(event) => handleRightWordDraftChange(event.target.value)}
+                onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
+                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+              />
+            </span>
           </label>
         </div>
         <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
@@ -308,49 +303,33 @@ export function DiscoverView(props: DiscoverViewProps) {
 
   return (
     <>
-      {!isMobileLayout ? (
-        <div className="discover-top-brand">
-          <WordmarkLink />
-          <ApiHealthStatus health={apiHealth} />
-        </div>
-      ) : null}
+      <div className="discover-top-brand">
+        <WordmarkLink />
+        <ApiHealthStatus health={apiHealth} />
+      </div>
       <section className="split-word-stage" id="top" aria-live="polite">
-        {isMobileLayout ? (
+        <div className="split-sidebar-stack left">
           <aside
-            className={[
-              "split-settings-panel left rounded-3xl",
-              mobileDiscoverPanel === "left" ? "mobile-panel-active" : "",
-            ].filter(Boolean).join(" ")}
+            className={["split-settings-panel left rounded-3xl", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
             aria-label="Left word settings"
-            aria-hidden={mobileDiscoverPanel !== "left"}
           >
             {leftSettingsContent}
           </aside>
-        ) : (
-          <div className="split-sidebar-stack left">
-            <aside className="split-settings-panel left rounded-3xl" aria-label="Left word settings">
-              {leftSettingsContent}
-            </aside>
-            <SliceSidePanel
-              side="left"
-              word={leftWordValue}
-              sliceMode={leftSliceMode}
-              settings={mixLeftSettings}
-              syllables={result.syllables}
-              onSliceModeChange={handleLeftSliceModeChange}
-              onChange={setMixLeftSettings}
-              onReset={resetLeftSliceSettings}
-              settingsApplied={leftSliceSettingsApplied}
-            />
-          </div>
-        )}
+          <SliceSidePanel
+            side="left"
+            word={leftWordValue}
+            sliceMode={leftSliceMode}
+            settings={mixLeftSettings}
+            syllables={result.syllables}
+            onSliceModeChange={handleLeftSliceModeChange}
+            onChange={setMixLeftSettings}
+            onReset={resetLeftSliceSettings}
+            settingsApplied={leftSliceSettingsApplied}
+          />
+        </div>
 
         <div className="split-word-anchor">
-          {discoverHasNoWords ? (
-            <DiscoverStartPrompt />
-          ) : (
-            <>
-              <div className="copyable-word-wrap split-copyable-word-wrap">
+          <div className="copyable-word-wrap split-copyable-word-wrap">
                 <WordCopyHint status={wordCopyStatus} />
                 <button
                   className={[
@@ -369,123 +348,107 @@ export function DiscoverView(props: DiscoverViewProps) {
                   <span className="mix-word-part" key={`mix-left-${mixedWordParts.leftChunk}`}>{mixedWordParts.leftChunk || "——"}</span>
                   <span className="mix-word-part" data-view-transition-word key={`mix-right-${mixedWordParts.rightChunk}`}>{mixedWordParts.rightChunk || "——"}</span>
                 </button>
-              </div>
-              <div
-                className={[
-                  "split-definitions",
-                  loading || secondaryLoading || splitBatchLoading ? "is-generating" : "",
-                ].filter(Boolean).join(" ")}
+          </div>
+          <div
+            className={[
+              "split-definitions",
+              loading || secondaryLoading || splitBatchLoading ? "is-generating" : "",
+            ].filter(Boolean).join(" ")}
+          >
+            {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
+              <article
+                data-view-transition-card={index === 1 ? "" : undefined}
+                key={index}
               >
-                {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
-                  <article
-                    data-view-transition-card={index === 1 ? "" : undefined}
-                    key={index}
-                  >
-                    {item.word.word ? <div className="split-word-details" key={`${index}-${item.word.word}`}>
-                      <MixSourceWord
-                        word={item.word.word}
-                        settings={index === 0 ? effectiveMixLeftSettings : effectiveMixRightSettings}
-                        syllableCount={item.word.syllables}
-                        className={cardo.className}
-                      />
-                      <p className="split-eyebrow">
-                        {index === 0 && item.pronunciation ? <><span className="pronunciation-inline">{item.pronunciation}</span><span>·</span></> : null}
-                        {item.word.partOfSpeech || "word"}
-                        {index === 1 && item.pronunciation ? <><span>·</span><span className="pronunciation-inline">{item.pronunciation}</span></> : null}
-                      </p>
-                      <div className="rule" aria-hidden="true" />
-                      <SplitDescription>
-                        {item.word.definition || "Generate a word to begin."}
-                      </SplitDescription>
-                    </div> : null}
-                  </article>
-                ))}
-              </div>
-            </>
-          )}
+                {item.word.word ? <div className="split-word-details" key={`${index}-${item.word.word}`}>
+                  <MixSourceWord
+                    word={item.word.word}
+                    settings={index === 0 ? effectiveMixLeftSettings : effectiveMixRightSettings}
+                    syllableCount={item.word.syllables}
+                    className={cardo.className}
+                  />
+                  <p className="split-eyebrow">
+                    {index === 0 && item.pronunciation ? <><span className="pronunciation-inline">{item.pronunciation}</span><span>·</span></> : null}
+                    {item.word.partOfSpeech || "word"}
+                    {index === 1 && item.pronunciation ? <><span>·</span><span className="pronunciation-inline">{item.pronunciation}</span></> : null}
+                  </p>
+                  <div className="rule" aria-hidden="true" />
+                  <SplitDescription>
+                    {item.word.definition || "Generate a word to begin."}
+                  </SplitDescription>
+                </div> : null}
+              </article>
+            ))}
+          </div>
         </div>
 
-        {isMobileLayout ? (
-          <SliceSettingsPanel
-            leftWord={leftWordValue}
-            rightWord={rightWordValue}
-            leftSliceMode={leftSliceMode}
-            rightSliceMode={rightSliceMode}
-            leftSettings={mixLeftSettings}
-            rightSettings={mixRightSettings}
-            leftSyllables={result.syllables}
-            rightSyllables={secondaryResult.syllables}
-            onLeftSliceModeChange={handleLeftSliceModeChange}
-            onRightSliceModeChange={handleRightSliceModeChange}
-            onLeftChange={setMixLeftSettings}
-            onRightChange={setMixRightSettings}
-            onReset={resetSliceSettings}
-            settingsApplied={sliceSettingsApplied}
-            mobileActive={mobileDiscoverPanel === "slice"}
-            onMobileClose={closeMobileDiscoverPanel}
-          />
-        ) : null}
+        <SliceSettingsPanel
+          leftWord={leftWordValue}
+          rightWord={rightWordValue}
+          leftSliceMode={leftSliceMode}
+          rightSliceMode={rightSliceMode}
+          leftSettings={mixLeftSettings}
+          rightSettings={mixRightSettings}
+          leftSyllables={result.syllables}
+          rightSyllables={secondaryResult.syllables}
+          onLeftSliceModeChange={handleLeftSliceModeChange}
+          onRightSliceModeChange={handleRightSliceModeChange}
+          onLeftChange={setMixLeftSettings}
+          onRightChange={setMixRightSettings}
+          onReset={resetSliceSettings}
+          settingsApplied={sliceSettingsApplied}
+          mobileActive={mobileDiscoverPanel === "slice"}
+          onMobileClose={closeMobileDiscoverPanel}
+        />
 
-        {isMobileLayout ? (
+        <div className="split-sidebar-stack right">
           <aside
-            className={[
-              "split-settings-panel right rounded-3xl",
-              mobileDiscoverPanel === "right" ? "mobile-panel-active" : "",
-            ].filter(Boolean).join(" ")}
+            className={["split-settings-panel right rounded-3xl", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
             aria-label="Right word settings"
-            aria-hidden={mobileDiscoverPanel !== "right"}
           >
             {rightSettingsContent}
           </aside>
-        ) : (
-          <div className="split-sidebar-stack right">
-            <aside className="split-settings-panel right rounded-3xl" aria-label="Right word settings">
-              {rightSettingsContent}
-            </aside>
-            <SliceSidePanel
-              side="right"
-              word={rightWordValue}
-              sliceMode={rightSliceMode}
-              settings={mixRightSettings}
-              syllables={secondaryResult.syllables}
-              onSliceModeChange={handleRightSliceModeChange}
-              onChange={setMixRightSettings}
-              onReset={resetRightSliceSettings}
-              settingsApplied={rightSliceSettingsApplied}
-            />
-          </div>
-        )}
+          <SliceSidePanel
+            side="right"
+            word={rightWordValue}
+            sliceMode={rightSliceMode}
+            settings={mixRightSettings}
+            syllables={secondaryResult.syllables}
+            onSliceModeChange={handleRightSliceModeChange}
+            onChange={setMixRightSettings}
+            onReset={resetRightSliceSettings}
+            settingsApplied={rightSliceSettingsApplied}
+          />
+        </div>
       </section>
 
-      {isMobileLayout ? (
-        <div className="mobile-bottom-bar">
-          <AboutDrawer showBrand />
-          <div className="mobile-generate-wrap">
-            <ApiHealthStatus health={apiHealth} />
-            <div className="mobile-generate-row">
-              <button
-                className="mobile-generate-button mobile-side-generate-button"
-                type="button"
-                aria-label="Generate left word"
-                onClick={() => void findWord()}
-              >
-                <ArrowLeft size={20} strokeWidth={2} aria-hidden="true" />
-              </button>
-              <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
-                {discoverHasNoWords ? "Start exploring" : "Generate"}
-              </button>
-              <button
-                className="mobile-generate-button mobile-side-generate-button"
-                type="button"
-                aria-label="Generate right word"
-                onClick={() => void findSecondaryWord()}
-              >
-                <ArrowRight size={20} strokeWidth={2} aria-hidden="true" />
-              </button>
-            </div>
+      <div className="mobile-bottom-bar">
+        <AboutDrawer showBrand />
+        <div className="mobile-generate-wrap">
+          <ApiHealthStatus health={apiHealth} />
+          <div className="mobile-generate-row">
+            <button
+              className="mobile-generate-button mobile-side-generate-button"
+              type="button"
+              aria-label="Generate left word"
+              onClick={() => void findWord()}
+            >
+              <ArrowLeft size={20} strokeWidth={2} aria-hidden="true" />
+            </button>
+            <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
+              Generate
+            </button>
+            <button
+              className="mobile-generate-button mobile-side-generate-button"
+              type="button"
+              aria-label="Generate right word"
+              onClick={() => void findSecondaryWord()}
+            >
+              <ArrowRight size={20} strokeWidth={2} aria-hidden="true" />
+            </button>
           </div>
         </div>
-      ) : null}
+      </div>
     </>
   );
 }

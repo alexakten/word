@@ -89,7 +89,7 @@ export function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSl
 }) {
   return (
     <aside
-      className={["split-slice-panel rounded-3xl", mobileActive ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+      className={["split-slice-panel mobile-slice-panel rounded-3xl", mobileActive ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
       aria-label="Slice settings"
       aria-hidden={onMobileClose ? !mobileActive : undefined}
     >

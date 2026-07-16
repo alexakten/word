@@ -13,13 +13,15 @@ export function AffixSettings({ startsWith, endsWith, onStartsChange, onEndsChan
       <label className="affix-setting starts">
         <span>Starts with</span>
         <span className="affix-control">
-          <input
-            value={startsWith}
-            aria-label="Starts with"
-            placeholder="—"
-            maxLength={12}
-            onChange={(event) => onStartsChange(event.target.value.replace(/[^a-z]/gi, ""))}
-          />
+          <span className="affix-input-shell">
+            <input
+              value={startsWith}
+              aria-label="Starts with"
+              placeholder="—"
+              maxLength={12}
+              onChange={(event) => onStartsChange(event.target.value.replace(/[^a-z]/gi, ""))}
+            />
+          </span>
           {line}
         </span>
       </label>
@@ -27,13 +29,15 @@ export function AffixSettings({ startsWith, endsWith, onStartsChange, onEndsChan
         <span>Ends with</span>
         <span className="affix-control">
           {line}
-          <input
-            value={endsWith}
-            aria-label="Ends with"
-            placeholder="—"
-            maxLength={12}
-            onChange={(event) => onEndsChange(event.target.value.replace(/[^a-z]/gi, ""))}
-          />
+          <span className="affix-input-shell">
+            <input
+              value={endsWith}
+              aria-label="Ends with"
+              placeholder="—"
+              maxLength={12}
+              onChange={(event) => onEndsChange(event.target.value.replace(/[^a-z]/gi, ""))}
+            />
+          </span>
         </span>
       </label>
     </div>

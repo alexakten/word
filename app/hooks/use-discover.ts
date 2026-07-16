@@ -199,7 +199,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const displayedCombinedWord = mixedWordParts.mixed;
   const combinedSplitIsSaved = Boolean(displayedCombinedWord)
     && savedWords.some((item) => item.word.toLowerCase() === displayedCombinedWord);
-  const discoverHasNoWords = !leftWordValue && !rightWordValue;
 
   const toggleCombinedSaved = useCallback(() => {
     if (!displayedCombinedWord) return;
@@ -763,7 +762,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     mixedWordParts,
     displayedCombinedWord,
     combinedSplitIsSaved,
-    discoverHasNoWords,
     toggleCombinedSaved,
     copyDisplayedWord,
     findWord,
