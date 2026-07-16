@@ -80,7 +80,7 @@ export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
               <section>
                 <h3>Syllables</h3>
                 <p>
-                  Syllable counts are generated algorithmically, so they may not always be exact.
+                  Syllable splits are generated algorithmically, so they may not always be exact.
                 </p>
               </section>
             </div>
