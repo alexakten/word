@@ -3581,6 +3581,13 @@ kbd {
   align-items: center;
 }
 
+.page-shell.mobile-layout .mobile-generate-row {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  gap: .55rem;
+}
+
 .page-shell.mobile-layout .mobile-generate-wrap .api-health-status {
   position: absolute;
   bottom: calc(100% + .45rem);
@@ -3813,6 +3820,20 @@ button.about-drawer-close:hover {
   font-weight: 600;
   letter-spacing: .02em;
   transition: transform .12s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.page-shell.mobile-layout .mobile-generate-row .mobile-generate-button {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: .95rem .85rem;
+}
+
+.page-shell.mobile-layout .mobile-generate-row .mobile-side-generate-button {
+  flex: 0 0 54px;
+  width: 54px;
+  min-width: 54px;
+  padding: 0;
 }
 
 .page-shell.mobile-layout .mobile-generate-button:hover {

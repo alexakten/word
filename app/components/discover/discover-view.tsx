@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
 import { AffixSettings } from "../discover/affix-settings";
 import { DiscoverStartPrompt } from "../discover/discover-start-prompt";
 import { MixSourceWord } from "../discover/mix-source-word";
@@ -96,6 +96,8 @@ export type DiscoverViewProps = Pick<
   | "leftSliceSettingsApplied"
   | "rightSliceSettingsApplied"
   | "generateVisibleWords"
+  | "findWord"
+  | "findSecondaryWord"
   | "apiHealth"
 >;
 
@@ -177,6 +179,8 @@ export function DiscoverView(props: DiscoverViewProps) {
     leftSliceSettingsApplied,
     rightSliceSettingsApplied,
     generateVisibleWords,
+    findWord,
+    findSecondaryWord,
     apiHealth,
   } = props;
 
@@ -458,9 +462,27 @@ export function DiscoverView(props: DiscoverViewProps) {
           <AboutDrawer showBrand />
           <div className="mobile-generate-wrap">
             <ApiHealthStatus health={apiHealth} />
-            <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
-              {discoverHasNoWords ? "Start exploring" : "Generate"}
-            </button>
+            <div className="mobile-generate-row">
+              <button
+                className="mobile-generate-button mobile-side-generate-button"
+                type="button"
+                aria-label="Generate left word"
+                onClick={() => void findWord()}
+              >
+                <ArrowLeft size={20} strokeWidth={2} aria-hidden="true" />
+              </button>
+              <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
+                {discoverHasNoWords ? "Start exploring" : "Generate"}
+              </button>
+              <button
+                className="mobile-generate-button mobile-side-generate-button"
+                type="button"
+                aria-label="Generate right word"
+                onClick={() => void findSecondaryWord()}
+              >
+                <ArrowRight size={20} strokeWidth={2} aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
