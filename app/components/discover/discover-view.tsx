@@ -178,6 +178,8 @@ export function DiscoverView(props: DiscoverViewProps) {
     findSecondaryWord,
     apiHealth,
   } = props;
+  const leftIsGenerating = loading || splitBatchLoading;
+  const rightIsGenerating = secondaryLoading || splitBatchLoading;
 
   const leftSettingsContent = (
     <>
@@ -335,7 +337,6 @@ export function DiscoverView(props: DiscoverViewProps) {
                   className={[
                     "split-combined-word copyable-word mix-combined-word",
                     cardo.className,
-                    loading || secondaryLoading || splitBatchLoading ? "is-generating" : "",
                   ].filter(Boolean).join(" ")}
                   type="button"
                   disabled={!leftWordValue || !rightWordValue || loading || secondaryLoading || splitBatchLoading}
@@ -345,22 +346,31 @@ export function DiscoverView(props: DiscoverViewProps) {
                     if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
                   }}
                 >
-                  <span className="mix-word-part" key={`mix-left-${mixedWordParts.leftChunk}`}>{mixedWordParts.leftChunk || "——"}</span>
-                  <span className="mix-word-part" data-view-transition-word key={`mix-right-${mixedWordParts.rightChunk}`}>{mixedWordParts.rightChunk || "——"}</span>
+                  <span
+                    className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
+                    key={`mix-left-${mixedWordParts.leftChunk}`}
+                  >
+                    {mixedWordParts.leftChunk || "——"}
+                  </span>
+                  <span
+                    className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
+                    data-view-transition-word
+                    key={`mix-right-${mixedWordParts.rightChunk}`}
+                  >
+                    {mixedWordParts.rightChunk || "——"}
+                  </span>
                 </button>
           </div>
-          <div
-            className={[
-              "split-definitions",
-              loading || secondaryLoading || splitBatchLoading ? "is-generating" : "",
-            ].filter(Boolean).join(" ")}
-          >
+          <div className="split-definitions">
             {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
               <article
                 data-view-transition-card={index === 1 ? "" : undefined}
                 key={index}
               >
-                {item.word.word ? <div className="split-word-details" key={`${index}-${item.word.word}`}>
+                {item.word.word ? <div
+                  className={`split-word-details${(index === 0 ? leftIsGenerating : rightIsGenerating) ? " is-generating" : ""}`}
+                  key={`${index}-${item.word.word}`}
+                >
                   <MixSourceWord
                     word={item.word.word}
                     settings={index === 0 ? effectiveMixLeftSettings : effectiveMixRightSettings}
