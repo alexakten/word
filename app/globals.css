@@ -3577,9 +3577,9 @@ kbd {
     transform: translateX(-50%);
   }
 
-  .page-shell.discover-mode .mobile-bottom-bar .about-drawer-trigger {
-    align-self: flex-end;
-  }
+.page-shell.discover-mode .mobile-bottom-bar .about-drawer-trigger {
+  align-self: center;
+}
 
   .page-shell.discover-mode .mobile-generate-button {
     display: flex;
@@ -3863,7 +3863,7 @@ kbd {
 }
 
 .page-shell.mobile-layout .about-drawer-trigger {
-  align-self: flex-end;
+  align-self: center;
 }
 
 .about-drawer-trigger:hover {
