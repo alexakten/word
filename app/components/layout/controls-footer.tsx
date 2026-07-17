@@ -119,7 +119,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
         </div>
       ) : null}
       <div className="controls-bar">
-        {appMode === "discover" ? (
+        {appMode === "discover" && !isMobileLayout ? (
           <SavedWordsPanel
             savedWords={savedWords}
             savedOpen={savedOpen}

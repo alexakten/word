@@ -6,6 +6,7 @@ import { normalizeLengthSelection, normalizeSyllableSelection, resolveLengthFilt
 import {
   type ApiHealth,
   type LengthMode,
+  type NameDisplayMode,
   type PartOfSpeech,
   type SplitHistoryEntry,
   type WordCopyStatus,
@@ -39,6 +40,8 @@ type UseDiscoverOptions = {
 
 export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
+  const [nameDisplayMode, setNameDisplayMode] = useState<NameDisplayMode>("word");
+  const [selectedTld, setSelectedTld] = useState(".com");
   const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
   const [rightSliceMode, setRightSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
   const [mixLeftSettings, setMixLeftSettings] = useState<MixSideSettings>(defaultCustomMixLeftSettings);
@@ -197,6 +200,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     [effectiveMixLeftSettings, effectiveMixRightSettings, leftWordValue, rightWordValue, result.syllables, secondaryResult.syllables],
   );
   const displayedCombinedWord = mixedWordParts.mixed;
+  const displayedDomain = displayedCombinedWord
+    ? `${displayedCombinedWord.replace(/\s+/g, "").toLowerCase()}${selectedTld}`
+    : "";
+  const displayedName = nameDisplayMode === "domain" ? displayedDomain : displayedCombinedWord;
   const combinedSplitIsSaved = Boolean(displayedCombinedWord)
     && savedWords.some((item) => item.word.toLowerCase() === displayedCombinedWord);
 
@@ -708,6 +715,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   return {
     wordType,
     setWordType,
+    nameDisplayMode,
+    setNameDisplayMode,
+    selectedTld,
+    setSelectedTld,
     leftSliceMode,
     rightSliceMode,
     mixLeftSettings,
@@ -761,6 +772,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     effectiveMixRightSettings,
     mixedWordParts,
     displayedCombinedWord,
+    displayedDomain,
+    displayedName,
     combinedSplitIsSaved,
     toggleCombinedSaved,
     copyDisplayedWord,

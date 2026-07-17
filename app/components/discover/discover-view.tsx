@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, RefreshCw, X } from "lucide-react";
 import { AffixSettings } from "../discover/affix-settings";
+import { DomainAvailability } from "../discover/domain-availability";
 import { MixSourceWord } from "../discover/mix-source-word";
 import { RelatedToSetting } from "../discover/related-to-setting";
 import { SliceSettingsPanel, SliceSidePanel } from "../discover/slice-settings-panel";
@@ -10,9 +11,10 @@ import { SplitDescription } from "../discover/split-description";
 import { SyllableCountSetting } from "../discover/syllable-count-setting";
 import { WordCopyHint } from "../discover/word-copy-hint";
 import { WordLengthSetting } from "../discover/word-length-setting";
-import { WordmarkLink } from "../layout/wordmark-link";
 import { AboutDrawer } from "../layout/about-drawer";
+import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
+import { DomainModeControls } from "../ui/domain-mode-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
@@ -67,6 +69,12 @@ export type DiscoverViewProps = Pick<
   | "leftWordValue"
   | "rightWordValue"
   | "displayedCombinedWord"
+  | "displayedDomain"
+  | "displayedName"
+  | "nameDisplayMode"
+  | "setNameDisplayMode"
+  | "selectedTld"
+  | "setSelectedTld"
   | "copyDisplayedWord"
   | "mixedWordParts"
   | "loading"
@@ -96,6 +104,14 @@ export type DiscoverViewProps = Pick<
   | "findWord"
   | "findSecondaryWord"
   | "apiHealth"
+  | "combinedSplitIsSaved"
+  | "toggleCombinedSaved"
+  | "savedWords"
+  | "savedOpen"
+  | "setSavedOpen"
+  | "savedMenuRef"
+  | "saveWords"
+  | "loadSavedWord"
 >;
 
 export function DiscoverView(props: DiscoverViewProps) {
@@ -148,6 +164,12 @@ export function DiscoverView(props: DiscoverViewProps) {
     leftWordValue,
     rightWordValue,
     displayedCombinedWord,
+    displayedDomain,
+    displayedName,
+    nameDisplayMode,
+    setNameDisplayMode,
+    selectedTld,
+    setSelectedTld,
     copyDisplayedWord,
     mixedWordParts,
     loading,
@@ -177,6 +199,14 @@ export function DiscoverView(props: DiscoverViewProps) {
     findWord,
     findSecondaryWord,
     apiHealth,
+    combinedSplitIsSaved,
+    toggleCombinedSaved,
+    savedWords,
+    savedOpen,
+    setSavedOpen,
+    savedMenuRef,
+    saveWords,
+    loadSavedWord,
   } = props;
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
@@ -306,7 +336,16 @@ export function DiscoverView(props: DiscoverViewProps) {
   return (
     <>
       <div className="discover-top-brand">
-        <WordmarkLink />
+        <DomainModeControls
+          className="top-domain-mode-controls"
+          displayMode={nameDisplayMode}
+          selectedTld={selectedTld}
+          onDisplayModeChange={setNameDisplayMode}
+          onTldChange={setSelectedTld}
+        />
+        {nameDisplayMode === "domain" && displayedDomain ? (
+          <DomainAvailability className="top-domain-availability" domain={displayedDomain} />
+        ) : null}
         <ApiHealthStatus health={apiHealth} />
       </div>
       <section className="split-word-stage" id="top" aria-live="polite">
@@ -340,8 +379,8 @@ export function DiscoverView(props: DiscoverViewProps) {
                   ].filter(Boolean).join(" ")}
                   type="button"
                   disabled={!leftWordValue || !rightWordValue || loading || secondaryLoading || splitBatchLoading}
-                  aria-label={`Copy ${displayedCombinedWord}`}
-                  onClick={() => void copyDisplayedWord(displayedCombinedWord)}
+                  aria-label={`Copy ${displayedName}`}
+                  onClick={() => void copyDisplayedWord(displayedName)}
                   onPointerEnter={() => {
                     if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
                   }}
@@ -359,6 +398,9 @@ export function DiscoverView(props: DiscoverViewProps) {
                   >
                     {mixedWordParts.rightChunk || "——"}
                   </span>
+                  {nameDisplayMode === "domain" && displayedCombinedWord ? (
+                    <span className="domain-tld">{selectedTld}</span>
+                  ) : null}
                 </button>
           </div>
           <div className="split-definitions">
@@ -433,7 +475,39 @@ export function DiscoverView(props: DiscoverViewProps) {
       </section>
 
       <div className="mobile-bottom-bar">
-        <AboutDrawer showBrand />
+        {nameDisplayMode === "domain" && displayedDomain ? (
+          <DomainAvailability className="mobile-domain-availability" domain={displayedDomain} />
+        ) : null}
+        <div className="mobile-bottom-meta-row">
+          <div className="mobile-bottom-left-actions">
+            <SavedWordsPanel
+              savedWords={savedWords}
+              savedOpen={savedOpen}
+              setSavedOpen={setSavedOpen}
+              savedMenuRef={savedMenuRef}
+              saveWords={saveWords}
+              loadSavedWord={loadSavedWord}
+            />
+            <button
+              className={["mobile-save-word-button", combinedSplitIsSaved ? "liked" : ""].filter(Boolean).join(" ")}
+              type="button"
+              aria-label={combinedSplitIsSaved ? "Remove from saved words" : "Save word"}
+              aria-pressed={combinedSplitIsSaved}
+              disabled={!displayedCombinedWord}
+              onClick={toggleCombinedSaved}
+            >
+              <Heart size={15} strokeWidth={1.6} fill={combinedSplitIsSaved ? "currentColor" : "none"} aria-hidden="true" />
+            </button>
+          </div>
+          <DomainModeControls
+            className="mobile-bottom-domain-mode-controls"
+            displayMode={nameDisplayMode}
+            selectedTld={selectedTld}
+            onDisplayModeChange={setNameDisplayMode}
+            onTldChange={setSelectedTld}
+          />
+          <AboutDrawer showBrand />
+        </div>
         <div className="mobile-generate-wrap">
           <ApiHealthStatus health={apiHealth} />
           <div className="mobile-generate-row">

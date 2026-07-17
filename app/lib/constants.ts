@@ -1,4 +1,4 @@
-import type { AdvancedMode, LengthMode, PartOfSpeech } from "./types";
+import type { AdvancedMode, LengthMode, NameDisplayMode, PartOfSpeech } from "./types";
 import type { SliceMode } from "../syllables";
 
 export const POS_VALUES = new Set<PartOfSpeech>(["any", "n", "v", "adj", "adv"]);
@@ -6,6 +6,28 @@ export const LENGTH_MODES = new Set<LengthMode>(["less", "exact", "more"]);
 export const COUNT_LONG_VALUE = "+";
 export const MAX_SYLLABLE_FILTER = 8;
 export const MAX_LENGTH_FILTER = 22;
+
+export const NAME_DISPLAY_MODE_OPTIONS: { value: NameDisplayMode; label: string }[] = [
+  { value: "word", label: "Word" },
+  { value: "domain", label: "Domain" },
+];
+
+export const POPULAR_TLDS = [
+  ".com",
+  ".co",
+  ".ai",
+  ".app",
+  ".xyz",
+  ".dev",
+  ".net",
+  ".org",
+  ".io",
+  ".me",
+  ".tech",
+  ".online",
+  ".site",
+  ".store",
+] as const;
 
 export const advancedModes: {
   value: AdvancedMode;
