@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Heart, RefreshCw, X } from "lucide-react";
 import { AffixSettings } from "../discover/affix-settings";
 import { DomainAvailability } from "../discover/domain-availability";
 import { MixSourceWord } from "../discover/mix-source-word";
-import { RelatedToSetting } from "../discover/related-to-setting";
+import { RelatedToSetting, TagEntrySetting } from "../discover/related-to-setting";
 import { SliceSettingsPanel, SliceSidePanel } from "../discover/slice-settings-panel";
 import { SettingsPanelScroll } from "../discover/settings-panel-scroll";
 import { SplitDescription } from "../discover/split-description";
@@ -18,6 +18,7 @@ import { DomainModeControls } from "../ui/domain-mode-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
+import { parseTags } from "../../lib/tags";
 
 export type DiscoverViewProps = Pick<
   HomeState,
@@ -31,7 +32,6 @@ export type DiscoverViewProps = Pick<
   | "rightWordDraft"
   | "handleLeftWordDraftChange"
   | "handleRightWordDraftChange"
-  | "setExplicitSplitWord"
   | "wordType"
   | "setWordType"
   | "wordRelatedTo"
@@ -126,7 +126,6 @@ export function DiscoverView(props: DiscoverViewProps) {
     rightWordDraft,
     handleLeftWordDraftChange,
     handleRightWordDraftChange,
-    setExplicitSplitWord,
     wordType,
     setWordType,
     wordRelatedTo,
@@ -233,21 +232,15 @@ export function DiscoverView(props: DiscoverViewProps) {
       </div>
       <SettingsPanelScroll>
         <div className="settings-group">
-          <label className="split-setting-field boxed-setting-field">
-            <span>Text</span>
-            <span className="boxed-input-shell">
-              <input
-                value={leftWordDraft}
-                placeholder="Optional fixed text"
-                maxLength={40}
-                onChange={(event) => handleLeftWordDraftChange(event.target.value)}
-                onBlur={() => void setExplicitSplitWord("left", leftWordDraft)}
-                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-              />
-            </span>
-          </label>
+          <TagEntrySetting
+            id="split-left-text"
+            label="Text"
+            value={leftWordDraft}
+            placeholder="Add fixed words"
+            onChange={handleLeftWordDraftChange}
+          />
         </div>
-        <fieldset className="settings-filter-set" disabled={Boolean(leftWordDraft.trim())}>
+        <fieldset className="settings-filter-set" disabled={parseTags(leftWordDraft).length > 0}>
           <div className="settings-group">
             <WordTypeTabs className="split-side-types" value={wordType} label="Left word type" onChange={setWordType} />
           </div>
@@ -294,21 +287,15 @@ export function DiscoverView(props: DiscoverViewProps) {
       </div>
       <SettingsPanelScroll>
         <div className="settings-group">
-          <label className="split-setting-field boxed-setting-field">
-            <span>Text</span>
-            <span className="boxed-input-shell">
-              <input
-                value={rightWordDraft}
-                placeholder="Optional fixed text"
-                maxLength={40}
-                onChange={(event) => handleRightWordDraftChange(event.target.value)}
-                onBlur={() => void setExplicitSplitWord("right", rightWordDraft)}
-                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-              />
-            </span>
-          </label>
+          <TagEntrySetting
+            id="split-right-text"
+            label="Text"
+            value={rightWordDraft}
+            placeholder="Add fixed words"
+            onChange={handleRightWordDraftChange}
+          />
         </div>
-        <fieldset className="settings-filter-set" disabled={Boolean(rightWordDraft.trim())}>
+        <fieldset className="settings-filter-set" disabled={parseTags(rightWordDraft).length > 0}>
           <div className="settings-group">
             <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
           </div>
@@ -489,7 +476,7 @@ export function DiscoverView(props: DiscoverViewProps) {
               loadSavedWord={loadSavedWord}
             />
             <button
-              className={["mobile-save-word-button", combinedSplitIsSaved ? "liked" : ""].filter(Boolean).join(" ")}
+              className={["compact-save-word-button", combinedSplitIsSaved ? "liked" : ""].filter(Boolean).join(" ")}
               type="button"
               aria-label={combinedSplitIsSaved ? "Remove from saved words" : "Save word"}
               aria-pressed={combinedSplitIsSaved}

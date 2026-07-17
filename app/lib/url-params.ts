@@ -6,6 +6,7 @@ import {
 } from "../syllables";
 import { COUNT_LONG_VALUE, LENGTH_MODES, POS_VALUES } from "./constants";
 import { normalizeLengthSelection, normalizeSyllableSelection } from "./filters";
+import { normalizeTags } from "./tags";
 import type { LengthMode, PartOfSpeech, SideSettings } from "./types";
 
 export function parseMixSideSettings(search: URLSearchParams, prefix: string): Partial<MixSideSettings> {
@@ -33,7 +34,7 @@ export function parseSideSettings(search: URLSearchParams, prefix: "l" | "r"): P
   const letters = get("Len");
   const lengthMode = parseLengthMode(get("LenMode"));
 
-  if (text) settings.text = text.slice(0, 40);
+  if (text) settings.text = normalizeTags(text);
   if (related) settings.related = related;
   if (pos) settings.pos = pos;
   if (syllables === COUNT_LONG_VALUE) {

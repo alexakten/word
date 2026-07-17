@@ -2,12 +2,23 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { MAX_TAG_LENGTH, MAX_TAGS, parseTags } from "../../lib/tags";
 
-export function RelatedToSetting({ id, value, onChange }: {
+type TagEntrySettingProps = {
   id: string;
   value: string;
   onChange: (value: string) => void;
-}) {
+  label: string;
+  placeholder?: string;
+};
+
+export function TagEntrySetting({
+  id,
+  value,
+  onChange,
+  label,
+  placeholder = "Add words",
+}: TagEntrySettingProps) {
   const [draft, setDraft] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
@@ -17,10 +28,7 @@ export function RelatedToSetting({ id, value, onChange }: {
   const settingsPanelAnimationRef = useRef<Animation | null>(null);
   const settingsContentPositionsRef = useRef(new Map<HTMLElement, number>());
   const settingsContentAnimationsRef = useRef<Animation[]>([]);
-  const tags = useMemo(
-    () => value.split(",").map((tag) => tag.trim()).filter(Boolean),
-    [value],
-  );
+  const tags = useMemo(() => parseTags(value), [value]);
 
   useLayoutEffect(() => {
     const panel = relatedFieldRef.current?.closest<HTMLElement>(".split-settings-panel");
@@ -81,7 +89,7 @@ export function RelatedToSetting({ id, value, onChange }: {
 
   useEffect(() => {
     const query = draft.trim();
-    if (!open || query.length < 2 || tags.length >= 8) return;
+    if (!open || query.length < 2 || tags.length >= MAX_TAGS) return;
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -107,9 +115,9 @@ export function RelatedToSetting({ id, value, onChange }: {
     const nextTags = [...tags];
     const seen = new Set(tags.map((tag) => tag.toLowerCase()));
     for (const entry of entries) {
-      const tag = entry.trim();
+      const tag = entry.trim().slice(0, MAX_TAG_LENGTH);
       const key = tag.toLowerCase();
-      if (!tag || seen.has(key) || nextTags.length >= 8) continue;
+      if (!tag || seen.has(key) || nextTags.length >= MAX_TAGS) continue;
       seen.add(key);
       nextTags.push(tag);
     }
@@ -126,7 +134,7 @@ export function RelatedToSetting({ id, value, onChange }: {
 
   return (
     <div className="split-setting-field boxed-setting-field related-tags-field" ref={relatedFieldRef}>
-      <label htmlFor={id}>Related to</label>
+      <label htmlFor={id}>{label}</label>
       <div className="related-tags-control">
         {tags.map((tag, index) => (
           <span className="related-tag" key={`${tag.toLowerCase()}-${index}`}>
@@ -141,13 +149,14 @@ export function RelatedToSetting({ id, value, onChange }: {
           id={id}
           role="combobox"
           value={draft}
-          placeholder={tags.length ? "" : "Add words"}
+          placeholder={tags.length ? "" : placeholder}
+          maxLength={MAX_TAG_LENGTH}
           autoComplete="off"
           aria-autocomplete="list"
           aria-controls={`${id}-suggestions`}
           aria-expanded={open && suggestions.length > 0}
           aria-activedescendant={activeSuggestion >= 0 ? `${id}-suggestion-${activeSuggestion}` : undefined}
-          disabled={tags.length >= 8}
+          disabled={tags.length >= MAX_TAGS}
           onChange={(event) => {
             const nextDraft = event.target.value;
             if (nextDraft.includes(",")) {
@@ -202,4 +211,8 @@ export function RelatedToSetting({ id, value, onChange }: {
       ) : null}
     </div>
   );
+}
+
+export function RelatedToSetting(props: Omit<TagEntrySettingProps, "label">) {
+  return <TagEntrySetting {...props} label="Related to" />;
 }

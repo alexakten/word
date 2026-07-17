@@ -2987,6 +2987,7 @@ button {
 }
 
 .split-definition {
+  position: relative;
   display: -webkit-box;
   width: 100%;
   border: 0;
@@ -3003,6 +3004,15 @@ button {
   -webkit-box-orient: vertical;
   line-clamp: 3;
   -webkit-line-clamp: 3;
+}
+
+.split-definition-ellipsis {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding-left: .16em;
+  background: var(--surface);
+  line-height: inherit;
 }
 
 .split-definition.expanded {
@@ -3305,6 +3315,10 @@ h1 {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .controls-bar .shortcut-row {
+  transform: translateY(10px);
 }
 
 .page-shell.discover-mode:not(.mobile-layout) .controls-bar .saved-toggle {
@@ -4043,6 +4057,7 @@ kbd {
   gap: .75rem;
 }
 
+.desktop-bottom-left-actions,
 .page-shell.discover-mode.mobile-layout .mobile-bottom-left-actions {
   display: inline-flex;
   min-width: 0;
@@ -4055,6 +4070,11 @@ kbd {
   white-space: nowrap;
 }
 
+.desktop-bottom-left-actions {
+  gap: .45rem;
+}
+
+.desktop-bottom-left-actions .saved-toggle,
 .page-shell.discover-mode.mobile-layout .mobile-bottom-left-actions .saved-toggle {
   width: 32px;
   height: 32px;
@@ -4064,6 +4084,7 @@ kbd {
   letter-spacing: 0;
 }
 
+.desktop-bottom-left-actions .saved-toggle span,
 .page-shell.discover-mode.mobile-layout .mobile-bottom-left-actions .saved-toggle span {
   min-width: 24px;
   height: 24px;
@@ -4085,7 +4106,7 @@ kbd {
   justify-self: end;
 }
 
-.page-shell.discover-mode.mobile-layout .mobile-save-word-button {
+.compact-save-word-button {
   display: inline-flex;
   width: 28px;
   height: 28px;
@@ -4100,13 +4121,13 @@ kbd {
   cursor: pointer;
 }
 
-.page-shell.discover-mode.mobile-layout .mobile-save-word-button:hover,
-.page-shell.discover-mode.mobile-layout .mobile-save-word-button.liked {
+.compact-save-word-button:hover,
+.compact-save-word-button.liked {
   background: #EFEDE9;
   color: var(--ink);
 }
 
-.page-shell.discover-mode.mobile-layout .mobile-save-word-button:disabled {
+.compact-save-word-button:disabled {
   cursor: not-allowed;
   opacity: .35;
 }

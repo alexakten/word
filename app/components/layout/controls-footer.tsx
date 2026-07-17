@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Heart } from "lucide-react";
 import type { HomeState } from "../../hooks/use-home";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
@@ -120,14 +120,26 @@ export function ControlsFooter(props: ControlsFooterProps) {
       ) : null}
       <div className="controls-bar">
         {appMode === "discover" && !isMobileLayout ? (
-          <SavedWordsPanel
-            savedWords={savedWords}
-            savedOpen={savedOpen}
-            setSavedOpen={setSavedOpen}
-            savedMenuRef={savedMenuRef}
-            saveWords={saveWords}
-            loadSavedWord={loadSavedWord}
-          />
+          <div className="desktop-bottom-left-actions">
+            <SavedWordsPanel
+              savedWords={savedWords}
+              savedOpen={savedOpen}
+              setSavedOpen={setSavedOpen}
+              savedMenuRef={savedMenuRef}
+              saveWords={saveWords}
+              loadSavedWord={loadSavedWord}
+            />
+            <button
+              className={["compact-save-word-button", combinedSplitIsSaved ? "liked" : ""].filter(Boolean).join(" ")}
+              type="button"
+              aria-label={combinedSplitIsSaved ? "Remove from saved words" : "Save word"}
+              aria-pressed={combinedSplitIsSaved}
+              disabled={!displayedCombinedWord}
+              onClick={toggleCombinedSaved}
+            >
+              <Heart size={15} strokeWidth={1.6} fill={combinedSplitIsSaved ? "currentColor" : "none"} aria-hidden="true" />
+            </button>
+          </div>
         ) : null}
         {appMode === "discover" ? (
           <div className="shortcut-row" aria-label="Word exploration shortcuts">

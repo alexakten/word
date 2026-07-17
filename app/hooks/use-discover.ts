@@ -14,6 +14,7 @@ import {
   emptyWordResult,
 } from "../lib/types";
 import { parseMixSideSettings, parseSideSettings, syncDiscoverUrlParams } from "../lib/url-params";
+import { pickRandomTag } from "../lib/tags";
 import { applyApiHealth, isFetchFailure, stripSplitFields } from "../lib/word-utils";
 import { normalizePronunciation } from "../pronunciation";
 import {
@@ -178,8 +179,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
   const displayedPronunciation = normalizePronunciation(result.pronunciation);
   const secondaryPronunciation = normalizePronunciation(secondaryResult.pronunciation);
-  const leftWordValue = leftWordDraft || result.word;
-  const rightWordValue = rightWordDraft || secondaryResult.word;
+  const leftWordValue = result.word;
+  const rightWordValue = secondaryResult.word;
   const effectiveMixLeftSettings = useMemo(
     () => effectiveMixSettings(leftSliceMode, mixLeftSettings),
     [leftSliceMode, mixLeftSettings],
@@ -244,7 +245,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     ): Promise<WordResult | undefined> => {
       const apply = options?.apply !== false;
       requestRef.current?.abort();
-      setLeftWordDraft("");
       const controller = new AbortController();
       requestRef.current = controller;
       setLoading(true);
@@ -275,7 +275,14 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
       try {
         let next: WordResult;
-        if (!relation && wordRelatedTo.trim()) {
+        const fixedWord = relation ? undefined : pickRandomTag(leftWordDraft, result.word);
+        if (fixedWord) {
+          const response = await fetch(`/api/word?lookup=${encodeURIComponent(fixedWord)}`, { signal: controller.signal });
+          applyApiHealth(response, setApiHealth);
+          next = response.ok
+            ? await response.json() as WordResult
+            : { word: fixedWord, definition: "A custom word.", partOfSpeech: "word" };
+        } else if (!relation && wordRelatedTo.trim()) {
           const response = await fetch(`/api/forge?idea=${encodeURIComponent(wordRelatedTo.trim())}`, { signal: controller.signal });
           applyApiHealth(response, setApiHealth);
           if (!response.ok) throw new Error("No word found");
@@ -330,7 +337,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
         if (requestRef.current === controller) setLoading(false);
       }
     },
-    [commitWord, result.word, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllableMode, wordSyllables, wordType],
+    [commitWord, leftWordDraft, result.word, setApiHealth, setMessage, wordEndsWith, wordLengthMode, wordLetters, wordRelatedTo, wordStartsWith, wordSyllableMode, wordSyllables, wordType],
   );
 
   const findSecondaryWord = useCallback(async (
@@ -339,7 +346,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   ): Promise<WordResult | undefined> => {
     const apply = options?.apply !== false;
     secondaryRequestRef.current?.abort();
-    setRightWordDraft("");
     const controller = new AbortController();
     secondaryRequestRef.current = controller;
     setSecondaryLoading(true);
@@ -363,7 +369,14 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
     try {
       let next: WordResult;
-      if (secondaryWordRelatedTo.trim()) {
+      const fixedWord = pickRandomTag(rightWordDraft, secondaryResult.word);
+      if (fixedWord) {
+        const response = await fetch(`/api/word?lookup=${encodeURIComponent(fixedWord)}`, { signal: controller.signal });
+        applyApiHealth(response, setApiHealth);
+        next = response.ok
+          ? await response.json() as WordResult
+          : { word: fixedWord, definition: "A custom word.", partOfSpeech: "word" };
+      } else if (secondaryWordRelatedTo.trim()) {
         const response = await fetch(`/api/forge?idea=${encodeURIComponent(secondaryWordRelatedTo.trim())}`, { signal: controller.signal });
         applyApiHealth(response, setApiHealth);
         if (!response.ok) throw new Error("No word found");
@@ -416,7 +429,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     } finally {
       if (secondaryRequestRef.current === controller) setSecondaryLoading(false);
     }
-  }, [secondaryResult.word, secondaryWordEndsWith, secondaryWordLengthMode, secondaryWordLetters, secondaryWordRelatedTo, secondaryWordStartsWith, secondaryWordSyllableMode, secondaryWordSyllables, secondaryWordType]);
+  }, [rightWordDraft, secondaryResult.word, secondaryWordEndsWith, secondaryWordLengthMode, secondaryWordLetters, secondaryWordRelatedTo, secondaryWordStartsWith, secondaryWordSyllableMode, secondaryWordSyllables, secondaryWordType, setApiHealth]);
 
   const handleLeftWordDraftChange = useCallback((value: string) => {
     setLeftWordDraft(value);
@@ -428,88 +441,24 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     if (value.trim()) resetSecondaryFilters();
   }, [resetSecondaryFilters]);
 
-  const setExplicitSplitWord = useCallback(async (side: "left" | "right", draft: string) => {
-    const word = draft.trim();
-    const currentWord = side === "left" ? result.word : secondaryResult.word;
-    if (!word) {
-      if (side === "left") setLeftWordDraft("");
-      else setRightWordDraft("");
-      return;
-    }
-    if (word.toLowerCase() === currentWord.toLowerCase()) {
-      if (side === "left") setLeftWordDraft(word);
-      else setRightWordDraft(word);
-      return;
-    }
-
-    const requestStore = side === "left" ? requestRef : secondaryRequestRef;
-    requestStore.current?.abort();
-    const controller = new AbortController();
-    requestStore.current = controller;
-    if (side === "left") setLoading(true);
-    else setSecondaryLoading(true);
-
-    let nextWord: WordResult = {
-      word,
-      definition: "A custom word.",
-      partOfSpeech: "word",
-    };
-
-    try {
-      const response = await fetch(`/api/word?lookup=${encodeURIComponent(word)}`, { signal: controller.signal });
-      applyApiHealth(response, setApiHealth);
-      if (response.ok) nextWord = await response.json() as WordResult;
-    } catch (error) {
-      if ((error as Error).name === "AbortError") return;
-      if (isFetchFailure(error)) applyApiHealth(null, setApiHealth);
-    } finally {
-      if (requestStore.current === controller) {
-        if (side === "left") setLoading(false);
-        else setSecondaryLoading(false);
-      }
-    }
-
-    if (controller.signal.aborted) return;
-    if (side === "left") {
-      resetPrimaryFilters();
-      commitWord(nextWord);
-      setLeftWordDraft(word);
-    } else {
-      resetSecondaryFilters();
-      setSecondaryResult(nextWord);
-      setRightWordDraft(word);
-    }
-  }, [commitWord, resetPrimaryFilters, resetSecondaryFilters, result.word, secondaryResult.word]);
-
   const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
-    const fetchLeft = !leftWordDraft.trim();
-    const fetchRight = !rightWordDraft.trim();
-    if (!fetchLeft && !fetchRight) return;
-
     const batchRequest = splitBatchRequestRef.current + 1;
     splitBatchRequestRef.current = batchRequest;
-    const both = fetchLeft && fetchRight;
-    if (both) setSplitBatchLoading(true);
+    setSplitBatchLoading(true);
     splitHistoryBatchDepthRef.current += 1;
 
     void (async () => {
       try {
-        if (both) {
-          const [left, right] = await Promise.all([
-            findWord(undefined, requestedType, { apply: false }),
-            findSecondaryWord(secondaryWordType, { apply: false }),
-          ]);
-          if (splitBatchRequestRef.current !== batchRequest) return;
-          if (left) {
-            commitWord(left);
-            setMessage("");
-          }
-          if (right) setSecondaryResult(right);
-        } else if (fetchLeft) {
-          await findWord(undefined, requestedType);
-        } else {
-          await findSecondaryWord();
+        const [left, right] = await Promise.all([
+          findWord(undefined, requestedType, { apply: false }),
+          findSecondaryWord(secondaryWordType, { apply: false }),
+        ]);
+        if (splitBatchRequestRef.current !== batchRequest) return;
+        if (left) {
+          commitWord(left);
+          setMessage("");
         }
+        if (right) setSecondaryResult(right);
       } finally {
         if (splitBatchRequestRef.current === batchRequest) setSplitBatchLoading(false);
         splitHistoryBatchDepthRef.current = Math.max(0, splitHistoryBatchDepthRef.current - 1);
@@ -518,7 +467,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
         }
       }
     })();
-  }, [commitWord, findSecondaryWord, findWord, leftWordDraft, rightWordDraft, secondaryWordType, wordType]);
+  }, [commitWord, findSecondaryWord, findWord, secondaryWordType, setMessage, wordType]);
 
   const moveThroughSplitHistory = useCallback((direction: -1 | 1) => {
     const nextIndex = splitHistoryIndexRef.current + direction;
@@ -530,7 +479,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setResult(entry.left);
     setSecondaryResult(entry.right);
     setMessage("");
-  }, []);
+  }, [setMessage]);
   useLayoutEffect(() => {
     const search = new URLSearchParams(window.location.search);
 
@@ -654,15 +603,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   useEffect(() => {
     if (initialWordLoaded.current) return;
     initialWordLoaded.current = true;
-    const loadInitialWords = async () => {
-      const tasks: Promise<void>[] = [];
-      if (leftWordDraft.trim()) tasks.push(setExplicitSplitWord("left", leftWordDraft));
-      if (rightWordDraft.trim()) tasks.push(setExplicitSplitWord("right", rightWordDraft));
-      if (tasks.length) await Promise.all(tasks);
-      generateVisibleWords();
-    };
-    void loadInitialWords();
-  }, [generateVisibleWords, leftWordDraft, rightWordDraft, setExplicitSplitWord]);
+    generateVisibleWords();
+  }, [generateVisibleWords]);
   useEffect(() => {
     if (splitHistoryBatchDepthRef.current > 0 || !result.word || !secondaryResult.word) return;
     const current = splitHistoryRef.current[splitHistoryIndexRef.current];
@@ -781,7 +723,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     findSecondaryWord,
     handleLeftWordDraftChange,
     handleRightWordDraftChange,
-    setExplicitSplitWord,
     generateVisibleWords,
     resetPrimarySettings,
     resetSecondarySettings,
