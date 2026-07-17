@@ -4181,6 +4181,7 @@ kbd {
 
 .page-shell.discover-mode.mobile-layout .split-definition {
   display: -webkit-box;
+  max-height: 4.35em;
   font-size: 14px;
   line-height: 1.45;
   overflow: hidden;
@@ -4191,6 +4192,7 @@ kbd {
 
 .page-shell.discover-mode.mobile-layout .split-definition.expanded {
   display: block;
+  max-height: none;
   line-clamp: unset;
   -webkit-line-clamp: unset;
 }
