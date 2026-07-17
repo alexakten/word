@@ -1,4 +1,3 @@
-import { hostGrotesk } from "../../fonts";
 import { cardo } from "../../fonts";
 
 export function WordmarkLink({ className = "" }: { className?: string }) {

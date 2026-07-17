@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, RefreshCw, Unlock, X } from "lucide-react";
+import { Lock, RefreshCw, Unlock } from "lucide-react";
 import { advancedModeGroups, advancedModes } from "../../lib/constants";
 import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";

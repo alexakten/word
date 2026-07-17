@@ -1,7 +1,7 @@
 "use client";
 
-import { MAX_LENGTH_FILTER, MAX_SYLLABLE_FILTER } from "../../lib/constants";
-import { normalizeLengthSelection, normalizeSyllableSelection } from "../../lib/filters";
+import { MAX_SYLLABLE_FILTER } from "../../lib/constants";
+import { normalizeSyllableSelection } from "../../lib/filters";
 import type { LengthMode } from "../../lib/types";
 import { FilterCountSetting } from "../ui/filter-count-setting";
 

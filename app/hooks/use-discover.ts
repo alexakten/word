@@ -480,6 +480,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setSecondaryResult(entry.right);
     setMessage("");
   }, [setMessage]);
+  /* eslint-disable react-hooks/set-state-in-effect -- URL parameters are an external source that must hydrate before paint. */
   useLayoutEffect(() => {
     const search = new URLSearchParams(window.location.search);
 
@@ -551,6 +552,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
     settingsUrlSyncedRef.current = true;
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!settingsUrlSyncedRef.current) return;

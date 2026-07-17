@@ -28,13 +28,10 @@ export function LengthModeDropdown({ value, label = "Comparison", disabled = fal
     return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) setActiveIndex(-1);
-  }, [open]);
-
   const selectOption = (nextValue: LengthMode) => {
     onChange(nextValue);
     setOpen(false);
+    setActiveIndex(-1);
   };
 
   return (
@@ -56,7 +53,13 @@ export function LengthModeDropdown({ value, label = "Comparison", disabled = fal
         disabled={disabled}
         onClick={() => {
           if (disabled) return;
-          setOpen((current) => !current);
+          if (open) {
+            setOpen(false);
+            setActiveIndex(-1);
+          } else {
+            setOpen(true);
+            setActiveIndex(Math.max(0, LENGTH_MODE_OPTIONS.findIndex((option) => option.value === value)));
+          }
         }}
         onKeyDown={(event) => {
           if (disabled) return;
@@ -66,6 +69,7 @@ export function LengthModeDropdown({ value, label = "Comparison", disabled = fal
             setActiveIndex(Math.max(0, LENGTH_MODE_OPTIONS.findIndex((option) => option.value === value)));
           } else if (event.key === "Escape") {
             setOpen(false);
+            setActiveIndex(-1);
           }
         }}
       >
@@ -100,6 +104,7 @@ export function LengthModeDropdown({ value, label = "Comparison", disabled = fal
                   } else if (event.key === "Escape") {
                     event.preventDefault();
                     setOpen(false);
+                    setActiveIndex(-1);
                   }
                 }}
               >

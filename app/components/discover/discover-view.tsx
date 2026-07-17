@@ -236,7 +236,7 @@ export function DiscoverView(props: DiscoverViewProps) {
             id="split-left-text"
             label="Text"
             value={leftWordDraft}
-            placeholder="Add fixed words"
+            placeholder="Add fixed words to randomize"
             onChange={handleLeftWordDraftChange}
           />
         </div>
@@ -291,7 +291,7 @@ export function DiscoverView(props: DiscoverViewProps) {
             id="split-right-text"
             label="Text"
             value={rightWordDraft}
-            placeholder="Add fixed words"
+            placeholder="Add fixed words to randomize"
             onChange={handleRightWordDraftChange}
           />
         </div>

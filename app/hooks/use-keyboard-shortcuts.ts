@@ -48,7 +48,10 @@ export function useKeyboardShortcuts({
   actions,
 }: UseKeyboardShortcutsOptions) {
   const actionsRef = useRef(actions);
-  actionsRef.current = actions;
+
+  useEffect(() => {
+    actionsRef.current = actions;
+  }, [actions]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

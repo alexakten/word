@@ -10,7 +10,9 @@ export function isFetchFailure(error: unknown) {
 }
 
 export function stripSplitFields(word: WordResult): WordResult {
-  const { splitLeft, splitRight, ...clean } = word;
+  const clean = { ...word };
+  delete clean.splitLeft;
+  delete clean.splitRight;
   return clean;
 }
 

@@ -41,10 +41,6 @@ export function MixSideSetting({ labelPrefix, word, settings, sliceMode, syllabl
     () => buildSyllablePickOptions("", resolvedSyllableCount, "exact", positionOptionsOnly),
     [positionOptionsOnly, resolvedSyllableCount],
   );
-  const takeOptions = useMemo(
-    () => buildSyllableTakeOptions(syllablePick, resolvedSyllableCount),
-    [resolvedSyllableCount, syllablePick],
-  );
   const maxTake = maxTakeFromPick(syllablePick, resolvedSyllableCount);
   const singleSyllableOnly = hasWord && resolvedSyllableCount === 1;
   const sliceDisabled = !hasWord || sliceMode !== "custom";
