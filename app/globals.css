@@ -3001,11 +3001,13 @@ button {
   text-align: inherit;
   overflow: hidden;
   -webkit-box-orient: vertical;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
 }
 
 .split-definition.expanded {
   display: block;
+  line-clamp: unset;
   -webkit-line-clamp: unset;
   animation: description-reveal .24s ease both;
 }
@@ -4162,8 +4164,19 @@ kbd {
 }
 
 .page-shell.discover-mode.mobile-layout .split-definition {
+  display: -webkit-box;
   font-size: 14px;
   line-height: 1.45;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+}
+
+.page-shell.discover-mode.mobile-layout .split-definition.expanded {
+  display: block;
+  line-clamp: unset;
+  -webkit-line-clamp: unset;
 }
 
 .page-shell.mobile-layout .controls-bar .saved-menu {
