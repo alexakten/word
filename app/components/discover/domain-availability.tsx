@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { Check, LoaderCircle, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
@@ -119,6 +120,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
                     rel="noopener noreferrer"
                     aria-label={`Search for ${domain} on ${registrar.name}`}
                     key={registrar.name}
+                    onClick={() => track(`${registrar.name} Clicked`, { domain })}
                   >
                     {registrar.name === "GoDaddy" ? (
                       <GoDaddyLogo />
