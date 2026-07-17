@@ -4492,7 +4492,7 @@ button.about-drawer-close:hover {
 }
 
 .page-shell.mobile-layout.mobile-panel-open .mobile-bottom-bar {
-  z-index: 42;
+  z-index: 39;
 }
 
 .page-shell.mobile-layout .discover-top-brand {
