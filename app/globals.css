@@ -1461,6 +1461,11 @@ button {
   pointer-events: auto;
 }
 
+.discover-top-brand .top-domain-mode-controls {
+  position: relative;
+  z-index: 4;
+}
+
 .settings-panel-scroll {
   box-sizing: content-box;
   width: 100%;
@@ -3216,6 +3221,8 @@ h1 {
 }
 
 .tld-dropdown-slot.visible {
+  position: relative;
+  z-index: 4;
   width: 66px;
   margin-left: .45rem;
   opacity: 1;
@@ -4050,6 +4057,8 @@ kbd {
 }
 
 .page-shell.discover-mode.mobile-layout .mobile-bottom-meta-row {
+  position: relative;
+  z-index: 4;
   display: grid;
   width: 100%;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
