@@ -3181,12 +3181,35 @@ h1 {
   min-height: 28px;
   align-items: center;
   justify-content: center;
-  gap: .45rem;
+  gap: 0;
   pointer-events: auto;
 }
 
 .domain-mode-toggle {
   width: 112px;
+}
+
+.tld-dropdown-slot {
+  width: 0;
+  margin-left: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateX(-6px);
+  transition:
+    width .24s cubic-bezier(.22, 1, .36, 1),
+    margin-left .24s cubic-bezier(.22, 1, .36, 1),
+    opacity .16s ease,
+    transform .24s cubic-bezier(.22, 1, .36, 1);
+}
+
+.tld-dropdown-slot.visible {
+  width: 66px;
+  margin-left: .45rem;
+  opacity: 1;
+  overflow: visible;
+  pointer-events: auto;
+  transform: translateX(0);
 }
 
 .tld-dropdown {

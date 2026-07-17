@@ -6,7 +6,7 @@ import { NAME_DISPLAY_MODE_OPTIONS, POPULAR_TLDS } from "../../lib/constants";
 import type { NameDisplayMode } from "../../lib/types";
 import { MixSegmentToggle } from "./mix-segment-toggle";
 
-function TldDropdown({ value, onChange }: { value: string; onChange: (tld: string) => void }) {
+function TldDropdown({ value, disabled = false, onChange }: { value: string; disabled?: boolean; onChange: (tld: string) => void }) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -35,14 +35,16 @@ function TldDropdown({ value, onChange }: { value: string; onChange: (tld: strin
   };
 
   return (
-    <div className={["tld-dropdown", open ? "open" : ""].filter(Boolean).join(" ")} ref={rootRef}>
+    <div className={["tld-dropdown", open && !disabled ? "open" : ""].filter(Boolean).join(" ")} ref={rootRef}>
       <button
         className="tld-dropdown-trigger"
         type="button"
         aria-haspopup="listbox"
-        aria-expanded={open}
+        aria-expanded={open && !disabled}
         aria-label={`Top-level domain: ${value}`}
+        disabled={disabled}
         onClick={() => {
+          if (disabled) return;
           if (open) {
             setOpen(false);
             setActiveIndex(-1);
@@ -63,7 +65,7 @@ function TldDropdown({ value, onChange }: { value: string; onChange: (tld: strin
         <span>{value}</span>
         <ChevronDown size={12} strokeWidth={1.6} aria-hidden="true" />
       </button>
-      {open ? (
+      {open && !disabled ? (
         <ul className="tld-dropdown-menu" role="listbox" aria-label="Top-level domain">
           {POPULAR_TLDS.map((tld, index) => (
             <li key={tld}>
@@ -126,9 +128,12 @@ export function DomainModeControls({
         options={NAME_DISPLAY_MODE_OPTIONS}
         onChange={onDisplayModeChange}
       />
-      {displayMode === "domain" ? (
-        <TldDropdown value={selectedTld} onChange={onTldChange} />
-      ) : null}
+      <div
+        className={`tld-dropdown-slot${displayMode === "domain" ? " visible" : ""}`}
+        aria-hidden={displayMode !== "domain"}
+      >
+        <TldDropdown value={selectedTld} disabled={displayMode !== "domain"} onChange={onTldChange} />
+      </div>
     </div>
   );
 }
