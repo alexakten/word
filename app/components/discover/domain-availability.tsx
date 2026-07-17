@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, LoaderCircle, RefreshCw } from "lucide-react";
+import { Check, LoaderCircle, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
 
@@ -78,11 +78,14 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       : currentResult?.status === "registered"
         ? `${domain} is registered`
         : currentResult?.status === "unknown"
-          ? `Check ${domain} at a registrar`
+          ? `Check availability of ${domain} on a registrar`
           : "Check availability";
   const showRegistrarLinks = Boolean(currentResult);
+  const resultMessage = currentResult?.message?.startsWith("No public RDAP service")
+    ? undefined
+    : currentResult?.message;
   const registrarHelperText = currentResult?.status === "available"
-    ? "Confirm availability on registrar"
+    ? "Confirm availability and buy on registrar"
     : currentResult?.status === "registered"
       ? "Other TLDs might be available"
       : "Check availability on registrar";
@@ -98,12 +101,14 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
         >
           {loading ? (
             <LoaderCircle className="domain-availability-spinner" size={11} strokeWidth={1.6} aria-hidden="true" />
+          ) : currentResult?.status === "available" ? (
+            <Check size={11} strokeWidth={1.8} aria-hidden="true" />
           ) : currentResult ? (
             <RefreshCw size={10} strokeWidth={1.6} aria-hidden="true" />
           ) : null}
           <span>{statusLabel}</span>
         </button>
-        {currentResult && (currentResult.message || showRegistrarLinks) ? (
+        {currentResult && (resultMessage || showRegistrarLinks) ? (
           <div className="domain-availability-popover">
             {showRegistrarLinks ? (
               <div className="domain-registrar-links" aria-label={`Search for ${domain} at registrars`}>
@@ -122,13 +127,12 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
                     ) : (
                       <PorkbunLogo />
                     )}
-                    <ExternalLink size={9} strokeWidth={1.6} aria-hidden="true" />
                   </a>
                 ))}
               </div>
             ) : null}
             <span className="domain-availability-note">{registrarHelperText}</span>
-            {currentResult.message ? <span className="domain-availability-message">{currentResult.message}</span> : null}
+            {resultMessage ? <span className="domain-availability-message">{resultMessage}</span> : null}
           </div>
         ) : null}
       </div>

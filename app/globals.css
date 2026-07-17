@@ -2821,12 +2821,15 @@ button {
 
 .domain-registrar-links a {
   display: inline-flex;
-  min-height: 25px;
+  width: auto;
+  height: 32px;
+  min-height: 32px;
+  flex: 0 0 auto;
   align-items: center;
   gap: .25rem;
   border: 1px solid rgba(21, 21, 19, .1);
   border-radius: 999px;
-  padding: .35rem .55rem;
+  padding: 0 .55rem;
   background: var(--surface);
   color: var(--muted);
   text-decoration: none;
@@ -2848,6 +2851,10 @@ button {
 
 .godaddy-logo {
   fill: currentColor;
+}
+
+.namecheap-logo {
+  overflow: visible;
 }
 
 .porkbun-logo {
