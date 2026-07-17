@@ -4055,6 +4055,22 @@ kbd {
   white-space: nowrap;
 }
 
+.page-shell.discover-mode.mobile-layout .mobile-bottom-left-actions .saved-toggle {
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  font-size: 0;
+  letter-spacing: 0;
+}
+
+.page-shell.discover-mode.mobile-layout .mobile-bottom-left-actions .saved-toggle span {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 .25rem;
+  font-size: .56rem;
+}
+
 .page-shell.discover-mode.mobile-layout .mobile-bottom-domain-mode-controls {
   grid-column: 2;
   grid-row: 1;
@@ -4062,8 +4078,8 @@ kbd {
 }
 
 .page-shell.discover-mode.mobile-layout .mobile-bottom-meta-row>.about-drawer-trigger {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
