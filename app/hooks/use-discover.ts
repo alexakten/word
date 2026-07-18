@@ -93,15 +93,14 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
   const setNameDisplayMode = useCallback((mode: NameDisplayMode) => {
     const syllables = mode === "domain" ? DEFAULT_DOMAIN_SYLLABLES : DEFAULT_WORD_SYLLABLES;
-    const sliceMode = mode === "domain" ? "none" : DEFAULT_SLICE_MODE;
 
     setNameDisplayModeState(mode);
     setWordSyllables(syllables);
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordSyllables(syllables);
     setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
-    setLeftSliceMode(sliceMode);
-    setRightSliceMode(sliceMode);
+    setLeftSliceMode(DEFAULT_SLICE_MODE);
+    setRightSliceMode(DEFAULT_SLICE_MODE);
     setMixLeftSettings({ ...defaultCustomMixLeftSettings });
     setMixRightSettings({ ...defaultCustomMixRightSettings });
   }, []);
@@ -129,14 +128,14 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, [nameDisplayMode]);
 
   const resetLeftSliceSettings = useCallback(() => {
-    setLeftSliceMode(nameDisplayMode === "domain" ? "none" : DEFAULT_SLICE_MODE);
+    setLeftSliceMode(DEFAULT_SLICE_MODE);
     setMixLeftSettings({ ...defaultCustomMixLeftSettings });
-  }, [nameDisplayMode]);
+  }, []);
 
   const resetRightSliceSettings = useCallback(() => {
-    setRightSliceMode(nameDisplayMode === "domain" ? "none" : DEFAULT_SLICE_MODE);
+    setRightSliceMode(DEFAULT_SLICE_MODE);
     setMixRightSettings({ ...defaultCustomMixRightSettings });
-  }, [nameDisplayMode]);
+  }, []);
 
   const resetSliceSettings = useCallback(() => {
     resetLeftSliceSettings();
