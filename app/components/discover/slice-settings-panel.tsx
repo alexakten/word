@@ -48,13 +48,14 @@ export function SliceSidePanel({ side, word, sliceMode, settings, syllables, onS
   settingsApplied: boolean;
 }) {
   const labelPrefix = side === "left" ? "Left word" : "Right word";
+  const title = side === "left" ? "Slice left" : "Slice right";
 
   return (
     <aside
       className={`split-slice-panel ${side} rounded-3xl`}
       aria-label={`${labelPrefix} slice settings`}
     >
-      <SlicePanelHeader title="Slice word" settingsApplied={settingsApplied} onReset={onReset} />
+      <SlicePanelHeader title={title} settingsApplied={settingsApplied} onReset={onReset} />
       <MixSideSetting
         labelPrefix={labelPrefix}
         word={word}

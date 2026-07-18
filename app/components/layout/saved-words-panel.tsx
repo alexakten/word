@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, type AnimationEvent } from "react";
 import { X } from "lucide-react";
 import { createPortal } from "react-dom";
 import type { HomeState } from "../../hooks/use-home";
@@ -57,7 +58,26 @@ export function SavedWordsPanel({
   saveWords,
   loadSavedWord,
 }: SavedWordsPanelProps) {
+  const [mounted, setMounted] = useState(savedOpen);
+  const [leaving, setLeaving] = useState(false);
+
+  useEffect(() => {
+    if (savedOpen) {
+      setMounted(true);
+      setLeaving(false);
+      return;
+    }
+    if (mounted) setLeaving(true);
+  }, [savedOpen, mounted]);
+
   const closeSaved = () => setSavedOpen(false);
+
+  const finishLeave = (event: AnimationEvent<HTMLElement>) => {
+    if (!leaving) return;
+    if (event.animationName !== "modalOverlayExit") return;
+    setMounted(false);
+    setLeaving(false);
+  };
 
   return (
     <div className="saved-menu" ref={savedMenuRef}>
@@ -70,17 +90,18 @@ export function SavedWordsPanel({
       >
         Saved <span>{savedWords.length}</span>
       </button>
-      {savedOpen
+      {mounted
         ? createPortal(
           <>
             <button
-              className="saved-modal-backdrop"
+              className={["modal-overlay saved-modal-backdrop", leaving ? "is-leaving" : ""].filter(Boolean).join(" ")}
               type="button"
               aria-label="Close saved words"
               onClick={closeSaved}
+              onAnimationEnd={finishLeave}
             />
             <div
-              className="saved-modal"
+              className={["saved-modal", leaving ? "is-leaving" : ""].filter(Boolean).join(" ")}
               id="saved-words"
               role="dialog"
               aria-modal="true"

@@ -23,7 +23,7 @@ export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
         <Info size={15} strokeWidth={1.75} aria-hidden="true" />
       </button>
       <Drawer.Portal>
-        <Drawer.Overlay className="about-drawer-overlay" />
+        <Drawer.Overlay className="modal-overlay about-drawer-overlay" />
         <Drawer.Content className="about-drawer-content">
           <button
             className="about-drawer-close"

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import favicon from "./favicon.png";
+import { colorwayBootstrapScript } from "./lib/colorways";
 import { inter, serif } from "./fonts";
 import "./globals.css";
 
@@ -52,7 +53,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-colorway="light" className="h-full antialiased">
+    <html lang="en" data-colorway="light" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: colorwayBootstrapScript }} />
+      </head>
       <body className={`${inter.className} ${serif.variable} min-h-full flex flex-col`}>
         {children}
         <Analytics />

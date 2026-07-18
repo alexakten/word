@@ -1,27 +1,43 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  colorways,
+  DEFAULT_COLORWAY,
+  parseColorway,
+  readColorwayFromSearch,
+  syncColorwayUrlParam,
+  type Colorway,
+} from "../../lib/colorways";
 import { useControlPop } from "./use-control-pop";
 
-const colorways = [
-  { id: "yellow", label: "Yellow" },
-  { id: "orange", label: "Orange" },
-  { id: "blue", label: "Blue" },
-  { id: "green", label: "Green" },
-  { id: "purple", label: "Purple" },
-  { id: "light", label: "Light" },
-  { id: "brown", label: "Brown" },
-] as const;
-
-type Colorway = (typeof colorways)[number]["id"];
+const COLORWAY_EVENT = "spellsurf:colorway";
 
 export function ColorwaySwitcher() {
-  const [activeColorway, setActiveColorway] = useState<Colorway>("light");
+  const [activeColorway, setActiveColorway] = useState<Colorway>(DEFAULT_COLORWAY);
+  const [hydrated, setHydrated] = useState(false);
   const pop = useControlPop();
 
   useEffect(() => {
+    const fromUrl = readColorwayFromSearch();
+    setActiveColorway(fromUrl);
+    document.documentElement.setAttribute("data-colorway", fromUrl);
+    setHydrated(true);
+
+    const onColorwayChange = (event: Event) => {
+      const next = parseColorway((event as CustomEvent<string>).detail);
+      if (!next) return;
+      setActiveColorway((current) => (current === next ? current : next));
+    };
+    window.addEventListener(COLORWAY_EVENT, onColorwayChange);
+    return () => window.removeEventListener(COLORWAY_EVENT, onColorwayChange);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     document.documentElement.setAttribute("data-colorway", activeColorway);
-  }, [activeColorway]);
+    syncColorwayUrlParam(activeColorway);
+  }, [activeColorway, hydrated]);
 
   return (
     <div className="colorway-switcher" role="group" aria-label="Choose a colorway">
@@ -36,6 +52,7 @@ export function ColorwaySwitcher() {
           onClick={(event) => {
             pop(event);
             setActiveColorway(colorway.id);
+            window.dispatchEvent(new CustomEvent(COLORWAY_EVENT, { detail: colorway.id }));
           }}
         >
           <span className="sr-only">{colorway.label}</span>

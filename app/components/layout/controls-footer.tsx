@@ -4,6 +4,8 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Heart } from "lucide-react";
 import type { HomeState } from "../../hooks/use-home";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
+import { ColorwaySwitcher } from "../ui/colorway-switcher";
+import { TypographyControls } from "../ui/typography-controls";
 
 export type ControlsFooterProps = Pick<
   HomeState,
@@ -116,6 +118,12 @@ export function ControlsFooter(props: ControlsFooterProps) {
               </span>
             ) : null}
           </button>
+        </div>
+      ) : null}
+      {appMode === "discover" ? (
+        <div className="mobile-style-toolbar">
+          <ColorwaySwitcher />
+          <TypographyControls />
         </div>
       ) : null}
       <div className="controls-bar">

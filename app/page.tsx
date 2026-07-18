@@ -31,7 +31,7 @@ export default function Home() {
     >
       {isMobileLayout && mobileDiscoverPanel ? (
         <button
-          className="mobile-panel-backdrop"
+          className="modal-overlay mobile-panel-backdrop"
           type="button"
           aria-label="Close panel"
           onClick={closeMobileDiscoverPanel}

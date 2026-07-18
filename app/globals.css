@@ -2,8 +2,8 @@
 
 :root {
   --ink: #1a1a1a;
-  --muted: #5a5a5a;
-  --faint: #8a8a8a;
+  --muted: #787878;
+  --faint: #a8a8a8;
   --line: #1a1a1a;
   --paper: #f9fafc;
   --surface: #ffffff;
@@ -50,6 +50,20 @@
   }
 }
 
+@keyframes saved-modal-exit {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 6px)) scale(.98);
+    filter: blur(4px);
+  }
+}
+
 @keyframes panel-enter-centered {
   from {
     opacity: 0;
@@ -72,6 +86,54 @@
   to {
     opacity: 1;
   }
+}
+
+@keyframes modalOverlayEnter {
+  from {
+    opacity: 0;
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
+  }
+
+  to {
+    opacity: 1;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes modalOverlayExit {
+  from {
+    opacity: 1;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
+  to {
+    opacity: 0;
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  border: 0;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  /* `filter` on this element breaks backdrop-filter in Chromium */
+  filter: none !important;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  animation: modalOverlayEnter 0.2s ease forwards;
+}
+
+.modal-overlay.is-leaving {
+  animation: modalOverlayExit 0.2s ease forwards;
+  pointer-events: none;
 }
 
 @keyframes word-blur-in {
@@ -330,15 +392,7 @@ button {
 }
 
 .saved-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 44;
-  border: 0;
-  padding: 0;
-  background: rgba(21, 21, 19, .28);
-  cursor: pointer;
   pointer-events: auto;
-  animation: mobile-backdrop-enter .18s ease both;
 }
 
 .saved-modal {
@@ -359,6 +413,11 @@ button {
   pointer-events: auto;
   transform: translate(-50%, -50%);
   animation: saved-modal-enter .2s ease both;
+}
+
+.saved-modal.is-leaving {
+  animation: saved-modal-exit .2s ease forwards;
+  pointer-events: none;
 }
 
 .saved-modal-header {
@@ -1331,15 +1390,7 @@ button {
 }
 
 .page-shell.mobile-layout.mobile-panel-open .mobile-panel-backdrop {
-  position: fixed;
-  inset: 0;
   z-index: 40;
-  border: 0;
-  padding: 0;
-  background: rgba(21, 21, 19, .28);
-  cursor: pointer;
-  pointer-events: auto;
-  animation: mobile-backdrop-enter .18s ease both;
 }
 
 .split-settings-panel,
@@ -1761,10 +1812,10 @@ button {
 .settings-panel-header p {
   margin: 0;
   color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .settings-panel-header button:not(.mobile-panel-close) {
@@ -3365,6 +3416,7 @@ h1 {
 
 .mobile-bottom-bar,
 .mobile-discover-toolbar,
+.mobile-style-toolbar,
 .mobile-slice-panel {
   display: none;
 }
@@ -3376,11 +3428,10 @@ h1 {
 .split-sidebar-stack,
 .controls,
 .saved-modal,
-.saved-modal-backdrop,
 .status,
 .mobile-bottom-bar,
 .mobile-discover-toolbar,
-.mobile-panel-backdrop {
+.mobile-style-toolbar {
   transition: opacity .32s ease, filter .32s ease;
 }
 
@@ -3391,11 +3442,10 @@ h1 {
 .page-shell.focus-mode .split-sidebar-stack,
 .page-shell.focus-mode .controls,
 .page-shell.focus-mode .saved-modal,
-.page-shell.focus-mode .saved-modal-backdrop,
 .page-shell.focus-mode .status,
 .page-shell.focus-mode .mobile-bottom-bar,
 .page-shell.focus-mode .mobile-discover-toolbar,
-.page-shell.focus-mode .mobile-panel-backdrop {
+.page-shell.focus-mode .mobile-style-toolbar {
   opacity: 0;
   filter: blur(5px);
   pointer-events: none;
@@ -3745,7 +3795,7 @@ kbd {
   .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack > .split-settings-panel,
   .page-shell.discover-mode:not(.mobile-layout) .mobile-slice-panel {
     position: fixed;
-    top: calc(var(--page-padding-y) + 4.75rem);
+    top: calc(var(--page-padding-y) + 6.75rem);
     right: auto;
     bottom: calc(var(--page-padding-y) + 5.25rem);
     left: calc((100vw - var(--mobile-column-width)) / 2);
@@ -3816,21 +3866,49 @@ kbd {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: .45rem;
     width: 100%;
-    margin-bottom: .85rem;
+    margin-bottom: .55rem;
   }
 
-  .page-shell.discover-mode .mobile-discover-toolbar-button {
+  .page-shell.discover-mode .mobile-style-toolbar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    gap: .55rem;
+    margin-bottom: .85rem;
+    pointer-events: auto;
+  }
+
+  .page-shell.discover-mode .mobile-style-toolbar .colorway-switcher {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: fit-content;
+  }
+
+  .page-shell.discover-mode .mobile-style-toolbar .colorway-swatch {
+    width: 18px;
+    height: 18px;
+  }
+
+  .page-shell.discover-mode .mobile-style-toolbar .typography-controls {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .page-shell.discover-mode .mobile-discover-toolbar-button,
+  .page-shell.discover-mode .mobile-discover-toolbar-button.has-settings {
     position: relative;
-    min-height: 38px;
+    min-height: 40px;
     border: 0;
-    border-radius: 999px;
-    padding: .55rem .65rem;
-    background: #fff;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .1);
-    color: var(--muted);
+    border-radius: 999px !important;
+    padding: .55rem .7rem;
+    background: #fff !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .1) !important;
+    color: #1a1a1a;
     cursor: pointer;
-    font-size: .58rem;
-    letter-spacing: .04em;
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: .02em;
     line-height: 1.2;
     text-align: center;
   }
@@ -3846,7 +3924,7 @@ kbd {
     justify-content: center;
     border-radius: 999px;
     padding: 0 .2rem;
-    background: var(--accent);
+    background: var(--paper);
     color: #fff;
     font-size: .52rem;
     font-weight: 600;
@@ -3942,7 +4020,7 @@ kbd {
 .page-shell.discover-mode.mobile-layout .split-settings-panel,
 .page-shell.discover-mode.mobile-layout .mobile-slice-panel {
   position: fixed;
-  top: calc(var(--page-padding-y) + 4.75rem);
+  top: calc(var(--page-padding-y) + 6.75rem);
   right: auto;
   bottom: calc(var(--page-padding-y) + 5.25rem);
   left: calc((100vw - var(--mobile-column-width)) / 2);
@@ -4000,34 +4078,78 @@ kbd {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: .45rem;
   width: 100%;
-  margin-bottom: .85rem;
+  margin-bottom: .55rem;
 }
 
-.page-shell.mobile-layout .mobile-discover-toolbar-button {
+.page-shell.mobile-layout .mobile-style-toolbar {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .55rem;
+  margin-bottom: .85rem;
+  pointer-events: auto;
+}
+
+.page-shell.mobile-layout .mobile-style-toolbar .colorway-switcher {
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: fit-content;
+}
+
+.page-shell.mobile-layout .mobile-style-toolbar .colorway-swatch {
+  width: 18px;
+  height: 18px;
+}
+
+.page-shell.mobile-layout .mobile-style-toolbar .typography-controls {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.page-shell.mobile-layout .mobile-discover-toolbar-button,
+.page-shell.mobile-layout .mobile-discover-toolbar-button.has-settings {
   position: relative;
-  min-height: 38px;
+  min-height: 40px;
   border: 0;
-  border-radius: 999px;
-  padding: .55rem .65rem;
-  background: #fff;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .1);
-  color: var(--muted);
+  border-radius: 999px !important;
+  padding: .55rem .7rem;
+  background: #fff !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .1) !important;
+  color: #1a1a1a;
   cursor: pointer;
-  font-size: .58rem;
-  letter-spacing: .04em;
+  font-size: .72rem;
+  font-weight: 500;
+  letter-spacing: .02em;
   line-height: 1.2;
   text-align: center;
 }
 
-.page-shell.mobile-layout .mobile-discover-toolbar-button:hover {
-  background: #F4F3F1;
-  color: var(--ink);
+.page-shell.mobile-layout .mobile-discover-toolbar-button:hover,
+.page-shell.mobile-layout .mobile-discover-toolbar-button.active,
+.page-shell.mobile-layout .mobile-discover-toolbar-button.has-settings:hover,
+.page-shell.mobile-layout .mobile-discover-toolbar-button.has-settings.active {
+  background: #fff !important;
+  color: #1a1a1a;
 }
 
 .page-shell.mobile-layout .mobile-discover-toolbar-button.active {
-  background: #F4F3F1;
-  color: var(--ink);
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .1);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .18) !important;
+}
+
+html[data-colorway="yellow"] .mobile-discover-toolbar-button,
+html[data-colorway="yellow"] .mobile-discover-toolbar-button.has-settings,
+html[data-colorway="orange"] .mobile-discover-toolbar-button,
+html[data-colorway="orange"] .mobile-discover-toolbar-button.has-settings,
+html[data-colorway="blue"] .mobile-discover-toolbar-button,
+html[data-colorway="blue"] .mobile-discover-toolbar-button.has-settings,
+html[data-colorway="green"] .mobile-discover-toolbar-button,
+html[data-colorway="green"] .mobile-discover-toolbar-button.has-settings,
+html[data-colorway="purple"] .mobile-discover-toolbar-button,
+html[data-colorway="purple"] .mobile-discover-toolbar-button.has-settings,
+html[data-colorway="brown"] .mobile-discover-toolbar-button,
+html[data-colorway="brown"] .mobile-discover-toolbar-button.has-settings {
+  color: var(--paper) !important;
 }
 
 .page-shell.mobile-layout .mobile-discover-toolbar-count {
@@ -4041,7 +4163,7 @@ kbd {
   justify-content: center;
   border-radius: 999px;
   padding: 0 .2rem;
-  background: var(--accent);
+  background: var(--paper);
   color: #fff;
   font-size: .52rem;
   font-weight: 600;
@@ -4141,6 +4263,11 @@ kbd {
 .compact-save-word-button.liked {
   background: #EFEDE9;
   color: var(--ink);
+}
+
+html[data-colorway="light"] .compact-save-word-button.liked,
+html[data-colorway="light"] .compact-save-word-button.liked:hover {
+  color: #fd4c1f !important;
 }
 
 .compact-save-word-button:disabled {
@@ -4300,10 +4427,8 @@ kbd {
 }
 
 .about-drawer-overlay {
-  position: fixed;
-  inset: 0;
   z-index: 60;
-  background: rgba(21, 21, 19, .28);
+  cursor: default;
 }
 
 .about-drawer-content {
@@ -4383,16 +4508,28 @@ button.about-drawer-close:hover {
 @keyframes about-drawer-fade-in {
   from {
     opacity: 0;
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
   }
 
   to {
     opacity: 1;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
   }
 }
 
 @keyframes about-drawer-fade-out {
+  from {
+    opacity: 1;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
   to {
     opacity: 0;
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
   }
 }
 
@@ -4660,8 +4797,8 @@ html[data-colorway="purple"] {
 html[data-colorway="light"] {
   --paper: #f9fafc;
   --ink: #1a1a1a;
-  --muted: #5a5a5a;
-  --faint: #8a8a8a;
+  --muted: #787878;
+  --faint: #a8a8a8;
   --line: #1a1a1a;
   --surface: #ffffff;
   --soft-surface: #f1f2f4;
@@ -4803,17 +4940,23 @@ h1,
 }
 
 .colorway-switcher {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: .45rem;
+  width: fit-content;
+  max-width: fit-content;
   padding: .35rem .45rem;
   border-radius: 999px;
   background: #ffffff;
   white-space: nowrap;
   pointer-events: auto;
+}
+
+.style-toolbar .colorway-switcher {
+  justify-self: end;
 }
 
 .colorway-swatch {
@@ -5057,6 +5200,38 @@ kbd {
   color: var(--ink);
 }
 
+.saved-modal {
+  --ink: #1a1a1a;
+  --muted: #5a5a5a;
+  --faint: #8a8a8a;
+  --line: #e6e8ee;
+  background: #ffffff !important;
+  color: #1a1a1a;
+}
+
+.saved-modal .settings-panel-header button {
+  color: #5a5a5a;
+}
+
+.saved-modal .settings-panel-header button:hover {
+  color: #1a1a1a;
+}
+
+.saved-modal .saved-word,
+.saved-modal .saved-empty {
+  color: #1a1a1a;
+}
+
+.saved-modal .saved-word small,
+.saved-modal .remove-saved {
+  color: #8a8a8a;
+}
+
+.saved-modal .saved-word:hover span,
+.saved-modal .remove-saved:hover {
+  color: #1a1a1a;
+}
+
 .split-settings-panel,
 .split-slice-panel {
   --ink: var(--sidebar-ink);
@@ -5084,7 +5259,6 @@ kbd {
 .tld-dropdown-trigger,
 .domain-availability-trigger,
 .domain-registrar-links a,
-.mobile-discover-toolbar-button,
 .compact-save-word-button,
 .about-drawer-trigger,
 button.about-drawer-close,
@@ -5117,7 +5291,6 @@ button.about-drawer-close,
 .tld-dropdown-menu,
 .domain-availability-trigger,
 .domain-registrar-links a,
-.mobile-discover-toolbar-button,
 .page-shell.mobile-layout .mobile-generate-button,
 .page-shell.discover-mode .mobile-generate-button {
   box-shadow: none !important;
@@ -5126,11 +5299,30 @@ button.about-drawer-close,
 .word-type-active-layer,
 .filter-count-stepper > button.filter-count-step:not(:disabled),
 .page-shell.mobile-layout .mobile-generate-button,
-.page-shell.discover-mode .mobile-generate-button,
-.mobile-discover-toolbar-count {
+.page-shell.discover-mode .mobile-generate-button {
   border-radius: 999px !important;
   background: var(--accent) !important;
   color: var(--accent-ink) !important;
+}
+
+.mobile-discover-toolbar-count {
+  border-radius: 999px !important;
+  background: var(--paper) !important;
+  color: #fff !important;
+}
+
+html[data-colorway="light"] .mobile-discover-toolbar-count {
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+
+html[data-colorway="light"] .mobile-discover-toolbar-button,
+html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings,
+html[data-colorway="light"] .mobile-discover-toolbar-button:hover,
+html[data-colorway="light"] .mobile-discover-toolbar-button.active,
+html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings:hover,
+html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings.active {
+  color: #1a1a1a !important;
 }
 
 .word-type-tab-list-overlay button {

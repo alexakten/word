@@ -11,10 +11,29 @@ const fontFamilyOptions = [
   { value: "serif", label: "Serif" },
 ] as const;
 
+const FONT_FAMILY_EVENT = "spellsurf:font-family";
+
+function parseFontFamily(value: string | null | undefined): FontFamily | null {
+  return value === "sans" || value === "serif" ? value : null;
+}
+
 export function TypographyControls() {
   const [fontFamily, setFontFamily] = useState<FontFamily>("sans");
   const pop = useControlPop();
   const fontFamilyClip = useActiveTabClipPath(fontFamily);
+
+  useEffect(() => {
+    const fromDom = parseFontFamily(document.documentElement.getAttribute("data-font-family"));
+    if (fromDom) setFontFamily(fromDom);
+
+    const onFontFamilyChange = (event: Event) => {
+      const next = parseFontFamily((event as CustomEvent<string>).detail);
+      if (!next) return;
+      setFontFamily((current) => (current === next ? current : next));
+    };
+    window.addEventListener(FONT_FAMILY_EVENT, onFontFamilyChange);
+    return () => window.removeEventListener(FONT_FAMILY_EVENT, onFontFamilyChange);
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -38,6 +57,7 @@ export function TypographyControls() {
                 onClick={(event) => {
                   pop(event);
                   setFontFamily(option.value);
+                  window.dispatchEvent(new CustomEvent(FONT_FAMILY_EVENT, { detail: option.value }));
                 }}
               >
                 {option.label}
