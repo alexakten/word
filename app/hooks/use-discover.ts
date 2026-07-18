@@ -40,11 +40,12 @@ type UseDiscoverOptions = {
 };
 
 const DEFAULT_WORD_SYLLABLES = "3";
+const DEFAULT_DOMAIN_SYLLABLES = "2";
 const DEFAULT_WORD_SYLLABLE_MODE: LengthMode = "less";
 
 export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
-  const [nameDisplayMode, setNameDisplayMode] = useState<NameDisplayMode>("word");
+  const [nameDisplayMode, setNameDisplayModeState] = useState<NameDisplayMode>("word");
   const [selectedTld, setSelectedTld] = useState(".com");
   const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
   const [rightSliceMode, setRightSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
@@ -90,37 +91,52 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const splitHistoryBatchDepthRef = useRef(0);
   const settingsUrlSyncedRef = useRef(false);
 
+  const setNameDisplayMode = useCallback((mode: NameDisplayMode) => {
+    const syllables = mode === "domain" ? DEFAULT_DOMAIN_SYLLABLES : DEFAULT_WORD_SYLLABLES;
+    const sliceMode = mode === "domain" ? "none" : DEFAULT_SLICE_MODE;
+
+    setNameDisplayModeState(mode);
+    setWordSyllables(syllables);
+    setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
+    setSecondaryWordSyllables(syllables);
+    setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
+    setLeftSliceMode(sliceMode);
+    setRightSliceMode(sliceMode);
+    setMixLeftSettings({ ...defaultCustomMixLeftSettings });
+    setMixRightSettings({ ...defaultCustomMixRightSettings });
+  }, []);
+
   const resetPrimaryFilters = useCallback(() => {
     setWordRelatedTo("");
     setWordType("any");
-    setWordSyllables(DEFAULT_WORD_SYLLABLES);
+    setWordSyllables(nameDisplayMode === "domain" ? DEFAULT_DOMAIN_SYLLABLES : DEFAULT_WORD_SYLLABLES);
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setWordStartsWith("");
     setWordEndsWith("");
     setWordLetters("");
     setWordLengthMode("exact");
-  }, []);
+  }, [nameDisplayMode]);
 
   const resetSecondaryFilters = useCallback(() => {
     setSecondaryWordRelatedTo("");
     setSecondaryWordType("any");
-    setSecondaryWordSyllables(DEFAULT_WORD_SYLLABLES);
+    setSecondaryWordSyllables(nameDisplayMode === "domain" ? DEFAULT_DOMAIN_SYLLABLES : DEFAULT_WORD_SYLLABLES);
     setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordStartsWith("");
     setSecondaryWordEndsWith("");
     setSecondaryWordLetters("");
     setSecondaryWordLengthMode("exact");
-  }, []);
+  }, [nameDisplayMode]);
 
   const resetLeftSliceSettings = useCallback(() => {
-    setLeftSliceMode(DEFAULT_SLICE_MODE);
+    setLeftSliceMode(nameDisplayMode === "domain" ? "none" : DEFAULT_SLICE_MODE);
     setMixLeftSettings({ ...defaultCustomMixLeftSettings });
-  }, []);
+  }, [nameDisplayMode]);
 
   const resetRightSliceSettings = useCallback(() => {
-    setRightSliceMode(DEFAULT_SLICE_MODE);
+    setRightSliceMode(nameDisplayMode === "domain" ? "none" : DEFAULT_SLICE_MODE);
     setMixRightSettings({ ...defaultCustomMixRightSettings });
-  }, []);
+  }, [nameDisplayMode]);
 
   const resetSliceSettings = useCallback(() => {
     resetLeftSliceSettings();
