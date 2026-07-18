@@ -11,7 +11,6 @@ import {
   type SplitHistoryEntry,
   type WordCopyStatus,
   type WordResult,
-  emptyWordResult,
 } from "../lib/types";
 import { parseMixSideSettings, parseSideSettings, syncDiscoverUrlParams } from "../lib/url-params";
 import { pickRandomTag } from "../lib/tags";
@@ -39,9 +38,22 @@ type UseDiscoverOptions = {
   setMessage: (message: string) => void;
 };
 
-const DEFAULT_WORD_SYLLABLES = "3";
-const DEFAULT_DOMAIN_SYLLABLES = "2";
+const DEFAULT_SYLLABLES = "2";
 const DEFAULT_WORD_SYLLABLE_MODE: LengthMode = "less";
+const RESET_LEFT_WORD: WordResult = {
+  word: "spell",
+  definition: "Words or a formula supposed to have magical powers.",
+  partOfSpeech: "noun",
+  pronunciation: "spˈɛɫ",
+  syllables: 1,
+};
+const RESET_RIGHT_WORD: WordResult = {
+  word: "surf",
+  definition: "An instance or session of riding a surfboard in the surf.",
+  partOfSpeech: "noun",
+  pronunciation: "sˈɝf",
+  syllables: 1,
+};
 
 export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
@@ -52,7 +64,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [mixLeftSettings, setMixLeftSettings] = useState<MixSideSettings>(defaultCustomMixLeftSettings);
   const [mixRightSettings, setMixRightSettings] = useState<MixSideSettings>(defaultCustomMixRightSettings);
   const [wordCopyStatus, setWordCopyStatus] = useState<WordCopyStatus>("idle");
-  const [wordSyllables, setWordSyllables] = useState(DEFAULT_WORD_SYLLABLES);
+  const [wordSyllables, setWordSyllables] = useState(DEFAULT_SYLLABLES);
   const [wordSyllableMode, setWordSyllableMode] = useState<LengthMode>(DEFAULT_WORD_SYLLABLE_MODE);
   const [wordStartsWith, setWordStartsWith] = useState("");
   const [wordEndsWith, setWordEndsWith] = useState("");
@@ -60,7 +72,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [wordLengthMode, setWordLengthMode] = useState<LengthMode>("exact");
   const [wordRelatedTo, setWordRelatedTo] = useState("");
   const [secondaryWordType, setSecondaryWordType] = useState<PartOfSpeech>("any");
-  const [secondaryWordSyllables, setSecondaryWordSyllables] = useState(DEFAULT_WORD_SYLLABLES);
+  const [secondaryWordSyllables, setSecondaryWordSyllables] = useState(DEFAULT_SYLLABLES);
   const [secondaryWordSyllableMode, setSecondaryWordSyllableMode] = useState<LengthMode>(DEFAULT_WORD_SYLLABLE_MODE);
   const [secondaryWordStartsWith, setSecondaryWordStartsWith] = useState("");
   const [secondaryWordEndsWith, setSecondaryWordEndsWith] = useState("");
@@ -92,12 +104,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const settingsUrlSyncedRef = useRef(false);
 
   const setNameDisplayMode = useCallback((mode: NameDisplayMode) => {
-    const syllables = mode === "domain" ? DEFAULT_DOMAIN_SYLLABLES : DEFAULT_WORD_SYLLABLES;
-
     setNameDisplayModeState(mode);
-    setWordSyllables(syllables);
+    setWordSyllables(DEFAULT_SYLLABLES);
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
-    setSecondaryWordSyllables(syllables);
+    setSecondaryWordSyllables(DEFAULT_SYLLABLES);
     setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setLeftSliceMode(DEFAULT_SLICE_MODE);
     setRightSliceMode(DEFAULT_SLICE_MODE);
@@ -108,24 +118,24 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const resetPrimaryFilters = useCallback(() => {
     setWordRelatedTo("");
     setWordType("any");
-    setWordSyllables(nameDisplayMode === "domain" ? DEFAULT_DOMAIN_SYLLABLES : DEFAULT_WORD_SYLLABLES);
+    setWordSyllables(DEFAULT_SYLLABLES);
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setWordStartsWith("");
     setWordEndsWith("");
     setWordLetters("");
     setWordLengthMode("exact");
-  }, [nameDisplayMode]);
+  }, []);
 
   const resetSecondaryFilters = useCallback(() => {
     setSecondaryWordRelatedTo("");
     setSecondaryWordType("any");
-    setSecondaryWordSyllables(nameDisplayMode === "domain" ? DEFAULT_DOMAIN_SYLLABLES : DEFAULT_WORD_SYLLABLES);
+    setSecondaryWordSyllables(DEFAULT_SYLLABLES);
     setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordStartsWith("");
     setSecondaryWordEndsWith("");
     setSecondaryWordLetters("");
     setSecondaryWordLengthMode("exact");
-  }, [nameDisplayMode]);
+  }, []);
 
   const resetLeftSliceSettings = useCallback(() => {
     setLeftSliceMode(DEFAULT_SLICE_MODE);
@@ -157,15 +167,17 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, []);
 
   const resetPrimarySettings = useCallback(() => {
+    wordHistoryRef.current = [RESET_LEFT_WORD];
+    historyIndexRef.current = 0;
     setLeftWordDraft("");
     resetPrimaryFilters();
-    setResult(emptyWordResult);
+    setResult(RESET_LEFT_WORD);
   }, [resetPrimaryFilters]);
 
   const resetSecondarySettings = useCallback(() => {
     setRightWordDraft("");
     resetSecondaryFilters();
-    setSecondaryResult(emptyWordResult);
+    setSecondaryResult(RESET_RIGHT_WORD);
   }, [resetSecondaryFilters]);
 
   const resetAllDiscoverSettings = useCallback(() => {
@@ -180,10 +192,14 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     resetPrimaryFilters();
     resetSecondaryFilters();
     resetSliceSettings();
+    wordHistoryRef.current = [RESET_LEFT_WORD];
+    historyIndexRef.current = 0;
+    splitHistoryRef.current = [];
+    splitHistoryIndexRef.current = -1;
     setLeftWordDraft("");
     setRightWordDraft("");
-    setResult(emptyWordResult);
-    setSecondaryResult(emptyWordResult);
+    setResult(RESET_LEFT_WORD);
+    setSecondaryResult(RESET_RIGHT_WORD);
     setMessage("");
   }, [resetPrimaryFilters, resetSecondaryFilters, resetSliceSettings, setMessage]);
 
