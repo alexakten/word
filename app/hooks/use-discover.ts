@@ -39,6 +39,9 @@ type UseDiscoverOptions = {
   setMessage: (message: string) => void;
 };
 
+const DEFAULT_WORD_SYLLABLES = "3";
+const DEFAULT_WORD_SYLLABLE_MODE: LengthMode = "less";
+
 export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
   const [nameDisplayMode, setNameDisplayMode] = useState<NameDisplayMode>("word");
@@ -48,16 +51,16 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [mixLeftSettings, setMixLeftSettings] = useState<MixSideSettings>(defaultCustomMixLeftSettings);
   const [mixRightSettings, setMixRightSettings] = useState<MixSideSettings>(defaultCustomMixRightSettings);
   const [wordCopyStatus, setWordCopyStatus] = useState<WordCopyStatus>("idle");
-  const [wordSyllables, setWordSyllables] = useState("");
-  const [wordSyllableMode, setWordSyllableMode] = useState<LengthMode>("exact");
+  const [wordSyllables, setWordSyllables] = useState(DEFAULT_WORD_SYLLABLES);
+  const [wordSyllableMode, setWordSyllableMode] = useState<LengthMode>(DEFAULT_WORD_SYLLABLE_MODE);
   const [wordStartsWith, setWordStartsWith] = useState("");
   const [wordEndsWith, setWordEndsWith] = useState("");
   const [wordLetters, setWordLetters] = useState("");
   const [wordLengthMode, setWordLengthMode] = useState<LengthMode>("exact");
   const [wordRelatedTo, setWordRelatedTo] = useState("");
   const [secondaryWordType, setSecondaryWordType] = useState<PartOfSpeech>("any");
-  const [secondaryWordSyllables, setSecondaryWordSyllables] = useState("");
-  const [secondaryWordSyllableMode, setSecondaryWordSyllableMode] = useState<LengthMode>("exact");
+  const [secondaryWordSyllables, setSecondaryWordSyllables] = useState(DEFAULT_WORD_SYLLABLES);
+  const [secondaryWordSyllableMode, setSecondaryWordSyllableMode] = useState<LengthMode>(DEFAULT_WORD_SYLLABLE_MODE);
   const [secondaryWordStartsWith, setSecondaryWordStartsWith] = useState("");
   const [secondaryWordEndsWith, setSecondaryWordEndsWith] = useState("");
   const [secondaryWordLetters, setSecondaryWordLetters] = useState("");
@@ -90,8 +93,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const resetPrimaryFilters = useCallback(() => {
     setWordRelatedTo("");
     setWordType("any");
-    setWordSyllables("");
-    setWordSyllableMode("exact");
+    setWordSyllables(DEFAULT_WORD_SYLLABLES);
+    setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setWordStartsWith("");
     setWordEndsWith("");
     setWordLetters("");
@@ -101,8 +104,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const resetSecondaryFilters = useCallback(() => {
     setSecondaryWordRelatedTo("");
     setSecondaryWordType("any");
-    setSecondaryWordSyllables("");
-    setSecondaryWordSyllableMode("exact");
+    setSecondaryWordSyllables(DEFAULT_WORD_SYLLABLES);
+    setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordStartsWith("");
     setSecondaryWordEndsWith("");
     setSecondaryWordLetters("");
