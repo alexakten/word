@@ -1,5 +1,3 @@
-import { cardo } from "../../fonts";
-
 export function WordmarkLink({ className = "" }: { className?: string }) {
   return (
     <a className={["wordmark", className].filter(Boolean).join(" ")} href="#top" aria-label="Lexicon home">
@@ -7,10 +5,7 @@ export function WordmarkLink({ className = "" }: { className?: string }) {
         <span className="logo-cursor-shadow" />
         <span className="logo-cursor" />
       </span>
-      <span
-        className="wordmark-name"
-        style={{ fontFamily: cardo.style.fontFamily, fontSize: "22px", fontWeight: 400 }}
-      >
+      <span className="wordmark-name">
         spellsurf
       </span>
     </a>

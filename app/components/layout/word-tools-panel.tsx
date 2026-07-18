@@ -2,7 +2,6 @@
 
 import { Lock, RefreshCw, Unlock } from "lucide-react";
 import { advancedModeGroups, advancedModes } from "../../lib/constants";
-import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
 
 type WordToolsPanelProps = Pick<
@@ -211,7 +210,7 @@ export function WordToolsPanel(props: WordToolsPanelProps) {
                     selectAppMode("discover");
                   }}
                 >
-                  <span style={{ fontFamily: cardo.style.fontFamily }}>{word.word}</span>
+                  <span>{word.word}</span>
                   <small>{word.partOfSpeech}</small>
                 </button>
               </li>
@@ -340,7 +339,7 @@ export function WordToolsPanel(props: WordToolsPanelProps) {
                     </div>
                   ) : (
                     <div className="forge-candidate">
-                      <p style={{ fontFamily: cardo.style.fontFamily }}>{candidate.word}</p>
+                      <p>{candidate.word}</p>
                       {candidate.relation ? (
                         <small>
                           {candidate.relation === "exact"
@@ -372,7 +371,7 @@ export function WordToolsPanel(props: WordToolsPanelProps) {
           </div>
 
           <div className={`forge-preview${forgeReady ? " ready" : ""}${forgeRemixing ? " loading" : ""}`}>
-            <div className="forge-combined-word" style={{ fontFamily: cardo.style.fontFamily }}>
+            <div className="forge-combined-word">
               <button
                 key={forgedWord || "empty"}
                 type="button"

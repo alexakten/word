@@ -2,7 +2,6 @@
 
 import { X } from "lucide-react";
 import { createPortal } from "react-dom";
-import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
 import type { WordResult } from "../../lib/types";
 
@@ -33,7 +32,7 @@ function SavedWordsList({
             type="button"
             onClick={() => void loadSavedWord(saved)}
           >
-            <span style={{ fontFamily: cardo.style.fontFamily }}>{saved.word}</span>
+            <span>{saved.word}</span>
             <small>{saved.partOfSpeech}</small>
           </button>
           <button

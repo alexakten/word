@@ -14,9 +14,10 @@ import { WordLengthSetting } from "../discover/word-length-setting";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
+import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls } from "../ui/domain-mode-controls";
+import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
-import { cardo } from "../../fonts";
 import type { HomeState } from "../../hooks/use-home";
 import { parseTags } from "../../lib/tags";
 
@@ -323,13 +324,17 @@ export function DiscoverView(props: DiscoverViewProps) {
   return (
     <>
       <div className="discover-top-brand">
-        <DomainModeControls
-          className="top-domain-mode-controls"
-          displayMode={nameDisplayMode}
-          selectedTld={selectedTld}
-          onDisplayModeChange={setNameDisplayMode}
-          onTldChange={setSelectedTld}
-        />
+        <div className="style-toolbar">
+          <ColorwaySwitcher />
+          <DomainModeControls
+            className="top-domain-mode-controls"
+            displayMode={nameDisplayMode}
+            selectedTld={selectedTld}
+            onDisplayModeChange={setNameDisplayMode}
+            onTldChange={setSelectedTld}
+          />
+          <TypographyControls />
+        </div>
         {nameDisplayMode === "domain" && displayedDomain ? (
           <DomainAvailability className="top-domain-availability" domain={displayedDomain} />
         ) : null}
@@ -360,10 +365,7 @@ export function DiscoverView(props: DiscoverViewProps) {
           <div className="copyable-word-wrap split-copyable-word-wrap">
                 <WordCopyHint status={wordCopyStatus} />
                 <button
-                  className={[
-                    "split-combined-word copyable-word mix-combined-word",
-                    cardo.className,
-                  ].filter(Boolean).join(" ")}
+                  className="split-combined-word copyable-word mix-combined-word"
                   type="button"
                   disabled={!leftWordValue || !rightWordValue || loading || secondaryLoading || splitBatchLoading}
                   aria-label={`Copy ${displayedName}`}
@@ -404,7 +406,7 @@ export function DiscoverView(props: DiscoverViewProps) {
                     word={item.word.word}
                     settings={index === 0 ? effectiveMixLeftSettings : effectiveMixRightSettings}
                     syllableCount={item.word.syllables}
-                    className={cardo.className}
+                    className=""
                   />
                   <p className="split-eyebrow">
                     {index === 0 && item.pronunciation ? <><span className="pronunciation-inline">{item.pronunciation}</span><span>·</span></> : null}

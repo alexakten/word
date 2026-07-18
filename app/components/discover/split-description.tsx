@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { cardo } from "../../fonts";
 
 export function SplitDescription({ children }: { children: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -33,7 +32,6 @@ export function SplitDescription({ children }: { children: string }) {
         truncated ? "is-truncated" : "",
       ].filter(Boolean).join(" ")}
       type="button"
-      style={{ fontFamily: cardo.style.fontFamily }}
       aria-expanded={expanded}
       title={expanded ? "Collapse description" : "Show full description"}
       onClick={() => setExpanded((current) => !current)}

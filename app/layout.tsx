@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import favicon from "./favicon.png";
-import { inter } from "./fonts";
+import { inter, serif } from "./fonts";
 import "./globals.css";
 
 const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://spellsurf.com");
@@ -52,8 +52,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className={`${inter.className} min-h-full flex flex-col`}>
+    <html lang="en" data-colorway="light" className="h-full antialiased">
+      <body className={`${inter.className} ${serif.variable} min-h-full flex flex-col`}>
         {children}
         <Analytics />
       </body>

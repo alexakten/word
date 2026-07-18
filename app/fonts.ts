@@ -1,16 +1,27 @@
-import { Cardo, Host_Grotesk, Inter } from "next/font/google";
+import { Inter, Newsreader } from "next/font/google";
 
-export const cardo = Cardo({
+/*
+ * Cardo (previous serif) — switch back by restoring this and setting `serif = cardo`
+ * with `variable: "--font-serif"` (or point CSS at `--font-cardo`).
+ *
+ * import { Cardo } from "next/font/google";
+ * export const cardo = Cardo({
+ *   subsets: ["latin"],
+ *   weight: ["400", "700"],
+ *   display: "swap",
+ *   variable: "--font-serif",
+ * });
+ */
+
+export const newsreader = Newsreader({
   subsets: ["latin"],
   weight: ["400", "700"],
   display: "swap",
+  variable: "--font-serif",
 });
 
-export const hostGrotesk = Host_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
+/** Active serif face. */
+export const serif = newsreader;
 
 export const inter = Inter({
   subsets: ["latin"],
