@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@toolwind/corner-shape";
 
 :root {
   --ink: #1a1a1a;
@@ -18,8 +19,8 @@
   --workspace-gap: 1.25rem;
   --workspace-main-width: var(--content-width);
   --split-settings-width: 17rem;
-  --page-padding-x: 2.25rem;
-  --page-padding-y: 2rem;
+  --page-padding-x: 1.75rem;
+  --page-padding-y: 1.75rem;
 }
 
 @keyframes panel-enter {
@@ -121,6 +122,7 @@
   inset: 0;
   z-index: 44;
   border: 0;
+  border-radius: 0 !important;
   padding: 0;
   background: rgba(255, 255, 255, 0.1);
   cursor: pointer;
@@ -1384,13 +1386,8 @@ button {
   pointer-events: none;
 }
 
-.page-shell.discover-mode.mobile-layout.mobile-panel-open .split-word-stage {
-  z-index: 41;
-  pointer-events: auto;
-}
-
 .page-shell.mobile-layout.mobile-panel-open .mobile-panel-backdrop {
-  z-index: 40;
+  z-index: 42;
 }
 
 .split-settings-panel,
@@ -1400,7 +1397,8 @@ button {
   display: flex;
   flex-direction: column;
   padding: 1.3rem;
-  border-radius: 1.5rem !important;
+  border-radius: 60px !important;
+  corner-shape: squircle;
   background: #ffffff;
   box-shadow: none;
   overflow: hidden;
@@ -1411,22 +1409,24 @@ button {
 .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack {
   position: absolute;
   top: var(--page-padding-y);
+  bottom: var(--page-padding-y);
   z-index: 2;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: .65rem;
   width: var(--split-settings-width);
-  height: calc(100dvh - 2 * var(--page-padding-y));
-  max-height: calc(100dvh - 2 * var(--page-padding-y));
+  height: auto;
+  max-height: none;
   pointer-events: none;
 }
 
 .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.left {
-  left: 2.5rem;
+  left: var(--page-padding-x);
 }
 
 .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.right {
-  right: 2.5rem;
+  right: var(--page-padding-x);
 }
 
 .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-settings-panel,
@@ -1442,13 +1442,27 @@ button {
 }
 
 .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-settings-panel {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
+  top: auto;
+  bottom: auto;
+  height: max-content;
+  max-height: 100%;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-settings-panel.is-scrollable {
+  flex: 1 1 auto;
+  height: auto;
+  max-height: none;
 }
 
 .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .settings-panel-scroll {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
+}
+
+.page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .settings-panel-scroll.is-scrollable {
+  flex: 1 1 auto;
 }
 
 .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack .split-slice-panel {
@@ -1525,7 +1539,7 @@ button {
 .settings-panel-scroll {
   box-sizing: content-box;
   width: 100%;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   margin-right: -1.3rem;
   padding-right: 1.3rem;
@@ -1535,6 +1549,7 @@ button {
 }
 
 .settings-panel-scroll.is-scrollable {
+  flex: 1 1 auto;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #F6F5F4 transparent;
@@ -1572,11 +1587,11 @@ button {
 }
 
 .split-settings-panel.left {
-  left: 2.5rem;
+  left: var(--page-padding-x);
 }
 
 .split-settings-panel.right {
-  right: 2.5rem;
+  right: var(--page-padding-x);
 }
 
 .slice-settings-grid {
@@ -1632,6 +1647,10 @@ button {
 .slice-settings-side {
   min-width: 0;
   padding-right: 1.5rem;
+}
+
+.slice-settings-side .slice-side-title {
+  margin-bottom: .85rem;
 }
 
 .slice-settings-side+.slice-settings-side {
@@ -3079,23 +3098,23 @@ html:not([data-font-family="serif"]) .split-combined-word * {
 
 @media (max-width: 1050px) {
   .brand-group {
-    right: 1.5rem;
+    right: var(--page-padding-x);
   }
 
   .split-settings-panel.left {
-    left: 1.5rem;
+    left: var(--page-padding-x);
   }
 
   .split-settings-panel.right {
-    right: 1.5rem;
+    right: var(--page-padding-x);
   }
 
   .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.left {
-    left: 1.5rem;
+    left: var(--page-padding-x);
   }
 
   .page-shell.discover-mode:not(.mobile-layout) .split-sidebar-stack.right {
-    right: 1.5rem;
+    right: var(--page-padding-x);
   }
 
   .split-word-anchor {
@@ -3827,12 +3846,21 @@ kbd {
 
   .page-shell.discover-mode:not(.mobile-layout) .split-settings-panel.mobile-panel-active,
   .page-shell.discover-mode:not(.mobile-layout) .mobile-slice-panel.mobile-panel-active {
+    z-index: 43;
     visibility: visible;
     pointer-events: auto;
     transform: translate3d(0, 0, 0);
     transition:
       transform .2s cubic-bezier(.165, .84, .44, 1),
       visibility 0s;
+  }
+
+  .page-shell.discover-mode.mobile-panel-open .controls {
+    z-index: 44;
+  }
+
+  .page-shell.discover-mode.mobile-panel-open .mobile-panel-backdrop {
+    z-index: 42;
   }
 
   .page-shell.discover-mode .mobile-panel-close {
@@ -4052,12 +4080,17 @@ kbd {
 
 .page-shell.discover-mode.mobile-layout .split-settings-panel.mobile-panel-active,
 .page-shell.discover-mode.mobile-layout .mobile-slice-panel.mobile-panel-active {
+  z-index: 43;
   visibility: visible;
   pointer-events: auto;
   transform: translate3d(0, 0, 0);
   transition:
     transform .2s cubic-bezier(.165, .84, .44, 1),
     visibility 0s;
+}
+
+.page-shell.discover-mode.mobile-layout.mobile-panel-open .controls {
+  z-index: 44;
 }
 
 .page-shell.discover-mode.mobile-layout .split-slice-panel.left,
@@ -5161,11 +5194,9 @@ html[data-font-family="serif"] .split-definition {
   line-height: 1.38;
 }
 
-.page-shell button:not(.colorway-swatch):not(.split-definition),
+.page-shell button:not(.colorway-swatch):not(.split-definition):not(.modal-overlay),
 .page-shell input,
 .saved-modal,
-.split-settings-panel,
-.split-slice-panel,
 .advanced-panel,
 .about-drawer-content,
 .related-tags-control,
@@ -5179,7 +5210,7 @@ kbd {
   border-radius: 14px !important;
 }
 
-.page-shell button:not(.colorway-swatch):not(.split-definition) {
+.page-shell button:not(.colorway-swatch):not(.split-definition):not(.modal-overlay) {
   border-radius: 999px !important;
 }
 
@@ -5243,7 +5274,8 @@ kbd {
   --accent-ink: #ffffff;
   padding: 1.3rem;
   border: 0 !important;
-  border-radius: 1.5rem !important;
+  border-radius: 60px !important;
+  corner-shape: squircle;
   background: var(--sidebar) !important;
   box-shadow: none !important;
   color: var(--sidebar-ink);

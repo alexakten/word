@@ -85,7 +85,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
             aria-expanded={mobileDiscoverPanel === "left"}
             onClick={() => toggleMobileDiscoverPanel("left")}
           >
-            Left word
+            Left
             {leftSettingsCount > 0 ? (
               <span className="mobile-discover-toolbar-count" aria-label={`${leftSettingsCount} active filters`}>
                 {leftSettingsCount}
@@ -111,7 +111,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
             aria-expanded={mobileDiscoverPanel === "right"}
             onClick={() => toggleMobileDiscoverPanel("right")}
           >
-            Right word
+            Right
             {rightSettingsCount > 0 ? (
               <span className="mobile-discover-toolbar-count" aria-label={`${rightSettingsCount} active filters`}>
                 {rightSettingsCount}

@@ -343,7 +343,7 @@ export function DiscoverView(props: DiscoverViewProps) {
       <section className="split-word-stage" id="top" aria-live="polite">
         <div className="split-sidebar-stack left">
           <aside
-            className={["split-settings-panel left rounded-3xl", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+            className={["split-settings-panel left rounded-[60px] corner-squircle", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
             aria-label="Left word settings"
           >
             {leftSettingsContent}
@@ -444,7 +444,7 @@ export function DiscoverView(props: DiscoverViewProps) {
 
         <div className="split-sidebar-stack right">
           <aside
-            className={["split-settings-panel right rounded-3xl", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+            className={["split-settings-panel right rounded-[60px] corner-squircle", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
             aria-label="Right word settings"
           >
             {rightSettingsContent}

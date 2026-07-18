@@ -52,7 +52,7 @@ export function SliceSidePanel({ side, word, sliceMode, settings, syllables, onS
 
   return (
     <aside
-      className={`split-slice-panel ${side} rounded-3xl`}
+      className={`split-slice-panel ${side} rounded-[60px] corner-squircle`}
       aria-label={`${labelPrefix} slice settings`}
     >
       <SlicePanelHeader title={title} settingsApplied={settingsApplied} onReset={onReset} />
@@ -90,12 +90,12 @@ export function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSl
 }) {
   return (
     <aside
-      className={["split-slice-panel mobile-slice-panel rounded-3xl", mobileActive ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+      className={["split-slice-panel mobile-slice-panel rounded-[60px] corner-squircle", mobileActive ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
       aria-label="Slice settings"
       aria-hidden={onMobileClose ? !mobileActive : undefined}
     >
       <SlicePanelHeader
-        title="Slice words"
+        title="Slice left"
         settingsApplied={settingsApplied}
         onReset={onReset}
         onMobileClose={onMobileClose}
@@ -114,6 +114,9 @@ export function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSl
           />
         </div>
         <div className="slice-settings-side">
+          <div className="settings-panel-header slice-side-title">
+            <p>Slice right</p>
+          </div>
           <MixSideSetting
             labelPrefix="Right word"
             word={rightWord}
