@@ -1387,7 +1387,7 @@ button {
 }
 
 .page-shell.mobile-layout.mobile-panel-open .mobile-panel-backdrop {
-  z-index: 42;
+  z-index: 44;
 }
 
 .split-settings-panel,
@@ -3834,7 +3834,7 @@ kbd {
 
   .page-shell.discover-mode:not(.mobile-layout) .split-settings-panel.mobile-panel-active,
   .page-shell.discover-mode:not(.mobile-layout) .mobile-slice-panel.mobile-panel-active {
-    z-index: 43;
+    z-index: 45;
     visibility: visible;
     pointer-events: auto;
     transform: translate3d(0, 0, 0);
@@ -3844,11 +3844,11 @@ kbd {
   }
 
   .page-shell.discover-mode.mobile-panel-open .controls {
-    z-index: 44;
+    z-index: 46;
   }
 
   .page-shell.discover-mode.mobile-panel-open .mobile-panel-backdrop {
-    z-index: 42;
+    z-index: 44;
   }
 
   .page-shell.discover-mode .mobile-panel-close {
@@ -4068,7 +4068,7 @@ kbd {
 
 .page-shell.discover-mode.mobile-layout .split-settings-panel.mobile-panel-active,
 .page-shell.discover-mode.mobile-layout .mobile-slice-panel.mobile-panel-active {
-  z-index: 43;
+  z-index: 45;
   visibility: visible;
   pointer-events: auto;
   transform: translate3d(0, 0, 0);
@@ -4078,7 +4078,7 @@ kbd {
 }
 
 .page-shell.discover-mode.mobile-layout.mobile-panel-open .controls {
-  z-index: 44;
+  z-index: 46;
 }
 
 .page-shell.discover-mode.mobile-layout .split-slice-panel.left,

@@ -23,6 +23,7 @@ import { parseTags } from "../../lib/tags";
 
 export type DiscoverViewProps = Pick<
   HomeState,
+  | "isMobileLayout"
   | "mobileDiscoverPanel"
   | "closeMobileDiscoverPanel"
   | "leftSettingsApplied"
@@ -117,6 +118,7 @@ export type DiscoverViewProps = Pick<
 
 export function DiscoverView(props: DiscoverViewProps) {
   const {
+    isMobileLayout,
     mobileDiscoverPanel,
     closeMobileDiscoverPanel,
     leftSettingsApplied,
@@ -342,12 +344,14 @@ export function DiscoverView(props: DiscoverViewProps) {
       </div>
       <section className="split-word-stage" id="top" aria-live="polite">
         <div className="split-sidebar-stack left">
-          <aside
-            className={["split-settings-panel left rounded-[60px] corner-squircle", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
-            aria-label="Left word settings"
-          >
-            {leftSettingsContent}
-          </aside>
+          {isMobileLayout ? null : (
+            <aside
+              className="split-settings-panel left rounded-[60px] corner-squircle"
+              aria-label="Left word settings"
+            >
+              {leftSettingsContent}
+            </aside>
+          )}
           <SliceSidePanel
             side="left"
             word={leftWordValue}
@@ -423,32 +427,34 @@ export function DiscoverView(props: DiscoverViewProps) {
           </div>
         </div>
 
-        <SliceSettingsPanel
-          leftWord={leftWordValue}
-          rightWord={rightWordValue}
-          leftSliceMode={leftSliceMode}
-          rightSliceMode={rightSliceMode}
-          leftSettings={mixLeftSettings}
-          rightSettings={mixRightSettings}
-          leftSyllables={result.syllables}
-          rightSyllables={secondaryResult.syllables}
-          onLeftSliceModeChange={handleLeftSliceModeChange}
-          onRightSliceModeChange={handleRightSliceModeChange}
-          onLeftChange={setMixLeftSettings}
-          onRightChange={setMixRightSettings}
-          onReset={resetSliceSettings}
-          settingsApplied={sliceSettingsApplied}
-          mobileActive={mobileDiscoverPanel === "slice"}
-          onMobileClose={closeMobileDiscoverPanel}
-        />
+        {isMobileLayout ? null : (
+          <SliceSettingsPanel
+            leftWord={leftWordValue}
+            rightWord={rightWordValue}
+            leftSliceMode={leftSliceMode}
+            rightSliceMode={rightSliceMode}
+            leftSettings={mixLeftSettings}
+            rightSettings={mixRightSettings}
+            leftSyllables={result.syllables}
+            rightSyllables={secondaryResult.syllables}
+            onLeftSliceModeChange={handleLeftSliceModeChange}
+            onRightSliceModeChange={handleRightSliceModeChange}
+            onLeftChange={setMixLeftSettings}
+            onRightChange={setMixRightSettings}
+            onReset={resetSliceSettings}
+            settingsApplied={sliceSettingsApplied}
+          />
+        )}
 
         <div className="split-sidebar-stack right">
-          <aside
-            className={["split-settings-panel right rounded-[60px] corner-squircle", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
-            aria-label="Right word settings"
-          >
-            {rightSettingsContent}
-          </aside>
+          {isMobileLayout ? null : (
+            <aside
+              className="split-settings-panel right rounded-[60px] corner-squircle"
+              aria-label="Right word settings"
+            >
+              {rightSettingsContent}
+            </aside>
+          )}
           <SliceSidePanel
             side="right"
             word={rightWordValue}
@@ -462,6 +468,41 @@ export function DiscoverView(props: DiscoverViewProps) {
           />
         </div>
       </section>
+
+      {isMobileLayout ? (
+        <>
+          <aside
+            className={["split-settings-panel left rounded-[60px] corner-squircle", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+            aria-label="Left word settings"
+          >
+            {leftSettingsContent}
+          </aside>
+          <SliceSettingsPanel
+            leftWord={leftWordValue}
+            rightWord={rightWordValue}
+            leftSliceMode={leftSliceMode}
+            rightSliceMode={rightSliceMode}
+            leftSettings={mixLeftSettings}
+            rightSettings={mixRightSettings}
+            leftSyllables={result.syllables}
+            rightSyllables={secondaryResult.syllables}
+            onLeftSliceModeChange={handleLeftSliceModeChange}
+            onRightSliceModeChange={handleRightSliceModeChange}
+            onLeftChange={setMixLeftSettings}
+            onRightChange={setMixRightSettings}
+            onReset={resetSliceSettings}
+            settingsApplied={sliceSettingsApplied}
+            mobileActive={mobileDiscoverPanel === "slice"}
+            onMobileClose={closeMobileDiscoverPanel}
+          />
+          <aside
+            className={["split-settings-panel right rounded-[60px] corner-squircle", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+            aria-label="Right word settings"
+          >
+            {rightSettingsContent}
+          </aside>
+        </>
+      ) : null}
 
       <div className="mobile-bottom-bar">
         {nameDisplayMode === "domain" && displayedDomain ? (
