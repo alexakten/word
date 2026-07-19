@@ -535,18 +535,31 @@ export function DiscoverView(props: DiscoverViewProps) {
               className="mobile-generate-button mobile-side-generate-button"
               type="button"
               aria-label="Generate left word"
-              onClick={() => void findWord()}
+              onClick={() => {
+                sounds.tick();
+                void findWord();
+              }}
             >
               <ArrowLeft size={20} strokeWidth={2} aria-hidden="true" />
             </button>
-            <button className="mobile-generate-button" type="button" onClick={() => generateVisibleWords()}>
+            <button
+              className="mobile-generate-button"
+              type="button"
+              onClick={() => {
+                sounds.tick();
+                generateVisibleWords();
+              }}
+            >
               Generate
             </button>
             <button
               className="mobile-generate-button mobile-side-generate-button"
               type="button"
               aria-label="Generate right word"
-              onClick={() => void findSecondaryWord()}
+              onClick={() => {
+                sounds.tick();
+                void findSecondaryWord();
+              }}
             >
               <ArrowRight size={20} strokeWidth={2} aria-hidden="true" />
             </button>

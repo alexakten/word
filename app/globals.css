@@ -5496,14 +5496,23 @@ html[data-layout="mobile"] .page-shell .mobile-generate-button {
   fill: #1a1a1a;
 }
 
-/* Trigger sits on the colored page; menu sits on a light surface */
-.tld-dropdown-trigger,
-.tld-dropdown-trigger span {
+/* Colored themes: white trigger label. Light theme: muted gray like Word/Domain. */
+html:not([data-colorway="light"]) .tld-dropdown-trigger,
+html:not([data-colorway="light"]) .tld-dropdown-trigger span {
   color: #fff !important;
 }
 
-.tld-dropdown-trigger svg {
+html:not([data-colorway="light"]) .tld-dropdown-trigger svg {
   color: rgba(255, 255, 255, .78) !important;
+}
+
+html[data-colorway="light"] .tld-dropdown-trigger,
+html[data-colorway="light"] .tld-dropdown-trigger span {
+  color: var(--muted) !important;
+}
+
+html[data-colorway="light"] .tld-dropdown-trigger svg {
+  color: var(--muted) !important;
 }
 
 .tld-dropdown-menu,
