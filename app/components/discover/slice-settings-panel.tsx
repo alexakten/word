@@ -56,7 +56,7 @@ export function SliceSidePanel({ side, word, sliceMode, settings, syllables, onS
 
   return (
     <aside
-      className={`split-slice-panel ${side} rounded-[60px]`} /* corner-squircle */
+      className={`split-slice-panel ${side} rounded-[32px]`} /* corner-squircle */
       aria-label={`${labelPrefix} slice settings`}
     >
       <SlicePanelHeader title={title} settingsApplied={settingsApplied} onReset={onReset} />
@@ -94,7 +94,7 @@ export function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSl
 }) {
   return (
     <aside
-      className={["split-slice-panel mobile-slice-panel rounded-[60px]", /* "corner-squircle", */ mobileActive ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+      className={["split-slice-panel mobile-slice-panel rounded-[32px]", /* "corner-squircle", */ mobileActive ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
       aria-label="Slice settings"
       aria-hidden={onMobileClose ? !mobileActive : undefined}
     >
