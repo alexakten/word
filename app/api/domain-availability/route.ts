@@ -9,6 +9,13 @@ import {
 type AvailabilityStatus = "available" | "registered" | "unknown";
 type AvailabilitySource = "godaddy" | "rdap";
 
+type AlternativeAvailability = {
+  domain: string;
+  tld: string;
+  status: AvailabilityStatus;
+  priceLabel?: string;
+};
+
 type AvailabilityResult = {
   domain: string;
   status: AvailabilityStatus;
@@ -17,7 +24,10 @@ type AvailabilityResult = {
   message?: string;
   definitive?: boolean;
   priceLabel?: string;
+  alternatives?: AlternativeAvailability[];
 };
+
+const ALTERNATE_TLDS = [".co", ".app", ".ai"] as const;
 
 type BootstrapRegistry = {
   services: [string[], string[]][];
@@ -244,6 +254,34 @@ async function resolveAvailability(domain: string): Promise<AvailabilityResult> 
   return rdapResult;
 }
 
+async function checkAlternateTlds(comDomain: string): Promise<AlternativeAvailability[]> {
+  const sld = comDomain.slice(0, -".com".length);
+  if (!sld) return [];
+
+  const results = await Promise.all(
+    ALTERNATE_TLDS.map(async (tld) => {
+      const altDomain = `${sld}${tld}`;
+      const cached = resultCache.get(altDomain);
+      const alt = cached && cached.expiresAt > Date.now()
+        ? cached.result
+        : await resolveAvailability(altDomain);
+
+      if (!cached || cached.expiresAt <= Date.now()) {
+        resultCache.set(altDomain, { result: alt, expiresAt: Date.now() + RESULT_TTL_MS });
+      }
+
+      return {
+        domain: alt.domain || altDomain,
+        tld,
+        status: alt.status,
+        priceLabel: alt.priceLabel,
+      };
+    }),
+  );
+
+  return results.filter((entry) => entry.status === "available");
+}
+
 async function checkAvailability(domain: string) {
   const cached = resultCache.get(domain);
   if (cached && cached.expiresAt > Date.now()) return cached.result;
@@ -252,7 +290,16 @@ async function checkAvailability(domain: string) {
   if (existing) return existing;
 
   const request = resolveAvailability(domain)
-    .then((result) => {
+    .then(async (result) => {
+      if (result.status === "registered" && result.domain.endsWith(".com")) {
+        const alternatives = await checkAlternateTlds(result.domain);
+        const withAlternatives = alternatives.length > 0
+          ? { ...result, alternatives }
+          : result;
+        resultCache.set(domain, { result: withAlternatives, expiresAt: Date.now() + RESULT_TTL_MS });
+        return withAlternatives;
+      }
+
       resultCache.set(domain, { result, expiresAt: Date.now() + RESULT_TTL_MS });
       return result;
     })

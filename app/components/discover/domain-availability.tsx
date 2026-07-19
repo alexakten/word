@@ -1,16 +1,24 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import { Check, LoaderCircle, RefreshCw } from "lucide-react";
+import { Check, LoaderCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { sounds } from "../../lib/sounds";
 import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
+
+type AlternativeAvailability = {
+  domain: string;
+  tld: string;
+  status: "available" | "registered" | "unknown";
+  priceLabel?: string;
+};
 
 type AvailabilityResult = {
   domain: string;
   status: "available" | "registered" | "unknown";
   message?: string;
   priceLabel?: string;
+  alternatives?: AlternativeAvailability[];
 };
 
 const registrarLinks = [
@@ -31,12 +39,16 @@ const registrarLinks = [
 export function DomainAvailability({ domain, className = "" }: { domain: string; className?: string }) {
   const [result, setResult] = useState<AvailabilityResult | null>(null);
   const [loadingDomain, setLoadingDomain] = useState("");
+  const [shake, setShake] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => requestRef.current?.abort(), []);
 
   const currentResult = result?.domain === domain ? result : null;
   const loading = loadingDomain === domain;
+  const availableAlternatives = currentResult?.status === "registered"
+    ? currentResult.alternatives?.filter((entry) => entry.status === "available") ?? []
+    : [];
 
   const checkAvailability = async () => {
     if (!domain || loading) return;
@@ -44,6 +56,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
     const controller = new AbortController();
     requestRef.current = controller;
     setLoadingDomain(domain);
+    setShake(false);
 
     try {
       const response = await fetch(`/api/domain-availability?domain=${encodeURIComponent(domain)}`, {
@@ -58,10 +71,15 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
           status: "unknown",
           message: payload.error || "Availability could not be checked.",
         });
+        setShake(true);
         return;
       }
       setResult(payload);
-      if (payload.status === "available") sounds.success();
+      if (payload.status === "available") {
+        sounds.success();
+      } else if (payload.status === "registered") {
+        setShake(true);
+      }
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         setResult({
@@ -69,6 +87,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
           status: "unknown",
           message: "Availability could not be checked.",
         });
+        setShake(true);
       }
     } finally {
       if (requestRef.current === controller) setLoadingDomain("");
@@ -80,7 +99,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
     : currentResult?.status === "available"
       ? `${domain} available!`
       : currentResult?.status === "registered"
-        ? `${domain} is registered`
+        ? `${domain} is taken`
         : currentResult?.status === "unknown"
           ? `Check availability of ${domain} on a registrar`
           : "Check availability";
@@ -88,16 +107,39 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
   const resultMessage = currentResult?.message?.startsWith("No public RDAP service")
     ? undefined
     : currentResult?.message;
+  const hasAvailableAlternatives = availableAlternatives.length > 0;
   const registrarHelperText = currentResult?.status === "available"
     ? currentResult.priceLabel
       ? `About ${currentResult.priceLabel} — confirm and buy on registrar`
       : "Confirm availability and buy on registrar"
     : currentResult?.status === "registered"
-      ? "Other TLDs might be available"
+      ? hasAvailableAlternatives
+        ? "Explore other free domains on registrars."
+        : "Other TLDs might be available"
       : "Check availability on registrar";
 
-  const popover = currentResult && (resultMessage || showRegistrarLinks) ? (
+  const popover = currentResult && (resultMessage || showRegistrarLinks || hasAvailableAlternatives) ? (
     <div className="domain-availability-popover">
+      {hasAvailableAlternatives ? (
+        <ul className="domain-alt-tlds" aria-label="Available alternate domains">
+          {availableAlternatives.map((entry) => (
+            <li key={entry.domain}>
+              <a
+                href={registrarLinks[0].href(entry.domain)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="domain-alt-tld"
+                onClick={() => track("Alternate TLD Clicked", { domain: entry.domain, tld: entry.tld })}
+              >
+                <span className="domain-alt-tld-check" aria-hidden="true">
+                  <Check size={9} strokeWidth={2.6} />
+                </span>
+                <span>{entry.domain}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {showRegistrarLinks ? (
         <div className="domain-registrar-links" aria-label={`Search for ${domain} at registrars`}>
           {registrarLinks.map((registrar) => (
@@ -120,7 +162,9 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
           ))}
         </div>
       ) : null}
-      <span className="domain-availability-note">{registrarHelperText}</span>
+      {registrarHelperText ? (
+        <span className="domain-availability-note">{registrarHelperText}</span>
+      ) : null}
       {resultMessage ? <span className="domain-availability-message">{resultMessage}</span> : null}
     </div>
   ) : null;
@@ -129,10 +173,13 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
     <div className={["domain-availability", className, currentResult ? `is-${currentResult.status}` : ""].filter(Boolean).join(" ")}>
       <div className="domain-availability-anchor">
         <button
-          className="domain-availability-trigger"
+          className={["domain-availability-trigger", shake ? "is-error-shake" : ""].filter(Boolean).join(" ")}
           type="button"
           disabled={!domain || loading}
           onClick={() => void checkAvailability()}
+          onAnimationEnd={(event) => {
+            if (event.animationName === "domain-availability-shake") setShake(false);
+          }}
         >
           {loading ? (
             <LoaderCircle className="domain-availability-spinner" size={11} strokeWidth={1.6} aria-hidden="true" />
@@ -141,7 +188,9 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
               <Check size={10} strokeWidth={2.4} />
             </span>
           ) : currentResult ? (
-            <RefreshCw size={10} strokeWidth={1.6} aria-hidden="true" />
+            <span className="domain-availability-check" aria-hidden="true">
+              <X size={9} strokeWidth={2.4} />
+            </span>
           ) : null}
           <span>{statusLabel}</span>
         </button>

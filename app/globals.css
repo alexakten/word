@@ -2856,12 +2856,12 @@ html:not([data-font-family="serif"]) .split-combined-word * {
 }
 
 .domain-availability-trigger:disabled {
-  cursor: wait;
+  cursor: default;
 }
 
 .domain-availability.is-available .domain-availability-trigger,
 .domain-availability.is-registered .domain-availability-trigger {
-  color: var(--muted);
+  color: var(--ink);
 }
 
 .domain-availability-check {
@@ -2874,7 +2874,11 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   border-radius: 999px;
   background: rgba(255, 255, 255, .28);
   box-shadow: none;
-  color: #fff;
+  color: var(--ink);
+}
+
+html[data-colorway="light"] .domain-availability-check {
+  background: rgba(63, 63, 63, .12);
 }
 
 .domain-availability-spinner {
@@ -2906,6 +2910,54 @@ html:not([data-font-family="serif"]) .split-combined-word * {
 
 .discover-top-brand .domain-availability:has(.domain-availability-popover) {
   margin-bottom: 4.5rem;
+}
+
+.discover-top-brand .domain-availability:has(.domain-alt-tlds) {
+  margin-bottom: 6.5rem;
+}
+
+.domain-alt-tlds {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+  list-style: none;
+}
+
+.domain-alt-tld {
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
+  border-radius: 999px;
+  padding: .28rem .55rem .28rem .35rem;
+  background: transparent;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.domain-alt-tld:hover,
+.domain-alt-tld:focus-visible {
+  outline: none;
+}
+
+.domain-alt-tld-check {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .domain-registrar-links {
@@ -2962,6 +3014,33 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes domain-availability-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-3px);
+  }
+
+  40% {
+    transform: translateX(3px);
+  }
+
+  60% {
+    transform: translateX(-2px);
+  }
+
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.domain-availability-trigger.is-error-shake {
+  animation: domain-availability-shake .38s ease;
 }
 
 .domain-tld {
@@ -4471,8 +4550,20 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability
   transform: none !important;
 }
 
+/* Popover opens upward: text, registrars, then alternate domains nearest the button. */
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-note,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-message,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-note,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-message {
+  order: 1;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-registrar-links,
 .page-shell.discover-mode .mobile-domain-availability-row .domain-registrar-links {
+  order: 2;
   display: flex;
   width: auto;
   max-width: 100%;
@@ -4482,13 +4573,9 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability
   margin-inline: auto;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-note,
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-message,
-.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-note,
-.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-message {
-  display: block;
-  width: 100%;
-  text-align: center;
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-alt-tlds,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-alt-tlds {
+  order: 3;
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown-menu,
