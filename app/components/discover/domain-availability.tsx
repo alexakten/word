@@ -93,6 +93,35 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       ? "Other TLDs might be available"
       : "Check availability on registrar";
 
+  const popover = currentResult && (resultMessage || showRegistrarLinks) ? (
+    <div className="domain-availability-popover">
+      {showRegistrarLinks ? (
+        <div className="domain-registrar-links" aria-label={`Search for ${domain} at registrars`}>
+          {registrarLinks.map((registrar) => (
+            <a
+              href={registrar.href(domain)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Search for ${domain} on ${registrar.name}`}
+              key={registrar.name}
+              onClick={() => track(`${registrar.name} Clicked`, { domain })}
+            >
+              {registrar.name === "GoDaddy" ? (
+                <GoDaddyLogo />
+              ) : registrar.name === "Namecheap" ? (
+                <NamecheapLogo />
+              ) : (
+                <PorkbunLogo />
+              )}
+            </a>
+          ))}
+        </div>
+      ) : null}
+      <span className="domain-availability-note">{registrarHelperText}</span>
+      {resultMessage ? <span className="domain-availability-message">{resultMessage}</span> : null}
+    </div>
+  ) : null;
+
   return (
     <div className={["domain-availability", className, currentResult ? `is-${currentResult.status}` : ""].filter(Boolean).join(" ")}>
       <div className="domain-availability-anchor">
@@ -113,35 +142,8 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
           ) : null}
           <span>{statusLabel}</span>
         </button>
-        {currentResult && (resultMessage || showRegistrarLinks) ? (
-          <div className="domain-availability-popover">
-            {showRegistrarLinks ? (
-              <div className="domain-registrar-links" aria-label={`Search for ${domain} at registrars`}>
-                {registrarLinks.map((registrar) => (
-                  <a
-                    href={registrar.href(domain)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Search for ${domain} on ${registrar.name}`}
-                    key={registrar.name}
-                    onClick={() => track(`${registrar.name} Clicked`, { domain })}
-                  >
-                    {registrar.name === "GoDaddy" ? (
-                      <GoDaddyLogo />
-                    ) : registrar.name === "Namecheap" ? (
-                      <NamecheapLogo />
-                    ) : (
-                      <PorkbunLogo />
-                    )}
-                  </a>
-                ))}
-              </div>
-            ) : null}
-            <span className="domain-availability-note">{registrarHelperText}</span>
-            {resultMessage ? <span className="domain-availability-message">{resultMessage}</span> : null}
-          </div>
-        ) : null}
       </div>
+      {popover}
     </div>
   );
 }

@@ -4409,7 +4409,9 @@ html[data-colorway="light"] .compact-save-word-button.liked:hover {
   opacity: .35;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row {
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row,
+.page-shell.discover-mode .mobile-domain-availability-row {
+  position: relative;
   display: flex;
   width: 100%;
   align-items: center;
@@ -4417,7 +4419,9 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability
   gap: .45rem;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .mobile-domain-availability {
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .mobile-domain-availability,
+.page-shell.discover-mode .mobile-domain-availability-row .mobile-domain-availability {
+  position: static;
   flex: 1 1 auto;
   width: auto;
   min-width: 0;
@@ -4425,27 +4429,63 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability
   align-items: stretch;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .domain-availability-anchor {
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .domain-availability-anchor,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-anchor {
+  position: static;
   display: flex;
   width: 100%;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .domain-availability-trigger {
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .domain-availability-trigger,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-trigger {
   width: 100%;
   font-size: 12px;
   letter-spacing: .01em;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown {
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown,
+.page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown {
   flex: none;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-popover {
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-popover,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-popover {
   top: auto;
+  right: 0;
   bottom: calc(100% + .65rem);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  width: 100% !important;
+  max-width: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transform: none !important;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown-menu {
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-registrar-links,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-registrar-links {
+  display: flex;
+  width: auto;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-note,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-message,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-note,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-message {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown-menu,
+.page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown-menu {
   top: auto;
   bottom: calc(100% + .4rem);
 }
