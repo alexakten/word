@@ -4973,17 +4973,17 @@ html[data-colorway="purple"] {
 
 html[data-colorway="light"] {
   --paper: #f9fafc;
-  --ink: #1a1a1a;
-  --muted: #787878;
-  --faint: #a8a8a8;
-  --line: #1a1a1a;
+  --ink: #3f3f3f;
+  --muted: #8a8a8a;
+  --faint: #b0b0b0;
+  --line: #3f3f3f;
   --surface: #ffffff;
   --soft-surface: #f1f2f4;
   --accent: #3b82f5;
   --accent-ink: #ffffff;
-  --hero-ink: #1a1a1a;
+  --hero-ink: #3f3f3f;
   --sidebar: #ffffff;
-  --sidebar-ink: #1a1a1a;
+  --sidebar-ink: #3f3f3f;
 }
 
 html[data-colorway="brown"] {
@@ -5553,7 +5553,7 @@ html[data-colorway="light"] .mobile-discover-toolbar-button:hover,
 html[data-colorway="light"] .mobile-discover-toolbar-button.active,
 html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings:hover,
 html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings.active {
-  color: #1a1a1a !important;
+  color: #3f3f3f !important;
 }
 
 .word-type-tab-list-overlay button {
