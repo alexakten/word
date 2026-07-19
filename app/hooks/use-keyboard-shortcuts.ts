@@ -58,8 +58,32 @@ export function useKeyboardShortcuts({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (focusMode) {
         event.preventDefault();
-        if (event.code === "Space" || event.key === "Enter") generateVisibleWords();
-        else setFocusMode(false);
+        if (event.code === "Space" || event.key === "Enter") {
+          sounds.tick();
+          generateVisibleWords();
+          return;
+        }
+        if (event.key === "ArrowLeft") {
+          sounds.tick();
+          void findWord();
+          return;
+        }
+        if (event.key === "ArrowRight") {
+          sounds.tick();
+          void findSecondaryWord();
+          return;
+        }
+        if (event.key === "ArrowUp") {
+          sounds.tick();
+          moveThroughSplitHistory(-1);
+          return;
+        }
+        if (event.key === "ArrowDown") {
+          sounds.tick();
+          moveThroughSplitHistory(1);
+          return;
+        }
+        setFocusMode(false);
         return;
       }
       if (event.key === "Escape" && mobileDiscoverPanel) {
