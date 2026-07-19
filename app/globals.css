@@ -3062,8 +3062,21 @@ html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
   animation: domain-availability-shake .38s ease;
 }
 
-.domain-tld {
+.domain-tld,
+.handle-at {
   color: var(--ink);
+}
+
+.handle-at {
+  margin-right: .02em;
+}
+
+.discover-top-brand .handle-availability:has(.handle-availability-popover) {
+  margin-bottom: 5.5rem;
+}
+
+.handle-platform-list {
+  gap: .3rem;
 }
 
 .single-copyable-word-wrap .word-copy-hint {
@@ -3386,13 +3399,13 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .controls {
 }
 
 .domain-mode-toggle {
-  width: 128px;
+  width: 196px;
   height: calc(20px + .7rem);
 }
 
 .domain-mode-toggle .word-type-tab-list button,
 .domain-mode-toggle .word-type-tab-list-overlay button {
-  padding: 0 .55rem;
+  padding: 0 .45rem;
 }
 
 .tld-dropdown-slot {
@@ -5866,7 +5879,8 @@ html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings.active 
 .word-anchor h1,
 .word-anchor .definition,
 .word-anchor .eyebrow,
-.domain-tld {
+.domain-tld,
+.handle-at {
   color: var(--hero-ink);
 }
 

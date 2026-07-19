@@ -3,6 +3,7 @@
 import { ArrowLeft, ArrowRight, Heart, RefreshCw, X } from "lucide-react";
 import { AffixSettings } from "../discover/affix-settings";
 import { DomainAvailability } from "../discover/domain-availability";
+import { HandleAvailability } from "../discover/handle-availability";
 import { MixSourceWord } from "../discover/mix-source-word";
 import { RelatedToSetting, TagEntrySetting } from "../discover/related-to-setting";
 import { SliceSettingsPanel, SliceSidePanel } from "../discover/slice-settings-panel";
@@ -76,6 +77,7 @@ export type DiscoverViewProps = Pick<
   | "rightWordValue"
   | "displayedCombinedWord"
   | "displayedDomain"
+  | "displayedHandleBase"
   | "displayedName"
   | "nameDisplayMode"
   | "setNameDisplayMode"
@@ -172,6 +174,7 @@ export function DiscoverView(props: DiscoverViewProps) {
     rightWordValue,
     displayedCombinedWord,
     displayedDomain,
+    displayedHandleBase,
     displayedName,
     nameDisplayMode,
     setNameDisplayMode,
@@ -357,6 +360,9 @@ export function DiscoverView(props: DiscoverViewProps) {
         {nameDisplayMode === "domain" && displayedDomain ? (
           <DomainAvailability className="top-domain-availability" domain={displayedDomain} />
         ) : null}
+        {nameDisplayMode === "handle" && displayedHandleBase ? (
+          <HandleAvailability className="top-domain-availability" handle={displayedHandleBase} />
+        ) : null}
         <ApiHealthStatus health={apiHealth} />
       </div>
       <section className="split-word-stage" id="top" aria-live="polite">
@@ -393,6 +399,9 @@ export function DiscoverView(props: DiscoverViewProps) {
                     if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
                   }}
                 >
+                  {nameDisplayMode === "handle" && displayedCombinedWord ? (
+                    <span className="handle-at" aria-hidden="true">@</span>
+                  ) : null}
                   <span
                     className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
                     key={`mix-left-${mixedWordParts.leftChunk}`}
@@ -503,6 +512,11 @@ export function DiscoverView(props: DiscoverViewProps) {
               <DomainAvailability className="mobile-domain-availability" domain={displayedDomain} />
             ) : null}
             <TldDropdown value={selectedTld} onChange={setSelectedTld} />
+          </div>
+        ) : null}
+        {nameDisplayMode === "handle" && displayedHandleBase ? (
+          <div className="mobile-domain-availability-row">
+            <HandleAvailability className="mobile-domain-availability" handle={displayedHandleBase} />
           </div>
         ) : null}
         <div className="mobile-bottom-meta-row">

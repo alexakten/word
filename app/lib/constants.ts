@@ -11,6 +11,7 @@ export const MAX_LENGTH_FILTER = 22;
 export const NAME_DISPLAY_MODE_OPTIONS: { value: NameDisplayMode; label: string }[] = [
   { value: "word", label: "Word" },
   { value: "domain", label: "Domain" },
+  { value: "handle", label: "Handle" },
 ];
 
 /** Shown first in the TLD picker (fixed order). */

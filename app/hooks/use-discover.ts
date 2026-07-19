@@ -232,10 +232,18 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     [effectiveMixLeftSettings, effectiveMixRightSettings, leftWordValue, rightWordValue, result.syllables, secondaryResult.syllables],
   );
   const displayedCombinedWord = mixedWordParts.mixed;
-  const displayedDomain = displayedCombinedWord
-    ? `${displayedCombinedWord.replace(/\s+/g, "").toLowerCase()}${selectedTld}`
+  const displayedHandleBase = displayedCombinedWord
+    ? displayedCombinedWord.replace(/\s+/g, "").toLowerCase()
     : "";
-  const displayedName = nameDisplayMode === "domain" ? displayedDomain : displayedCombinedWord;
+  const displayedDomain = displayedHandleBase
+    ? `${displayedHandleBase}${selectedTld}`
+    : "";
+  const displayedHandle = displayedHandleBase ? `@${displayedHandleBase}` : "";
+  const displayedName = nameDisplayMode === "domain"
+    ? displayedDomain
+    : nameDisplayMode === "handle"
+      ? displayedHandle
+      : displayedCombinedWord;
   const combinedSplitIsSaved = Boolean(displayedCombinedWord)
     && savedWords.some((item) => item.word.toLowerCase() === displayedCombinedWord);
 
@@ -778,6 +786,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     mixedWordParts,
     displayedCombinedWord,
     displayedDomain,
+    displayedHandle,
+    displayedHandleBase,
     displayedName,
     combinedSplitIsSaved,
     toggleCombinedSaved,
