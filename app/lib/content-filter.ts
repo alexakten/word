@@ -6,6 +6,9 @@
  * BLOCKED_SUBSTRINGS only for terms that should never appear inside a word.
  */
 
+/** Flip to compare filter cost. Filtering code stays; this only skips the check. */
+export const CONTENT_FILTER_ENABLED = false;
+
 const BLOCKED_EXACT = new Set([
   // Vulgar
   "anal",
@@ -173,6 +176,7 @@ function normalizeWord(word: string) {
 
 /** True if the word is on the blocklist (exact or hard substring). */
 export function isBlockedWord(word: string) {
+  if (!CONTENT_FILTER_ENABLED) return false;
   const key = normalizeWord(word);
   if (!key) return false;
   if (BLOCKED_EXACT.has(key)) return true;
@@ -180,5 +184,6 @@ export function isBlockedWord(word: string) {
 }
 
 export function isAllowedWord(word: string) {
+  if (!CONTENT_FILTER_ENABLED) return true;
   return !isBlockedWord(word);
 }
