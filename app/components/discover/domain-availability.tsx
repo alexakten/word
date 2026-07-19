@@ -1,7 +1,7 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import { Check, CircleQuestionMark, LoaderCircle, X } from "lucide-react";
+import { Check, LoaderCircle, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { sounds } from "../../lib/sounds";
 import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
@@ -136,7 +136,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
                 {isAvailable ? (
                   <Check size={9} strokeWidth={2.6} />
                 ) : isUnknown ? (
-                  <CircleQuestionMark size={9} strokeWidth={2.4} />
+                  <Search size={9} strokeWidth={2.4} />
                 ) : (
                   <X size={8} strokeWidth={2.6} />
                 )}
@@ -222,7 +222,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
             </span>
           ) : currentResult ? (
             <span className="domain-availability-check" aria-hidden="true">
-              <CircleQuestionMark size={10} strokeWidth={2.2} />
+              <Search size={10} strokeWidth={2.2} />
             </span>
           ) : null}
           <span>{statusLabel}</span>

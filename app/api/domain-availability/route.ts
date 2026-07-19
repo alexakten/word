@@ -267,24 +267,16 @@ async function resolveAvailability(domain: string): Promise<AvailabilityResult> 
     return godaddyResult;
   }
 
+  // GoDaddy couldn't confirm — try public RDAP before giving up.
   const rdapResult = await queryRdap(domain);
-  if (rdapResult.status === "available") return rdapResult;
-
-  // If GoDaddy couldn't evaluate the name, don't trust RDAP "registered"
-  // (common for brand / unsupported TLDs that aren't actually "taken").
-  if (godaddyResult?.status === "unknown") {
-    return {
-      ...godaddyResult,
-      message: CANNOT_FIND_MESSAGE,
-    };
+  if (rdapResult.status === "available" || rdapResult.status === "registered") {
+    return rdapResult;
   }
-
-  if (rdapResult.status === "registered") return rdapResult;
 
   return {
     domain,
     status: "unknown",
-    source: rdapResult.source,
+    source: godaddyResult?.source ?? rdapResult.source,
     checkedAt: rdapResult.checkedAt,
     message: CANNOT_FIND_MESSAGE,
   };
