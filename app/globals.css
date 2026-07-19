@@ -2720,12 +2720,6 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   text-align: right;
 }
 
-/* Chrome clips line-clamp ellipsis on right-aligned text; reserve room for "…". */
-.split-definitions article:first-child .split-definition:not(.expanded) {
-  box-sizing: border-box;
-  padding-right: 1em;
-}
-
 .split-definitions article:last-child .split-source-word,
 .split-definitions article:last-child .split-eyebrow,
 .split-definitions article:last-child .split-definition {
