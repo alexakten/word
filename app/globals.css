@@ -3821,13 +3821,14 @@ kbd {
     display: flex;
     width: var(--mobile-column-width);
     max-height: none;
-    opacity: 1;
+    opacity: 0;
     filter: none;
     visibility: hidden;
     pointer-events: none;
     will-change: transform;
     transition:
       transform .2s cubic-bezier(.165, .84, .44, 1),
+      opacity 0s linear .2s,
       visibility 0s linear .2s;
   }
 
@@ -3846,11 +3847,13 @@ kbd {
   .page-shell.discover-mode:not(.mobile-layout) .split-settings-panel.mobile-panel-active,
   .page-shell.discover-mode:not(.mobile-layout) .mobile-slice-panel.mobile-panel-active {
     z-index: 45;
+    opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: translate3d(0, 0, 0);
     transition:
       transform .2s cubic-bezier(.165, .84, .44, 1),
+      opacity 0s,
       visibility 0s;
   }
 
