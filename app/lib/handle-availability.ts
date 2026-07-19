@@ -61,10 +61,11 @@ function summarizeStatus(platforms: HandlePlatformResult[]): HandleAvailabilityS
   return "unknown";
 }
 
-async function checkInstagram(handle: string): Promise<HandleAvailabilityStatus> {
+async function checkInstagramApi(handle: string): Promise<HandleAvailabilityStatus> {
   try {
+    // Prefer i.instagram.com; www is often blocked/challenged from cloud IPs.
     const response = await fetch(
-      `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(handle)}`,
+      `https://i.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(handle)}`,
       {
         cache: "no-store",
         headers: {
@@ -76,7 +77,7 @@ async function checkInstagram(handle: string): Promise<HandleAvailabilityStatus>
           Origin: "https://www.instagram.com",
           "Sec-Fetch-Dest": "empty",
           "Sec-Fetch-Mode": "cors",
-          "Sec-Fetch-Site": "same-origin",
+          "Sec-Fetch-Site": "same-site",
         },
         redirect: "follow",
         signal: AbortSignal.timeout(7000),
@@ -95,6 +96,42 @@ async function checkInstagram(handle: string): Promise<HandleAvailabilityStatus>
   } catch {
     return "unknown";
   }
+}
+
+/** Fallback when Instagram blocks datacenter IPs (e.g. Vercel). */
+async function checkInstagramViaMirror(handle: string): Promise<HandleAvailabilityStatus> {
+  try {
+    const response = await fetch(`https://imginn.com/${encodeURIComponent(handle)}`, {
+      cache: "no-store",
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": USER_AGENT,
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(9000),
+    });
+    if (response.status === 404 || response.status === 410) return "available";
+    if (!response.ok) return "unknown";
+    const html = await response.text();
+    const title = html.match(/<title>([^<]+)<\/title>/i)?.[1] ?? "";
+    if (
+      new RegExp(`\\(@${handle}\\)`, "i").test(title)
+      || new RegExp(`@${handle}\\b`, "i").test(title)
+      || html.toLowerCase().includes("followers")
+    ) {
+      return "taken";
+    }
+    return "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+async function checkInstagram(handle: string): Promise<HandleAvailabilityStatus> {
+  const direct = await checkInstagramApi(handle);
+  if (direct !== "unknown") return direct;
+  return checkInstagramViaMirror(handle);
 }
 
 async function checkX(handle: string): Promise<HandleAvailabilityStatus> {
