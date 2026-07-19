@@ -115,7 +115,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       : "Confirm availability and buy on registrar"
     : currentResult?.status === "registered"
       ? hasAvailableAlternatives
-        ? "Explore other free domains on registrars."
+        ? "Explore more available domains"
         : "Other TLDs might be available"
       : "Check availability on registrar";
 
