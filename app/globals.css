@@ -13,7 +13,7 @@
   --accent-ink: #ffffff;
   --hero-ink: #1a1a1a;
   --sidebar: #ffffff;
-  --sidebar-ink: #1a1a1a;
+  --sidebar-ink: #3f3f3f;
   --content-width: min(36rem, 90vw);
   --workspace-rail: 7.25rem;
   --workspace-gap: 1.25rem;
@@ -4944,7 +4944,7 @@ html[data-colorway="yellow"] {
   --accent-ink: #ffa400;
   --hero-ink: #ffffff;
   --sidebar: #ffffff;
-  --sidebar-ink: #000000;
+  --sidebar-ink: #3f3f3f;
 }
 
 html[data-colorway="orange"] {
@@ -4959,7 +4959,7 @@ html[data-colorway="orange"] {
   --accent-ink: #fd4c1f;
   --hero-ink: #ffffff;
   --sidebar: #ffffff;
-  --sidebar-ink: #000000;
+  --sidebar-ink: #3f3f3f;
 }
 
 html[data-colorway="blue"] {
@@ -4974,7 +4974,7 @@ html[data-colorway="blue"] {
   --accent-ink: #3b82f5;
   --hero-ink: #ffffff;
   --sidebar: #ffffff;
-  --sidebar-ink: #000000;
+  --sidebar-ink: #3f3f3f;
 }
 
 html[data-colorway="green"] {
@@ -4989,7 +4989,7 @@ html[data-colorway="green"] {
   --accent-ink: #04cd52;
   --hero-ink: #ffffff;
   --sidebar: #ffffff;
-  --sidebar-ink: #000000;
+  --sidebar-ink: #3f3f3f;
 }
 
 html[data-colorway="purple"] {
@@ -5004,7 +5004,7 @@ html[data-colorway="purple"] {
   --accent-ink: #a95aff;
   --hero-ink: #ffffff;
   --sidebar: #ffffff;
-  --sidebar-ink: #000000;
+  --sidebar-ink: #3f3f3f;
 }
 
 html[data-colorway="light"] {
@@ -5034,7 +5034,7 @@ html[data-colorway="brown"] {
   --accent-ink: #825941;
   --hero-ink: #ffffff;
   --sidebar: #ffffff;
-  --sidebar-ink: #000000;
+  --sidebar-ink: #3f3f3f;
 }
 
 html[data-colorway="yellow"] .split-settings-panel,
@@ -5049,7 +5049,7 @@ html[data-colorway="purple"] .split-settings-panel,
 html[data-colorway="purple"] .split-slice-panel,
 html[data-colorway="brown"] .split-settings-panel,
 html[data-colorway="brown"] .split-slice-panel {
-  --ink: #000000;
+  --ink: #3f3f3f;
   --muted: #5a5a5a;
   --faint: #8a8a8a;
   --line: #e6e8ee;
@@ -5057,9 +5057,9 @@ html[data-colorway="brown"] .split-slice-panel {
   --accent: #3b82f5;
   --accent-ink: #ffffff;
   --sidebar: #ffffff;
-  --sidebar-ink: #000000;
+  --sidebar-ink: #3f3f3f;
   background: #ffffff !important;
-  color: #000000;
+  color: #3f3f3f;
 }
 
 html[data-colorway="yellow"] .split-settings-panel,
