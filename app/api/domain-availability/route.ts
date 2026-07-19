@@ -279,7 +279,7 @@ async function checkAlternateTlds(comDomain: string): Promise<AlternativeAvailab
     }),
   );
 
-  return results.filter((entry) => entry.status === "available");
+  return results;
 }
 
 async function checkAvailability(domain: string) {
@@ -293,9 +293,7 @@ async function checkAvailability(domain: string) {
     .then(async (result) => {
       if (result.status === "registered" && result.domain.endsWith(".com")) {
         const alternatives = await checkAlternateTlds(result.domain);
-        const withAlternatives = alternatives.length > 0
-          ? { ...result, alternatives }
-          : result;
+        const withAlternatives = { ...result, alternatives };
         resultCache.set(domain, { result: withAlternatives, expiresAt: Date.now() + RESULT_TTL_MS });
         return withAlternatives;
       }

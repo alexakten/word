@@ -46,9 +46,11 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
 
   const currentResult = result?.domain === domain ? result : null;
   const loading = loadingDomain === domain;
-  const availableAlternatives = currentResult?.status === "registered"
-    ? currentResult.alternatives?.filter((entry) => entry.status === "available") ?? []
+  const alternatives = currentResult?.status === "registered"
+    ? currentResult.alternatives ?? []
     : [];
+  const hasAlternatives = alternatives.length > 0;
+  const hasAvailableAlternatives = alternatives.some((entry) => entry.status === "available");
 
   const checkAvailability = async () => {
     if (!domain || loading) return;
@@ -107,7 +109,6 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
   const resultMessage = currentResult?.message?.startsWith("No public RDAP service")
     ? undefined
     : currentResult?.message;
-  const hasAvailableAlternatives = availableAlternatives.length > 0;
   const registrarHelperText = currentResult?.status === "available"
     ? currentResult.priceLabel
       ? `About ${currentResult.priceLabel} — confirm and buy on registrar`
@@ -118,26 +119,47 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
         : "Other TLDs might be available"
       : "Check availability on registrar";
 
-  const popover = currentResult && (resultMessage || showRegistrarLinks || hasAvailableAlternatives) ? (
+  const popover = currentResult && (resultMessage || showRegistrarLinks || hasAlternatives) ? (
     <div className="domain-availability-popover">
-      {hasAvailableAlternatives ? (
-        <ul className="domain-alt-tlds" aria-label="Available alternate domains">
-          {availableAlternatives.map((entry) => (
-            <li key={entry.domain}>
-              <a
-                href={registrarLinks[0].href(entry.domain)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="domain-alt-tld"
-                onClick={() => track("Alternate TLD Clicked", { domain: entry.domain, tld: entry.tld })}
-              >
-                <span className="domain-alt-tld-check" aria-hidden="true">
+      {hasAlternatives ? (
+        <ul className="domain-alt-tlds" aria-label="Alternate domain availability">
+          {alternatives.map((entry) => {
+            const isAvailable = entry.status === "available";
+            const className = ["domain-alt-tld", isAvailable ? "is-available" : "is-taken"].join(" ");
+            const icon = (
+              <span className="domain-alt-tld-check" aria-hidden="true">
+                {isAvailable ? (
                   <Check size={9} strokeWidth={2.6} />
-                </span>
-                <span>{entry.domain}</span>
-              </a>
-            </li>
-          ))}
+                ) : (
+                  <X size={8} strokeWidth={2.6} />
+                )}
+              </span>
+            );
+            if (!isAvailable) {
+              return (
+                <li key={entry.domain}>
+                  <span className={className}>
+                    {icon}
+                    <span>{entry.domain}</span>
+                  </span>
+                </li>
+              );
+            }
+            return (
+              <li key={entry.domain}>
+                <a
+                  href={registrarLinks[0].href(entry.domain)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={className}
+                  onClick={() => track("Alternate TLD Clicked", { domain: entry.domain, tld: entry.tld })}
+                >
+                  {icon}
+                  <span>{entry.domain}</span>
+                </a>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
       {showRegistrarLinks ? (

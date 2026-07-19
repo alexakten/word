@@ -2943,6 +2943,11 @@ html[data-colorway="light"] .domain-availability-check {
   text-decoration: none;
 }
 
+.domain-alt-tld.is-taken {
+  color: var(--faint);
+  opacity: .72;
+}
+
 .domain-alt-tld:hover,
 .domain-alt-tld:focus-visible {
   outline: none;
@@ -2958,6 +2963,16 @@ html[data-colorway="light"] .domain-availability-check {
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-ink);
+}
+
+.domain-alt-tld.is-taken .domain-alt-tld-check {
+  background: rgba(255, 255, 255, .22);
+  color: var(--faint);
+}
+
+html[data-colorway="light"] .domain-alt-tld.is-taken .domain-alt-tld-check {
+  background: rgba(63, 63, 63, .12);
+  color: var(--faint);
 }
 
 .domain-registrar-links {
