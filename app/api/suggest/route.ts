@@ -1,3 +1,5 @@
+import { isAllowedWord } from "../../lib/content-filter";
+
 type DatamuseSuggestion = { word: string };
 
 export async function GET(request: Request) {
@@ -13,7 +15,9 @@ export async function GET(request: Request) {
     if (!response.ok) throw new Error("Datamuse request failed");
 
     const results = (await response.json()) as DatamuseSuggestion[];
-    return Response.json(results.map(({ word }) => word));
+    return Response.json(
+      results.map(({ word }) => word).filter((word) => isAllowedWord(word)),
+    );
   } catch {
     return Response.json([], { status: 502 });
   }

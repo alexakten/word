@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isAllowedWord } from "../lib/content-filter";
 import { sounds } from "../lib/sounds";
 import type { ApiHealth, ForgeHistoryEntry, ForgeSlot, WordResult } from "../lib/types";
 import { applyApiHealth, emptyForgeSlot, isFetchFailure } from "../lib/word-utils";
@@ -68,8 +69,15 @@ export function useForge({ setApiHealth, savedWords, saveWords }: UseForgeOption
       const seen = new Set<string>();
       const candidates = connected.filter((word): word is WordResult => {
         if (!/^[a-z]+$/i.test(word.word) || !fitsForgeSlotConstraints(word, slotIndex)) return false;
+        if (!isAllowedWord(word.word)) return false;
         const key = word.word.toLowerCase();
         if (seen.has(key)) return false;
+        if (otherWord) {
+          const combined = slotIndex === 0
+            ? `${word.word}${otherWord.word}`
+            : `${otherWord.word}${word.word}`;
+          if (!isAllowedWord(combined)) return false;
+        }
         seen.add(key);
         return true;
       });
@@ -108,6 +116,7 @@ export function useForge({ setApiHealth, savedWords, saveWords }: UseForgeOption
       applyApiHealth(connectionsResponse, setApiHealth);
       if (!wordResponse.ok) throw new Error("Word not found");
       const exact = await wordResponse.json() as WordResult;
+      if (!isAllowedWord(exact.word)) throw new Error("Word not found");
       if (!fitsForgeSlotConstraints(exact, slotIndex)) throw new Error("Word does not match this half’s limits");
       const connections = connectionsResponse.ok ? await connectionsResponse.json() as WordResult[] : [];
       const seen = new Set([exact.word.toLowerCase()]);
@@ -116,6 +125,7 @@ export function useForge({ setApiHealth, savedWords, saveWords }: UseForgeOption
         ...connections.filter((word) => {
           const key = word.word.toLowerCase();
           if (!/^[a-z]+$/i.test(word.word) || !fitsForgeSlotConstraints(word, slotIndex) || seen.has(key)) return false;
+          if (!isAllowedWord(word.word)) return false;
           seen.add(key);
           return true;
         }),
@@ -194,6 +204,7 @@ export function useForge({ setApiHealth, savedWords, saveWords }: UseForgeOption
           const candidates = words.filter((word) => {
             const key = word.word.toLowerCase();
             if (!/^[a-z]+$/i.test(word.word) || !fitsForgeSlotConstraints(word, slotIndex) || key === idea || key === currentWord || seen.has(key)) return false;
+            if (!isAllowedWord(word.word)) return false;
             seen.add(key);
             return true;
           });
@@ -206,7 +217,9 @@ export function useForge({ setApiHealth, savedWords, saveWords }: UseForgeOption
           return words.filter((word): word is WordResult => Boolean(word && fitsForgeSlotConstraints(word, slotIndex)));
         });
         const validPairs = choices[0].flatMap((left) => (
-          choices[1].filter((right) => matchesForgeSyllables(left, right)).map((right) => [left, right] as const)
+          choices[1]
+            .filter((right) => matchesForgeSyllables(left, right) && isAllowedWord(`${left.word}${right.word}`))
+            .map((right) => [left, right] as const)
         ));
         if (!validPairs.length) continue;
         const selectedPair = validPairs[Math.floor(Math.random() * validPairs.length)];

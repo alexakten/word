@@ -1,4 +1,5 @@
 import { pronunciationFromTags } from "../../pronunciation";
+import { isAllowedWord } from "../../lib/content-filter";
 
 type DatamuseWord = {
   word: string;
@@ -116,6 +117,7 @@ export async function GET(request: Request) {
     const eligible = words.filter((item) => {
       if (item.word.length > 22 || /\d/.test(item.word)) return false;
       if (!item.defs?.length) return false;
+      if (!isAllowedWord(item.word)) return false;
       if (lookup && item.word.toLowerCase() !== lookup.toLowerCase()) return false;
       if (!lookup && /[\s_-]/.test(item.word)) return false;
       if (!lookup && syllables && !item.numSyllables) return false;

@@ -14,6 +14,7 @@ import {
 } from "../lib/types";
 import { parseMixSideSettings, parseSideSettings, syncDiscoverUrlParams } from "../lib/url-params";
 import { sounds } from "../lib/sounds";
+import { isAllowedWord } from "../lib/content-filter";
 import { pickRandomTag } from "../lib/tags";
 import { applyApiHealth, isFetchFailure, stripSplitFields } from "../lib/word-utils";
 import { normalizePronunciation } from "../pronunciation";
@@ -481,10 +482,28 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
     void (async () => {
       try {
-        const [left, right] = await Promise.all([
-          findWord(undefined, requestedType, { apply: false }),
-          findSecondaryWord(secondaryWordType, { apply: false }),
-        ]);
+        const maxAttempts = 6;
+        let left: WordResult | undefined;
+        let right: WordResult | undefined;
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          [left, right] = await Promise.all([
+            findWord(undefined, requestedType, { apply: false }),
+            findSecondaryWord(secondaryWordType, { apply: false }),
+          ]);
+          if (splitBatchRequestRef.current !== batchRequest) return;
+          if (!left || !right) break;
+          const mixed = mixWordParts(
+            left.word,
+            right.word,
+            effectiveMixSettings(leftSliceMode, mixLeftSettings),
+            effectiveMixSettings(rightSliceMode, mixRightSettings),
+            left.syllables,
+            right.syllables,
+          ).mixed;
+          if (isAllowedWord(mixed)) break;
+          left = undefined;
+          right = undefined;
+        }
         if (splitBatchRequestRef.current !== batchRequest) return;
         if (left) {
           commitWord(left);
@@ -499,7 +518,18 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
         }
       }
     })();
-  }, [commitWord, findSecondaryWord, findWord, secondaryWordType, setMessage, wordType]);
+  }, [
+    commitWord,
+    findSecondaryWord,
+    findWord,
+    leftSliceMode,
+    mixLeftSettings,
+    mixRightSettings,
+    rightSliceMode,
+    secondaryWordType,
+    setMessage,
+    wordType,
+  ]);
 
   const moveThroughSplitHistory = useCallback((direction: -1 | 1) => {
     const nextIndex = splitHistoryIndexRef.current + direction;

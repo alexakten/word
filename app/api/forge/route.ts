@@ -1,3 +1,5 @@
+import { isAllowedWord } from "../../lib/content-filter";
+
 type DatamuseWord = {
   word: string;
   defs?: string[];
@@ -88,6 +90,7 @@ export async function GET(request: Request) {
         .filter((word) => {
           const letterCount = word.word.replace(/[^a-z]/gi, "").length;
           if (!/^[a-z]+$/i.test(word.word) || !word.defs?.length) return false;
+          if (!isAllowedWord(word.word)) return false;
           if (syllables && word.numSyllables !== syllables) return false;
           if (letters && letterCount !== letters) return false;
           return !maxLetters || letterCount <= maxLetters;
@@ -130,6 +133,7 @@ export async function GET(request: Request) {
         if (!word) continue;
         const key = word.word.toLowerCase();
         if (!/^[a-z]+$/i.test(word.word) || inputIdeas.has(key) || seen.has(key)) continue;
+        if (!isAllowedWord(word.word)) continue;
         seen.add(key);
         results.push(word);
       }

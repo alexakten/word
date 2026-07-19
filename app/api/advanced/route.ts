@@ -1,4 +1,5 @@
 import { pronunciationFromTags } from "../../pronunciation";
+import { isAllowedWord } from "../../lib/content-filter";
 
 type DatamuseWord = {
   word: string;
@@ -79,6 +80,7 @@ export async function GET(request: Request) {
       .filter((item) => {
         const key = item.word.toLowerCase();
         if (!item.defs?.length || item.word.length > 32 || /\d/.test(item.word) || seen.has(key)) return false;
+        if (!isAllowedWord(item.word)) return false;
         if (mode === "lc" && (followerStopWords.has(key) || !/^[a-z][a-z '-]*$/i.test(item.word))) return false;
         seen.add(key);
         return true;
