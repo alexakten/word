@@ -5341,7 +5341,7 @@ h1,
 
 .font-family-toggle button[data-font-option="serif"] {
   font-family: var(--font-serif), Georgia, serif;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 html[data-font-family="serif"] .split-combined-word,

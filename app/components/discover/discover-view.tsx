@@ -20,7 +20,7 @@ import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import type { HomeState } from "../../hooks/use-home";
-import { useHistorySwipe } from "../../hooks/use-history-swipe";
+import { useHistorySideTap } from "../../hooks/use-history-side-tap";
 import { sounds } from "../../lib/sounds";
 import { parseTags } from "../../lib/tags";
 
@@ -218,7 +218,7 @@ export function DiscoverView(props: DiscoverViewProps) {
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
 
-  useHistorySwipe({
+  useHistorySideTap({
     enabled: isMobileLayout && !mobileDiscoverPanel,
     onBack: () => moveThroughSplitHistory(-1),
     onForward: () => moveThroughSplitHistory(1),

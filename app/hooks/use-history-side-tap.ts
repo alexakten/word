@@ -3,12 +3,11 @@
 import { useEffect, useRef } from "react";
 import { sounds } from "../lib/sounds";
 
-const SWIPE_MIN_DISTANCE = 56;
-const SWIPE_MAX_SLOPE = 0.65;
+const TAP_MAX_DISTANCE = 12;
 const CENTER_TOP = 0.18;
 const CENTER_BOTTOM = 0.72;
 
-type UseHistorySwipeOptions = {
+type UseHistorySideTapOptions = {
   enabled: boolean;
   onBack: () => void;
   onForward: () => void;
@@ -18,7 +17,7 @@ function isIgnoredTarget(target: EventTarget | null) {
   if (!(target instanceof Element)) return false;
   return Boolean(
     target.closest(
-      "input, textarea, select, .mobile-bottom-bar, .controls, .split-settings-panel, .mobile-slice-panel, .site-header, .saved-modal, .modal-overlay, .tld-menu, .about-drawer-overlay, .about-drawer-content",
+      "button, a, input, textarea, select, [role='button'], .mobile-bottom-bar, .controls, .split-settings-panel, .mobile-slice-panel, .site-header, .saved-modal, .modal-overlay, .tld-menu, .about-drawer-overlay, .about-drawer-content",
     ),
   );
 }
@@ -29,7 +28,7 @@ function isInCenterBand(clientY: number) {
   return clientY >= top && clientY <= bottom;
 }
 
-export function useHistorySwipe({ enabled, onBack, onForward }: UseHistorySwipeOptions) {
+export function useHistorySideTap({ enabled, onBack, onForward }: UseHistorySideTapOptions) {
   const onBackRef = useRef(onBack);
   const onForwardRef = useRef(onForward);
 
@@ -66,13 +65,14 @@ export function useHistorySwipe({ enabled, onBack, onForward }: UseHistorySwipeO
       if (!tracking || event.pointerId !== pointerId) return;
       const dx = event.clientX - startX;
       const dy = event.clientY - startY;
+      const tapX = startX;
       reset();
 
-      if (Math.abs(dx) < SWIPE_MIN_DISTANCE) return;
-      if (Math.abs(dy) > Math.abs(dx) * SWIPE_MAX_SLOPE) return;
+      if (Math.hypot(dx, dy) > TAP_MAX_DISTANCE) return;
+      if (!isInCenterBand(event.clientY)) return;
 
       sounds.tick();
-      if (dx > 0) onBackRef.current();
+      if (tapX < window.innerWidth / 2) onBackRef.current();
       else onForwardRef.current();
     };
 
