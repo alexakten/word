@@ -96,7 +96,7 @@ export function HandleAvailability({ handle, className = "" }: { handle: string;
       <span className="domain-availability-note">
         {currentResult.status === "available"
           ? "Claim these handles on each platform"
-          : "Autogram handles are always available"}
+          : "Check each platform for availability"}
       </span>
     </div>
   ) : null;
