@@ -1553,6 +1553,11 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
   padding-bottom: calc(1.3rem + 1.25rem);
 }
 
+/* Slice panels already have 1.3rem padding; don't double up bottom space. */
+html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel .settings-panel-scroll-content {
+  padding-bottom: 0;
+}
+
 .settings-panel-scroll::-webkit-scrollbar {
   width: 4px;
 }
@@ -2909,14 +2914,6 @@ html[data-colorway="light"] .domain-availability-check {
   transform: translateX(-50%);
 }
 
-.discover-top-brand .domain-availability:has(.domain-availability-popover) {
-  margin-bottom: 4.5rem;
-}
-
-.discover-top-brand .domain-availability:has(.domain-alt-tlds) {
-  margin-bottom: 6.5rem;
-}
-
 .domain-alt-tlds {
   display: flex;
   width: 100%;
@@ -3069,10 +3066,6 @@ html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
 
 .handle-at {
   margin-right: .02em;
-}
-
-.discover-top-brand .handle-availability:has(.handle-availability-popover) {
-  margin-bottom: 5.5rem;
 }
 
 .handle-platform-list {
