@@ -92,6 +92,7 @@ const BLOCKED_EXACT = new Set([
   "pubes",
   "pussy",
   "queer",
+  "queery",
   "rape",
   "raped",
   "raper",
