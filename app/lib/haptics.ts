@@ -29,9 +29,9 @@ export const hapticsFeedback = {
   toggle: () => trigger("soft"),
   /** Reset / dismiss */
   drop: () => trigger("medium"),
-  /** Domain available, copy success */
+  /** Domain available */
   success: () => trigger("success"),
-  /** Save / quieter confirm */
+  /** Save / copy confirm */
   successMinimal: () => trigger("light"),
   /** Keyboard shortcuts, generate */
   tick: () => trigger("rigid"),

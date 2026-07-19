@@ -259,7 +259,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     if (!word) return;
     try {
       await navigator.clipboard.writeText(word.replace(/\s+/g, "").toLowerCase());
-      sounds.success();
+      sounds.successMinimal();
       window.clearTimeout(wordCopyTimerRef.current);
       setWordCopyStatus("copied");
       wordCopyTimerRef.current = window.setTimeout(() => setWordCopyStatus("hidden"), 2000);
