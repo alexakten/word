@@ -1,5 +1,5 @@
 import type { SliceMode } from "../syllables";
-import { IANA_TLDS } from "./iana-tlds";
+import { PUBLIC_TLDS } from "./public-tlds";
 import type { AdvancedMode, LengthMode, NameDisplayMode, PartOfSpeech } from "./types";
 
 export const POS_VALUES = new Set<PartOfSpeech>(["any", "n", "v", "adj", "adv"]);
@@ -36,11 +36,12 @@ export const POPULAR_TLDS = [
 ] as const;
 
 const popularTldSet = new Set<string>(POPULAR_TLDS);
+const publicTldSet = new Set<string>(PUBLIC_TLDS);
 
-/** Popular TLDs first (fixed order), then every other IANA TLD A–Z. */
+/** Popular TLDs first (fixed order), then other publicly registerable TLDs A–Z. */
 export const ALL_TLDS: readonly string[] = [
-  ...POPULAR_TLDS,
-  ...IANA_TLDS
+  ...POPULAR_TLDS.filter((tld) => publicTldSet.has(tld)),
+  ...PUBLIC_TLDS
     .filter((tld) => !popularTldSet.has(tld))
     .slice()
     .sort((a, b) => a.localeCompare(b)),
