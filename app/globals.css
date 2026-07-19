@@ -3334,14 +3334,14 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .controls {
   border-radius: 999px;
   padding: 0 .55rem 0 .7rem;
   background: #F6F5F4;
-  color: #1a1a1a;
+  color: var(--ink);
   cursor: pointer;
   line-height: 1;
 }
 
 .tld-dropdown-trigger svg {
   flex: none;
-  color: #5a5a5a;
+  color: var(--muted);
   transition: transform .16s ease;
 }
 
@@ -5486,15 +5486,19 @@ html[data-layout="mobile"] .page-shell .mobile-generate-button {
   color: var(--ink);
 }
 
-/* Light control surfaces: keep TLD labels readable on colored themes */
+/* Trigger sits on the colored page; menu sits on a light surface */
 .tld-dropdown-trigger,
-.tld-dropdown-menu,
-.tld-dropdown-menu button {
-  color: #1a1a1a !important;
+.tld-dropdown-trigger span {
+  color: #fff !important;
 }
 
 .tld-dropdown-trigger svg {
-  color: #5a5a5a !important;
+  color: rgba(255, 255, 255, .78) !important;
+}
+
+.tld-dropdown-menu,
+.tld-dropdown-menu button {
+  color: #1a1a1a !important;
 }
 
 .typography-segment-toggle,
