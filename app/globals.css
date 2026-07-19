@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@plugin "@toolwind/corner-shape";
+/* @plugin "@toolwind/corner-shape"; */
 
 :root {
   --ink: #1a1a1a;
@@ -1402,7 +1402,7 @@ html[data-layout="mobile"] .page-shell.mobile-panel-open .mobile-panel-backdrop 
   flex-direction: column;
   padding: 1.3rem;
   border-radius: 60px !important;
-  corner-shape: squircle;
+  /* corner-shape: squircle; */
   background: #ffffff;
   box-shadow: none;
   overflow: hidden;
@@ -5458,7 +5458,7 @@ kbd {
   padding: 1.3rem;
   border: 0 !important;
   border-radius: 60px !important;
-  corner-shape: squircle;
+  /* corner-shape: squircle; */
   background: var(--sidebar) !important;
   box-shadow: none !important;
   color: var(--sidebar-ink);

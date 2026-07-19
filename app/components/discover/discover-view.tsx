@@ -351,7 +351,7 @@ export function DiscoverView(props: DiscoverViewProps) {
       <section className="split-word-stage" id="top" aria-live="polite">
         <div className="split-sidebar-stack left">
           <aside
-            className="split-settings-panel left rounded-[60px] corner-squircle desktop-layout-only"
+            className="split-settings-panel left rounded-[60px] desktop-layout-only" /* corner-squircle */
             aria-label="Left word settings"
           >
             {leftSettingsContent("desktop-")}
@@ -433,7 +433,7 @@ export function DiscoverView(props: DiscoverViewProps) {
 
         <div className="split-sidebar-stack right">
           <aside
-            className="split-settings-panel right rounded-[60px] corner-squircle desktop-layout-only"
+            className="split-settings-panel right rounded-[60px] desktop-layout-only" /* corner-squircle */
             aria-label="Right word settings"
           >
             {rightSettingsContent("desktop-")}
@@ -454,7 +454,7 @@ export function DiscoverView(props: DiscoverViewProps) {
 
       <div className="mobile-layout-only">
         <aside
-          className={["split-settings-panel left rounded-[60px] corner-squircle", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+          className={["split-settings-panel left rounded-[60px]", /* "corner-squircle", */ mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
           aria-label="Left word settings"
         >
           {leftSettingsContent("mobile-")}
@@ -478,7 +478,7 @@ export function DiscoverView(props: DiscoverViewProps) {
           onMobileClose={closeMobileDiscoverPanel}
         />
         <aside
-          className={["split-settings-panel right rounded-[60px] corner-squircle", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+          className={["split-settings-panel right rounded-[60px]", /* "corner-squircle", */ mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
           aria-label="Right word settings"
         >
           {rightSettingsContent("mobile-")}
