@@ -1,4 +1,5 @@
 import { Inter, Newsreader } from "next/font/google";
+import localFont from "next/font/local";
 
 /*
  * Cardo (previous serif) — switch back by restoring this and setting `serif = cardo`
@@ -27,3 +28,36 @@ export const inter = Inter({
   subsets: ["latin"],
   display: "swap",
 });
+
+export const openRunde = localFont({
+  src: [
+    {
+      path: "../public/fonts/OpenRunde-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/OpenRunde-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/OpenRunde-Semibold.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/OpenRunde-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+});
+
+/** Toggle sans face between Inter and Open Runde. */
+export type SansFace = "inter" | "openRunde";
+export const ACTIVE_SANS: SansFace = "openRunde";
+
+/** Active sans face. */
+export const sans = ACTIVE_SANS === "inter" ? inter : openRunde;
