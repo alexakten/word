@@ -2720,6 +2720,12 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   text-align: right;
 }
 
+/* Chrome clips line-clamp ellipsis on right-aligned text; reserve room for "…". */
+.split-definitions article:first-child .split-definition:not(.expanded) {
+  box-sizing: border-box;
+  padding-right: 1em;
+}
+
 .split-definitions article:last-child .split-source-word,
 .split-definitions article:last-child .split-eyebrow,
 .split-definitions article:last-child .split-definition {
@@ -3196,6 +3202,7 @@ html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
   line-height: 1.5;
   text-align: inherit;
   overflow: hidden;
+  text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   line-clamp: 3;
   -webkit-line-clamp: 3;
@@ -3205,6 +3212,7 @@ html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
   display: block;
   line-clamp: unset;
   -webkit-line-clamp: unset;
+  text-overflow: unset;
   animation: description-reveal .24s ease both;
 }
 
@@ -4268,6 +4276,7 @@ kbd {
     font-size: 14px;
     line-height: 1.45;
     overflow: hidden;
+    text-overflow: ellipsis;
     -webkit-box-orient: vertical;
     line-clamp: 3;
     -webkit-line-clamp: 3;
@@ -4277,6 +4286,7 @@ kbd {
     display: block;
     line-clamp: unset;
     -webkit-line-clamp: unset;
+    text-overflow: unset;
   }
 
   .desktop-layout-only {
@@ -4727,6 +4737,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .split-definition {
   font-size: 14px;
   line-height: 1.45;
   overflow: hidden;
+  text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   line-clamp: 3;
   -webkit-line-clamp: 3;
@@ -4736,6 +4747,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .split-definition.expanded 
   display: block;
   line-clamp: unset;
   -webkit-line-clamp: unset;
+  text-overflow: unset;
 }
 
 html[data-layout="mobile"] .page-shell .controls-bar .saved-menu {
