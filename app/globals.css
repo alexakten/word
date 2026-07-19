@@ -4060,7 +4060,7 @@ kbd {
   }
 
   .page-shell.discover-mode .split-combined-word {
-    font-size: clamp(2.3rem, 11.25vw, 3.2rem);
+    font-size: clamp(2rem, 9.5vw, 2.75rem);
   }
 
   .page-shell.discover-mode .split-definitions {
@@ -4467,7 +4467,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .split-word-anchor {
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
-  font-size: clamp(2.3rem, 11.25vw, 3.2rem);
+  font-size: clamp(2rem, 9.5vw, 2.75rem);
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .split-definitions {
