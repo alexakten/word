@@ -59,5 +59,7 @@ export const openRunde = localFont({
 export type SansFace = "inter" | "openRunde";
 export const ACTIVE_SANS: SansFace = "openRunde";
 
+const sansFaces = { inter, openRunde } as const;
+
 /** Active sans face. */
-export const sans = ACTIVE_SANS === "inter" ? inter : openRunde;
+export const sans = sansFaces[ACTIVE_SANS];
