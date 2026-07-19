@@ -1,3 +1,5 @@
+import { hapticsFeedback } from "./haptics";
+
 let audioContext: AudioContext | null = null;
 let soundEnabled = true;
 let soundPreferenceLoaded = false;
@@ -233,10 +235,28 @@ function playTick() {
 }
 
 export const sounds = {
-  click: playClick,
-  toggle: playToggle,
-  drop: playDrop,
-  success: () => playSuccess("aero"),
-  successMinimal: () => playSuccess("minimal"),
-  tick: playTick,
+  click: () => {
+    hapticsFeedback.click();
+    playClick();
+  },
+  toggle: () => {
+    hapticsFeedback.toggle();
+    playToggle();
+  },
+  drop: () => {
+    hapticsFeedback.drop();
+    playDrop();
+  },
+  success: () => {
+    hapticsFeedback.success();
+    playSuccess("aero");
+  },
+  successMinimal: () => {
+    hapticsFeedback.successMinimal();
+    playSuccess("minimal");
+  },
+  tick: () => {
+    hapticsFeedback.tick();
+    playTick();
+  },
 };

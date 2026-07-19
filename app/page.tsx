@@ -11,7 +11,6 @@ export default function Home() {
     appMode,
     focusMode,
     setFocusMode,
-    isMobileLayout,
     mobileDiscoverPanel,
     closeMobileDiscoverPanel,
   } = home;
@@ -22,14 +21,13 @@ export default function Home() {
         "page-shell",
         focusMode ? "focus-mode" : "",
         appMode === "discover" ? "discover-mode" : "",
-        isMobileLayout ? "mobile-layout" : "",
         mobileDiscoverPanel ? "mobile-panel-open" : "",
       ].filter(Boolean).join(" ")}
       onPointerDown={() => {
         if (focusMode) setFocusMode(false);
       }}
     >
-      {isMobileLayout && mobileDiscoverPanel ? (
+      {mobileDiscoverPanel ? (
         <button
           className="modal-overlay mobile-panel-backdrop"
           type="button"

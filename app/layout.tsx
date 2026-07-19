@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import favicon from "./favicon.png";
 import { colorwayBootstrapScript } from "./lib/colorways";
+import { layoutBootstrapScript } from "./lib/viewport";
 import { sans, serif } from "./fonts";
 import "./globals.css";
 
@@ -55,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-colorway="blue" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: layoutBootstrapScript }} />
         <script dangerouslySetInnerHTML={{ __html: colorwayBootstrapScript }} />
       </head>
       <body className={`${sans.className} ${serif.variable} min-h-full flex flex-col`}>

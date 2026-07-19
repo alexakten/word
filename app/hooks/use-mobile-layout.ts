@@ -1,21 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { LAYOUT_ATTR, MOBILE_LAYOUT_MAX_WIDTH } from "../lib/viewport";
 import type { DiscoverMobilePanel } from "../lib/types";
-
-/** Viewport width at/below which Discover uses the mobile overlay layout. */
-const MOBILE_LAYOUT_MAX_WIDTH = 1240;
 
 export function useMobileLayout() {
   const [mobileDiscoverPanel, setMobileDiscoverPanel] = useState<DiscoverMobilePanel | null>(null);
+  // Start false to match SSR; layout visibility is CSS/breakpoint-driven.
   const [isMobileLayout, setIsMobileLayout] = useState(false);
 
   useEffect(() => {
-    // Layout styles key off `.mobile-layout` (see globals.css), not a CSS media query.
     const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_LAYOUT_MAX_WIDTH}px)`);
     const syncMobileLayout = () => {
-      setIsMobileLayout(mediaQuery.matches);
-      if (!mediaQuery.matches) setMobileDiscoverPanel(null);
+      const mobile = mediaQuery.matches;
+      document.documentElement.setAttribute(LAYOUT_ATTR, mobile ? "mobile" : "desktop");
+      setIsMobileLayout(mobile);
+      if (!mobile) setMobileDiscoverPanel(null);
     };
     syncMobileLayout();
     mediaQuery.addEventListener("change", syncMobileLayout);

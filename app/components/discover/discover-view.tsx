@@ -15,7 +15,7 @@ import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
-import { DomainModeControls } from "../ui/domain-mode-controls";
+import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
 import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
@@ -25,7 +25,6 @@ import { parseTags } from "../../lib/tags";
 
 export type DiscoverViewProps = Pick<
   HomeState,
-  | "isMobileLayout"
   | "mobileDiscoverPanel"
   | "closeMobileDiscoverPanel"
   | "leftSettingsApplied"
@@ -120,7 +119,6 @@ export type DiscoverViewProps = Pick<
 
 export function DiscoverView(props: DiscoverViewProps) {
   const {
-    isMobileLayout,
     mobileDiscoverPanel,
     closeMobileDiscoverPanel,
     leftSettingsApplied,
@@ -215,7 +213,7 @@ export function DiscoverView(props: DiscoverViewProps) {
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
 
-  const leftSettingsContent = (
+  const leftSettingsContent = (idPrefix: string) => (
     <>
       <div className="settings-panel-header">
         <p>Left word</p>
@@ -241,7 +239,7 @@ export function DiscoverView(props: DiscoverViewProps) {
       <SettingsPanelScroll>
         <div className="settings-group">
           <TagEntrySetting
-            id="split-left-text"
+            id={`${idPrefix}split-left-text`}
             label="Text"
             value={leftWordDraft}
             placeholder="Add fixed words to randomize"
@@ -253,11 +251,11 @@ export function DiscoverView(props: DiscoverViewProps) {
             <WordTypeTabs className="split-side-types" value={wordType} label="Left word type" onChange={setWordType} />
           </div>
           <div className="settings-group">
-            <RelatedToSetting id="split-left-related" value={wordRelatedTo} onChange={setWordRelatedTo} />
+            <RelatedToSetting id={`${idPrefix}split-left-related`} value={wordRelatedTo} onChange={setWordRelatedTo} />
           </div>
           <div className="settings-group">
             <SyllableCountSetting
-              id="left-syllable-count"
+              id={`${idPrefix}left-syllable-count`}
               value={wordSyllables}
               mode={wordSyllableMode}
               onValueChange={setWordSyllables}
@@ -266,14 +264,14 @@ export function DiscoverView(props: DiscoverViewProps) {
           </div>
           <div className="settings-group">
             <AffixSettings startsWith={wordStartsWith} endsWith={wordEndsWith} onStartsChange={setWordStartsWith} onEndsChange={setWordEndsWith} />
-            <WordLengthSetting id="left-word-length" value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
+            <WordLengthSetting id={`${idPrefix}left-word-length`} value={wordLetters} mode={wordLengthMode} onValueChange={setWordLetters} onModeChange={setWordLengthMode} />
           </div>
         </fieldset>
       </SettingsPanelScroll>
     </>
   );
 
-  const rightSettingsContent = (
+  const rightSettingsContent = (idPrefix: string) => (
     <>
       <div className="settings-panel-header">
         <p>Right word</p>
@@ -299,7 +297,7 @@ export function DiscoverView(props: DiscoverViewProps) {
       <SettingsPanelScroll>
         <div className="settings-group">
           <TagEntrySetting
-            id="split-right-text"
+            id={`${idPrefix}split-right-text`}
             label="Text"
             value={rightWordDraft}
             placeholder="Add fixed words to randomize"
@@ -311,11 +309,11 @@ export function DiscoverView(props: DiscoverViewProps) {
             <WordTypeTabs className="split-side-types" value={secondaryWordType} label="Right word type" onChange={setSecondaryWordType} />
           </div>
           <div className="settings-group">
-            <RelatedToSetting id="split-right-related" value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
+            <RelatedToSetting id={`${idPrefix}split-right-related`} value={secondaryWordRelatedTo} onChange={setSecondaryWordRelatedTo} />
           </div>
           <div className="settings-group">
             <SyllableCountSetting
-              id="right-syllable-count"
+              id={`${idPrefix}right-syllable-count`}
               value={secondaryWordSyllables}
               mode={secondaryWordSyllableMode}
               onValueChange={setSecondaryWordSyllables}
@@ -324,7 +322,7 @@ export function DiscoverView(props: DiscoverViewProps) {
           </div>
           <div className="settings-group">
             <AffixSettings startsWith={secondaryWordStartsWith} endsWith={secondaryWordEndsWith} onStartsChange={setSecondaryWordStartsWith} onEndsChange={setSecondaryWordEndsWith} />
-            <WordLengthSetting id="right-word-length" value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
+            <WordLengthSetting id={`${idPrefix}right-word-length`} value={secondaryWordLetters} mode={secondaryWordLengthMode} onValueChange={setSecondaryWordLetters} onModeChange={setSecondaryWordLengthMode} />
           </div>
         </fieldset>
       </SettingsPanelScroll>
@@ -352,14 +350,12 @@ export function DiscoverView(props: DiscoverViewProps) {
       </div>
       <section className="split-word-stage" id="top" aria-live="polite">
         <div className="split-sidebar-stack left">
-          {isMobileLayout ? null : (
-            <aside
-              className="split-settings-panel left rounded-[60px] corner-squircle"
-              aria-label="Left word settings"
-            >
-              {leftSettingsContent}
-            </aside>
-          )}
+          <aside
+            className="split-settings-panel left rounded-[60px] corner-squircle desktop-layout-only"
+            aria-label="Left word settings"
+          >
+            {leftSettingsContent("desktop-")}
+          </aside>
           <SliceSidePanel
             side="left"
             word={leftWordValue}
@@ -435,34 +431,13 @@ export function DiscoverView(props: DiscoverViewProps) {
           </div>
         </div>
 
-        {isMobileLayout ? null : (
-          <SliceSettingsPanel
-            leftWord={leftWordValue}
-            rightWord={rightWordValue}
-            leftSliceMode={leftSliceMode}
-            rightSliceMode={rightSliceMode}
-            leftSettings={mixLeftSettings}
-            rightSettings={mixRightSettings}
-            leftSyllables={result.syllables}
-            rightSyllables={secondaryResult.syllables}
-            onLeftSliceModeChange={handleLeftSliceModeChange}
-            onRightSliceModeChange={handleRightSliceModeChange}
-            onLeftChange={setMixLeftSettings}
-            onRightChange={setMixRightSettings}
-            onReset={resetSliceSettings}
-            settingsApplied={sliceSettingsApplied}
-          />
-        )}
-
         <div className="split-sidebar-stack right">
-          {isMobileLayout ? null : (
-            <aside
-              className="split-settings-panel right rounded-[60px] corner-squircle"
-              aria-label="Right word settings"
-            >
-              {rightSettingsContent}
-            </aside>
-          )}
+          <aside
+            className="split-settings-panel right rounded-[60px] corner-squircle desktop-layout-only"
+            aria-label="Right word settings"
+          >
+            {rightSettingsContent("desktop-")}
+          </aside>
           <SliceSidePanel
             side="right"
             word={rightWordValue}
@@ -477,44 +452,47 @@ export function DiscoverView(props: DiscoverViewProps) {
         </div>
       </section>
 
-      {isMobileLayout ? (
-        <>
-          <aside
-            className={["split-settings-panel left rounded-[60px] corner-squircle", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
-            aria-label="Left word settings"
-          >
-            {leftSettingsContent}
-          </aside>
-          <SliceSettingsPanel
-            leftWord={leftWordValue}
-            rightWord={rightWordValue}
-            leftSliceMode={leftSliceMode}
-            rightSliceMode={rightSliceMode}
-            leftSettings={mixLeftSettings}
-            rightSettings={mixRightSettings}
-            leftSyllables={result.syllables}
-            rightSyllables={secondaryResult.syllables}
-            onLeftSliceModeChange={handleLeftSliceModeChange}
-            onRightSliceModeChange={handleRightSliceModeChange}
-            onLeftChange={setMixLeftSettings}
-            onRightChange={setMixRightSettings}
-            onReset={resetSliceSettings}
-            settingsApplied={sliceSettingsApplied}
-            mobileActive={mobileDiscoverPanel === "slice"}
-            onMobileClose={closeMobileDiscoverPanel}
-          />
-          <aside
-            className={["split-settings-panel right rounded-[60px] corner-squircle", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
-            aria-label="Right word settings"
-          >
-            {rightSettingsContent}
-          </aside>
-        </>
-      ) : null}
+      <div className="mobile-layout-only">
+        <aside
+          className={["split-settings-panel left rounded-[60px] corner-squircle", mobileDiscoverPanel === "left" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+          aria-label="Left word settings"
+        >
+          {leftSettingsContent("mobile-")}
+        </aside>
+        <SliceSettingsPanel
+          leftWord={leftWordValue}
+          rightWord={rightWordValue}
+          leftSliceMode={leftSliceMode}
+          rightSliceMode={rightSliceMode}
+          leftSettings={mixLeftSettings}
+          rightSettings={mixRightSettings}
+          leftSyllables={result.syllables}
+          rightSyllables={secondaryResult.syllables}
+          onLeftSliceModeChange={handleLeftSliceModeChange}
+          onRightSliceModeChange={handleRightSliceModeChange}
+          onLeftChange={setMixLeftSettings}
+          onRightChange={setMixRightSettings}
+          onReset={resetSliceSettings}
+          settingsApplied={sliceSettingsApplied}
+          mobileActive={mobileDiscoverPanel === "slice"}
+          onMobileClose={closeMobileDiscoverPanel}
+        />
+        <aside
+          className={["split-settings-panel right rounded-[60px] corner-squircle", mobileDiscoverPanel === "right" ? "mobile-panel-active" : ""].filter(Boolean).join(" ")}
+          aria-label="Right word settings"
+        >
+          {rightSettingsContent("mobile-")}
+        </aside>
+      </div>
 
       <div className="mobile-bottom-bar">
-        {nameDisplayMode === "domain" && displayedDomain ? (
-          <DomainAvailability className="mobile-domain-availability" domain={displayedDomain} />
+        {nameDisplayMode === "domain" ? (
+          <div className="mobile-domain-availability-row">
+            {displayedDomain ? (
+              <DomainAvailability className="mobile-domain-availability" domain={displayedDomain} />
+            ) : null}
+            <TldDropdown value={selectedTld} onChange={setSelectedTld} />
+          </div>
         ) : null}
         <div className="mobile-bottom-meta-row">
           <div className="mobile-bottom-left-actions">
@@ -541,6 +519,7 @@ export function DiscoverView(props: DiscoverViewProps) {
             className="mobile-bottom-domain-mode-controls"
             displayMode={nameDisplayMode}
             selectedTld={selectedTld}
+            hideTld
             onDisplayModeChange={setNameDisplayMode}
             onTldChange={setSelectedTld}
           />

@@ -77,7 +77,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
   const statusLabel = loading
     ? "Checking availability…"
     : currentResult?.status === "available"
-      ? `${domain} appears available`
+      ? `${domain} available!`
       : currentResult?.status === "registered"
         ? `${domain} is registered`
         : currentResult?.status === "unknown"
@@ -105,7 +105,9 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
           {loading ? (
             <LoaderCircle className="domain-availability-spinner" size={11} strokeWidth={1.6} aria-hidden="true" />
           ) : currentResult?.status === "available" ? (
-            <Check size={11} strokeWidth={1.8} aria-hidden="true" />
+            <span className="domain-availability-check" aria-hidden="true">
+              <Check size={10} strokeWidth={2.4} />
+            </span>
           ) : currentResult ? (
             <RefreshCw size={10} strokeWidth={1.6} aria-hidden="true" />
           ) : null}

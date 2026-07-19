@@ -7,7 +7,7 @@ import { sounds } from "../../lib/sounds";
 import type { NameDisplayMode } from "../../lib/types";
 import { MixSegmentToggle } from "./mix-segment-toggle";
 
-function TldDropdown({ value, disabled = false, onChange }: { value: string; disabled?: boolean; onChange: (tld: string) => void }) {
+export function TldDropdown({ value, disabled = false, onChange }: { value: string; disabled?: boolean; onChange: (tld: string) => void }) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -113,12 +113,14 @@ export function DomainModeControls({
   displayMode,
   selectedTld,
   className = "",
+  hideTld = false,
   onDisplayModeChange,
   onTldChange,
 }: {
   displayMode: NameDisplayMode;
   selectedTld: string;
   className?: string;
+  hideTld?: boolean;
   onDisplayModeChange: (mode: NameDisplayMode) => void;
   onTldChange: (tld: string) => void;
 }) {
@@ -131,12 +133,14 @@ export function DomainModeControls({
         options={NAME_DISPLAY_MODE_OPTIONS}
         onChange={onDisplayModeChange}
       />
-      <div
-        className={`tld-dropdown-slot${displayMode === "domain" ? " visible" : ""}`}
-        aria-hidden={displayMode !== "domain"}
-      >
-        <TldDropdown value={selectedTld} disabled={displayMode !== "domain"} onChange={onTldChange} />
-      </div>
+      {hideTld ? null : (
+        <div
+          className={`tld-dropdown-slot${displayMode === "domain" ? " visible" : ""}`}
+          aria-hidden={displayMode !== "domain"}
+        >
+          <TldDropdown value={selectedTld} disabled={displayMode !== "domain"} onChange={onTldChange} />
+        </div>
+      )}
     </div>
   );
 }

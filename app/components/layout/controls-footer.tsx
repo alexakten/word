@@ -12,7 +12,6 @@ import { sounds } from "../../lib/sounds";
 export type ControlsFooterProps = Pick<
   HomeState,
   | "appMode"
-  | "isMobileLayout"
   | "mobileDiscoverPanel"
   | "toggleMobileDiscoverPanel"
   | "leftSettingsApplied"
@@ -46,7 +45,6 @@ export type ControlsFooterProps = Pick<
 export function ControlsFooter(props: ControlsFooterProps) {
   const {
     appMode,
-    isMobileLayout,
     mobileDiscoverPanel,
     toggleMobileDiscoverPanel,
     leftSettingsApplied,
@@ -129,8 +127,8 @@ export function ControlsFooter(props: ControlsFooterProps) {
         </div>
       ) : null}
       <div className="controls-bar">
-        {appMode === "discover" && !isMobileLayout ? (
-          <div className="desktop-bottom-left-actions">
+        {appMode === "discover" ? (
+          <div className="desktop-bottom-left-actions desktop-layout-only">
             <SavedWordsPanel
               savedWords={savedWords}
               savedOpen={savedOpen}
@@ -238,12 +236,10 @@ export function ControlsFooter(props: ControlsFooterProps) {
               saveWords={saveWords}
               loadSavedWord={loadSavedWord}
             />
-            {!isMobileLayout ? (
-              <div className="sound-about-actions">
-                <SoundToggle />
-                <AboutDrawer />
-              </div>
-            ) : null}
+            <div className="sound-about-actions desktop-layout-only">
+              <SoundToggle />
+              <AboutDrawer />
+            </div>
           </div>
         )}
       </div>
