@@ -7,7 +7,7 @@
  */
 
 /** Flip to compare filter cost. Filtering code stays; this only skips the check. */
-export const CONTENT_FILTER_ENABLED = false;
+export const CONTENT_FILTER_ENABLED = true;
 
 const BLOCKED_EXACT = new Set([
   // Vulgar
