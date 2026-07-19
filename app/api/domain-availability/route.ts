@@ -28,6 +28,7 @@ type AvailabilityResult = {
 };
 
 const ALTERNATE_TLDS = [".co", ".app", ".ai"] as const;
+const CANNOT_FIND_MESSAGE = "Cannot find availability";
 
 type BootstrapRegistry = {
   services: [string[], string[]][];
@@ -206,16 +207,38 @@ async function queryGodaddy(domain: string): Promise<AvailabilityResult | null> 
   if (!result) return null;
 
   if (!result.ok) {
+    // Unsupported / uncheckable names — never map these to "taken".
+    if (result.status === 400 || result.status === 422) {
+      return {
+        domain,
+        status: "unknown",
+        source: "godaddy",
+        checkedAt,
+        message: CANNOT_FIND_MESSAGE,
+      };
+    }
     if (!result.retryable) {
       return {
         domain,
         status: "unknown",
         source: "godaddy",
         checkedAt,
-        message: result.message,
+        message: result.message || CANNOT_FIND_MESSAGE,
       };
     }
     return null;
+  }
+
+  // Unavailable with no pricing usually means the TLD isn't offered, not that it's taken.
+  if (!result.data.available && !result.data.prices?.length) {
+    return {
+      domain: result.data.domain || domain,
+      status: "unknown",
+      source: "godaddy",
+      checkedAt,
+      definitive: result.data.definitive,
+      message: CANNOT_FIND_MESSAGE,
+    };
   }
 
   const yearPrice = getOneYearPrice(result.data.prices);
@@ -245,13 +268,26 @@ async function resolveAvailability(domain: string): Promise<AvailabilityResult> 
   }
 
   const rdapResult = await queryRdap(domain);
-  if (godaddyResult?.status === "unknown" && rdapResult.status === "unknown") {
+  if (rdapResult.status === "available") return rdapResult;
+
+  // If GoDaddy couldn't evaluate the name, don't trust RDAP "registered"
+  // (common for brand / unsupported TLDs that aren't actually "taken").
+  if (godaddyResult?.status === "unknown") {
     return {
-      ...rdapResult,
-      message: godaddyResult.message || rdapResult.message,
+      ...godaddyResult,
+      message: CANNOT_FIND_MESSAGE,
     };
   }
-  return rdapResult;
+
+  if (rdapResult.status === "registered") return rdapResult;
+
+  return {
+    domain,
+    status: "unknown",
+    source: rdapResult.source,
+    checkedAt: rdapResult.checkedAt,
+    message: CANNOT_FIND_MESSAGE,
+  };
 }
 
 async function checkAlternateTlds(comDomain: string): Promise<AlternativeAvailability[]> {

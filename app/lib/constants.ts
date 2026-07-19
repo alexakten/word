@@ -1,5 +1,6 @@
-import type { AdvancedMode, LengthMode, NameDisplayMode, PartOfSpeech } from "./types";
 import type { SliceMode } from "../syllables";
+import { IANA_TLDS } from "./iana-tlds";
+import type { AdvancedMode, LengthMode, NameDisplayMode, PartOfSpeech } from "./types";
 
 export const POS_VALUES = new Set<PartOfSpeech>(["any", "n", "v", "adj", "adv"]);
 export const LENGTH_MODES = new Set<LengthMode>(["less", "exact", "more"]);
@@ -12,6 +13,7 @@ export const NAME_DISPLAY_MODE_OPTIONS: { value: NameDisplayMode; label: string 
   { value: "domain", label: "Domain" },
 ];
 
+/** Shown first in the TLD picker (fixed order). */
 export const POPULAR_TLDS = [
   ".com",
   ".co",
@@ -32,6 +34,36 @@ export const POPULAR_TLDS = [
   ".site",
   ".store",
 ] as const;
+
+const popularTldSet = new Set<string>(POPULAR_TLDS);
+
+/** Popular TLDs first (fixed order), then every other IANA TLD A–Z. */
+export const ALL_TLDS: readonly string[] = [
+  ...POPULAR_TLDS,
+  ...IANA_TLDS
+    .filter((tld) => !popularTldSet.has(tld))
+    .slice()
+    .sort((a, b) => a.localeCompare(b)),
+];
+
+export function filterTlds(query: string): string[] {
+  const normalized = query.trim().toLowerCase().replace(/^\./, "");
+  if (!normalized) return [...ALL_TLDS];
+
+  const matches = ALL_TLDS.filter((tld) => tld.slice(1).includes(normalized));
+  return matches.sort((a, b) => {
+    const aLabel = a.slice(1);
+    const bLabel = b.slice(1);
+    const rank = (label: string) => {
+      if (label === normalized) return 0;
+      if (label.startsWith(normalized)) return 1;
+      return 2;
+    };
+    const rankDiff = rank(aLabel) - rank(bLabel);
+    if (rankDiff !== 0) return rankDiff;
+    return ALL_TLDS.indexOf(a) - ALL_TLDS.indexOf(b);
+  });
+}
 
 export const advancedModes: {
   value: AdvancedMode;

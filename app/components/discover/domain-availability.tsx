@@ -1,7 +1,7 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import { Check, LoaderCircle, X } from "lucide-react";
+import { Check, CircleHelp, LoaderCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { sounds } from "../../lib/sounds";
 import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
@@ -71,9 +71,8 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
         setResult({
           domain,
           status: "unknown",
-          message: payload.error || "Availability could not be checked.",
+          message: "Cannot find availability",
         });
-        setShake(true);
         return;
       }
       setResult(payload);
@@ -87,9 +86,8 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
         setResult({
           domain,
           status: "unknown",
-          message: "Availability could not be checked.",
+          message: "Cannot find availability",
         });
-        setShake(true);
       }
     } finally {
       if (requestRef.current === controller) setLoadingDomain("");
@@ -103,12 +101,14 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       : currentResult?.status === "registered"
         ? `${domain} is taken`
         : currentResult?.status === "unknown"
-          ? `Check availability of ${domain} on a registrar`
+          ? "Cannot find availability"
           : "Check availability";
   const showRegistrarLinks = Boolean(currentResult);
-  const resultMessage = currentResult?.message?.startsWith("No public RDAP service")
-    ? undefined
-    : currentResult?.message;
+  const resultMessage = currentResult?.message
+    && currentResult.message !== "Cannot find availability"
+    && !currentResult.message.startsWith("No public RDAP service")
+    ? currentResult.message
+    : undefined;
   const registrarHelperText = currentResult?.status === "available"
     ? currentResult.priceLabel
       ? `About ${currentResult.priceLabel} — confirm and buy on registrar`
@@ -117,7 +117,9 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       ? hasAvailableAlternatives
         ? "Explore more available domains"
         : "Other TLDs might be available"
-      : "Check availability on registrar";
+      : currentResult?.status === "unknown"
+        ? "Try checking on a registrar"
+        : "Check availability on registrar";
 
   const popover = currentResult && (resultMessage || showRegistrarLinks || hasAlternatives) ? (
     <div className="domain-availability-popover">
@@ -125,11 +127,17 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
         <ul className="domain-alt-tlds" aria-label="Alternate domain availability">
           {alternatives.map((entry) => {
             const isAvailable = entry.status === "available";
-            const className = ["domain-alt-tld", isAvailable ? "is-available" : "is-taken"].join(" ");
+            const isUnknown = entry.status === "unknown";
+            const className = [
+              "domain-alt-tld",
+              isAvailable ? "is-available" : isUnknown ? "is-unknown" : "is-taken",
+            ].join(" ");
             const icon = (
               <span className="domain-alt-tld-check" aria-hidden="true">
                 {isAvailable ? (
                   <Check size={9} strokeWidth={2.6} />
+                ) : isUnknown ? (
+                  <CircleHelp size={9} strokeWidth={2.4} />
                 ) : (
                   <X size={8} strokeWidth={2.6} />
                 )}
@@ -208,6 +216,10 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
           ) : currentResult?.status === "available" ? (
             <span className="domain-availability-check" aria-hidden="true">
               <Check size={10} strokeWidth={2.4} />
+            </span>
+          ) : currentResult?.status === "unknown" ? (
+            <span className="domain-availability-check" aria-hidden="true">
+              <CircleHelp size={10} strokeWidth={2.2} />
             </span>
           ) : currentResult ? (
             <span className="domain-availability-check" aria-hidden="true">

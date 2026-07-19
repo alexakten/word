@@ -1,16 +1,25 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { NAME_DISPLAY_MODE_OPTIONS, POPULAR_TLDS } from "../../lib/constants";
+import { ChevronDown, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ALL_TLDS, filterTlds, NAME_DISPLAY_MODE_OPTIONS, POPULAR_TLDS } from "../../lib/constants";
 import { sounds } from "../../lib/sounds";
 import type { NameDisplayMode } from "../../lib/types";
 import { MixSegmentToggle } from "./mix-segment-toggle";
 
 export function TldDropdown({ value, disabled = false, onChange }: { value: string; disabled?: boolean; onChange: (tld: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+
+  const filteredTlds = useMemo(() => filterTlds(query), [query]);
+  const popularCount = useMemo(
+    () => (query.trim() ? 0 : POPULAR_TLDS.length),
+    [query],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -18,22 +27,56 @@ export function TldDropdown({ value, disabled = false, onChange }: { value: stri
       if (!rootRef.current?.contains(event.target as Node)) {
         setOpen(false);
         setActiveIndex(-1);
+        setQuery("");
       }
     };
     document.addEventListener("pointerdown", closeOnOutsideClick);
     return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => searchRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [open]);
+
+  useEffect(() => {
+    if (activeIndex >= filteredTlds.length) {
+      setActiveIndex(filteredTlds.length > 0 ? filteredTlds.length - 1 : -1);
+    }
+  }, [activeIndex, filteredTlds.length]);
+
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+    const option = listRef.current?.querySelector<HTMLElement>(`[data-tld-index="${activeIndex}"]`);
+    option?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, open]);
+
+  const closeMenu = () => {
+    setOpen(false);
+    setActiveIndex(-1);
+    setQuery("");
+  };
+
   const selectTld = (tld: string) => {
     sounds.click();
     onChange(tld);
-    setOpen(false);
-    setActiveIndex(-1);
+    closeMenu();
   };
 
   const openMenu = () => {
     setOpen(true);
-    setActiveIndex(Math.max(0, POPULAR_TLDS.indexOf(value as (typeof POPULAR_TLDS)[number])));
+    setQuery("");
+    const selectedIndex = ALL_TLDS.indexOf(value);
+    setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+  };
+
+  const moveActive = (delta: number) => {
+    if (filteredTlds.length === 0) return;
+    setActiveIndex((current) => {
+      const next = current < 0 ? 0 : current + delta;
+      return Math.max(0, Math.min(next, filteredTlds.length - 1));
+    });
   };
 
   return (
@@ -48,20 +91,15 @@ export function TldDropdown({ value, disabled = false, onChange }: { value: stri
         onClick={() => {
           if (disabled) return;
           sounds.click();
-          if (open) {
-            setOpen(false);
-            setActiveIndex(-1);
-          } else {
-            openMenu();
-          }
+          if (open) closeMenu();
+          else openMenu();
         }}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             openMenu();
           } else if (event.key === "Escape") {
-            setOpen(false);
-            setActiveIndex(-1);
+            closeMenu();
           }
         }}
       >
@@ -69,41 +107,68 @@ export function TldDropdown({ value, disabled = false, onChange }: { value: stri
         <ChevronDown size={12} strokeWidth={1.6} aria-hidden="true" />
       </button>
       {open && !disabled ? (
-        <ul className="tld-dropdown-menu" role="listbox" aria-label="Top-level domain">
-          {POPULAR_TLDS.map((tld, index) => (
-            <li key={tld}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={value === tld}
-                className={[
-                  value === tld ? "selected" : "",
-                  activeIndex === index ? "active" : "",
-                ].filter(Boolean).join(" ") || undefined}
-                onMouseEnter={() => setActiveIndex(index)}
-                onClick={() => selectTld(tld)}
-                onKeyDown={(event) => {
-                  if (event.key === "ArrowDown") {
-                    event.preventDefault();
-                    setActiveIndex((current) => Math.min(current + 1, POPULAR_TLDS.length - 1));
-                  } else if (event.key === "ArrowUp") {
-                    event.preventDefault();
-                    setActiveIndex((current) => Math.max(current - 1, 0));
-                  } else if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    selectTld(tld);
-                  } else if (event.key === "Escape") {
-                    event.preventDefault();
-                    setOpen(false);
-                    setActiveIndex(-1);
-                  }
-                }}
-              >
-                <span>{tld}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="tld-dropdown-menu" role="presentation">
+          <label className="tld-dropdown-search">
+            <Search size={12} strokeWidth={1.8} aria-hidden="true" />
+            <input
+              ref={searchRef}
+              type="search"
+              value={query}
+              placeholder="Search"
+              aria-label="Search domain endings"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setActiveIndex(0);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  moveActive(1);
+                } else if (event.key === "ArrowUp") {
+                  event.preventDefault();
+                  moveActive(-1);
+                } else if (event.key === "Enter") {
+                  event.preventDefault();
+                  const tld = filteredTlds[Math.max(0, activeIndex)];
+                  if (tld) selectTld(tld);
+                } else if (event.key === "Escape") {
+                  event.preventDefault();
+                  closeMenu();
+                }
+              }}
+            />
+          </label>
+          {filteredTlds.length > 0 ? (
+            <ul className="tld-dropdown-list" role="listbox" aria-label="Top-level domain" ref={listRef}>
+              {filteredTlds.map((tld, index) => (
+                <li
+                  key={tld}
+                  className={popularCount > 0 && index === popularCount ? "tld-dropdown-divider" : undefined}
+                >
+                  <button
+                    type="button"
+                    role="option"
+                    data-tld-index={index}
+                    aria-selected={value === tld}
+                    className={[
+                      value === tld ? "selected" : "",
+                      activeIndex === index ? "active" : "",
+                    ].filter(Boolean).join(" ") || undefined}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    onClick={() => selectTld(tld)}
+                  >
+                    <span>{tld}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="tld-dropdown-empty">No matches</p>
+          )}
+        </div>
       ) : null}
     </div>
   );

@@ -2860,7 +2860,8 @@ html:not([data-font-family="serif"]) .split-combined-word * {
 }
 
 .domain-availability.is-available .domain-availability-trigger,
-.domain-availability.is-registered .domain-availability-trigger {
+.domain-availability.is-registered .domain-availability-trigger,
+.domain-availability.is-unknown .domain-availability-trigger {
   color: var(--ink);
 }
 
@@ -2943,7 +2944,8 @@ html[data-colorway="light"] .domain-availability-check {
   text-decoration: none;
 }
 
-.domain-alt-tld.is-taken {
+.domain-alt-tld.is-taken,
+.domain-alt-tld.is-unknown {
   color: var(--faint);
   opacity: .72;
 }
@@ -2965,12 +2967,14 @@ html[data-colorway="light"] .domain-availability-check {
   color: var(--accent-ink);
 }
 
-.domain-alt-tld.is-taken .domain-alt-tld-check {
+.domain-alt-tld.is-taken .domain-alt-tld-check,
+.domain-alt-tld.is-unknown .domain-alt-tld-check {
   background: rgba(255, 255, 255, .22);
   color: var(--faint);
 }
 
-html[data-colorway="light"] .domain-alt-tld.is-taken .domain-alt-tld-check {
+html[data-colorway="light"] .domain-alt-tld.is-taken .domain-alt-tld-check,
+html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
   background: rgba(63, 63, 63, .12);
   color: var(--faint);
 }
@@ -3416,12 +3420,14 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .controls {
 
 .tld-dropdown {
   position: relative;
-  width: 66px;
+  min-width: 66px;
+  width: max-content;
 }
 
 .tld-dropdown-trigger {
   display: inline-flex;
   width: 100%;
+  min-width: 66px;
   height: calc(20px + .7rem);
   align-items: center;
   justify-content: space-between;
@@ -3458,24 +3464,78 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .controls {
   right: 0;
   bottom: auto;
   z-index: 1000;
-  width: 100px;
-  max-height: 260px;
+  display: flex;
+  width: min(200px, 70vw);
+  max-height: 320px;
+  flex-direction: column;
   margin: 0;
   border: 1px solid rgba(21, 21, 19, .1);
   border-radius: 10px;
   padding: .35rem;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--surface);
   box-shadow: 0 14px 34px rgba(20, 20, 18, .12), 0 2px 8px rgba(20, 20, 18, .05);
-  list-style: none;
   animation: panel-enter .16s ease both;
 }
 
-.tld-dropdown-menu li+li {
+.tld-dropdown-search {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: .35rem;
+  margin-bottom: .3rem;
+  border-radius: 7px;
+  padding: .35rem .45rem;
+  background: #F6F5F4;
+  color: #8a8a8a;
+}
+
+.tld-dropdown-search svg {
+  flex: none;
+}
+
+.tld-dropdown-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  outline: none;
+}
+
+.tld-dropdown-search input::placeholder {
+  color: #8a8a8a;
+}
+
+.tld-dropdown-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.tld-dropdown-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.tld-dropdown-list li + li {
   margin-top: .15rem;
 }
 
-.tld-dropdown-menu button {
+.tld-dropdown-list li.tld-dropdown-divider {
+  margin-top: .35rem;
+  padding-top: .35rem;
+  border-top: 1px solid rgba(21, 21, 19, .08);
+}
+
+.tld-dropdown-list button {
   display: flex;
   width: 100%;
   align-items: center;
@@ -3491,15 +3551,24 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .controls {
   transition: background-color .14s ease;
 }
 
-.tld-dropdown-menu button:hover,
-.tld-dropdown-menu button.active,
-.tld-dropdown-menu button:focus-visible {
+.tld-dropdown-list button:hover,
+.tld-dropdown-list button.active,
+.tld-dropdown-list button:focus-visible {
   background: #F6F5F4;
   outline: none;
 }
 
-.tld-dropdown-menu button.selected {
+.tld-dropdown-list button.selected {
   background: #ececea;
+}
+
+.tld-dropdown-empty {
+  margin: 0;
+  padding: .55rem .45rem;
+  color: #8a8a8a;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
 }
 
 html:not([data-layout="mobile"]) .page-shell.discover-mode .controls-bar {
@@ -5652,8 +5721,14 @@ html[data-colorway="light"] .tld-dropdown-trigger svg {
 }
 
 .tld-dropdown-menu,
-.tld-dropdown-menu button {
+.tld-dropdown-list button,
+.tld-dropdown-search input,
+.tld-dropdown-empty {
   color: #1a1a1a !important;
+}
+
+.tld-dropdown-search {
+  background: #F6F5F4 !important;
 }
 
 .typography-segment-toggle,
