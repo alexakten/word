@@ -3085,21 +3085,6 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   -webkit-line-clamp: 3;
 }
 
-.split-definition-ellipsis {
-  display: none;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  padding-left: .16em;
-  background: var(--surface);
-  line-height: inherit;
-}
-
-/* Manual ellipsis only on mobile — desktop line-clamp already draws one. */
-html[data-layout="mobile"] .page-shell .split-definition-ellipsis {
-  display: inline;
-}
-
 .split-definition.expanded {
   display: block;
   line-clamp: unset;
@@ -4099,7 +4084,6 @@ kbd {
 
   .page-shell.discover-mode .split-definition {
     display: -webkit-box;
-    max-height: 4.35em;
     font-size: 14px;
     line-height: 1.45;
     overflow: hidden;
@@ -4110,13 +4094,8 @@ kbd {
 
   .page-shell.discover-mode .split-definition.expanded {
     display: block;
-    max-height: none;
     line-clamp: unset;
     -webkit-line-clamp: unset;
-  }
-
-  .page-shell.discover-mode .split-definition-ellipsis {
-    display: inline;
   }
 
   .desktop-layout-only {
@@ -4546,7 +4525,6 @@ html[data-layout="mobile"] .page-shell.discover-mode .split-definitions article:
 
 html[data-layout="mobile"] .page-shell.discover-mode .split-definition {
   display: -webkit-box;
-  max-height: 4.35em;
   font-size: 14px;
   line-height: 1.45;
   overflow: hidden;
@@ -4557,7 +4535,6 @@ html[data-layout="mobile"] .page-shell.discover-mode .split-definition {
 
 html[data-layout="mobile"] .page-shell.discover-mode .split-definition.expanded {
   display: block;
-  max-height: none;
   line-clamp: unset;
   -webkit-line-clamp: unset;
 }
@@ -5698,10 +5675,6 @@ html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings.active 
 .split-eyebrow > span,
 .split-eyebrow > .pronunciation-inline {
   color: var(--hero-ink);
-}
-
-.split-definition-ellipsis {
-  background: var(--paper);
 }
 
 .rule {

@@ -20,12 +20,15 @@ import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import type { HomeState } from "../../hooks/use-home";
+import { useHistorySwipe } from "../../hooks/use-history-swipe";
 import { sounds } from "../../lib/sounds";
 import { parseTags } from "../../lib/tags";
 
 export type DiscoverViewProps = Pick<
   HomeState,
   | "mobileDiscoverPanel"
+  | "isMobileLayout"
+  | "moveThroughSplitHistory"
   | "closeMobileDiscoverPanel"
   | "leftSettingsApplied"
   | "rightSettingsApplied"
@@ -120,6 +123,8 @@ export type DiscoverViewProps = Pick<
 export function DiscoverView(props: DiscoverViewProps) {
   const {
     mobileDiscoverPanel,
+    isMobileLayout,
+    moveThroughSplitHistory,
     closeMobileDiscoverPanel,
     leftSettingsApplied,
     rightSettingsApplied,
@@ -212,6 +217,12 @@ export function DiscoverView(props: DiscoverViewProps) {
   } = props;
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
+
+  useHistorySwipe({
+    enabled: isMobileLayout && !mobileDiscoverPanel,
+    onBack: () => moveThroughSplitHistory(-1),
+    onForward: () => moveThroughSplitHistory(1),
+  });
 
   const leftSettingsContent = (idPrefix: string) => (
     <>
