@@ -1,7 +1,7 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import { Check, CircleHelp, LoaderCircle, X } from "lucide-react";
+import { Check, CircleQuestionMark, LoaderCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { sounds } from "../../lib/sounds";
 import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
@@ -100,11 +100,10 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       ? `${domain} available!`
       : currentResult?.status === "registered"
         ? `${domain} is taken`
-        : currentResult?.status === "unknown"
-          ? "Cannot find availability"
-          : "Check availability";
+        : "Check availability";
   const showRegistrarLinks = Boolean(currentResult);
-  const resultMessage = currentResult?.message
+  const resultMessage = currentResult?.status !== "unknown"
+    && currentResult?.message
     && currentResult.message !== "Cannot find availability"
     && !currentResult.message.startsWith("No public RDAP service")
     ? currentResult.message
@@ -117,9 +116,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       ? hasAvailableAlternatives
         ? "Explore more available domains"
         : "Other TLDs might be available"
-      : currentResult?.status === "unknown"
-        ? "Try checking on a registrar"
-        : "Check availability on registrar";
+      : null;
 
   const popover = currentResult && (resultMessage || showRegistrarLinks || hasAlternatives) ? (
     <div className="domain-availability-popover">
@@ -137,7 +134,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
                 {isAvailable ? (
                   <Check size={9} strokeWidth={2.6} />
                 ) : isUnknown ? (
-                  <CircleHelp size={9} strokeWidth={2.4} />
+                  <CircleQuestionMark size={9} strokeWidth={2.4} />
                 ) : (
                   <X size={8} strokeWidth={2.6} />
                 )}
@@ -217,13 +214,13 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
             <span className="domain-availability-check" aria-hidden="true">
               <Check size={10} strokeWidth={2.4} />
             </span>
-          ) : currentResult?.status === "unknown" ? (
+          ) : currentResult?.status === "registered" ? (
             <span className="domain-availability-check" aria-hidden="true">
-              <CircleHelp size={10} strokeWidth={2.2} />
+              <X size={9} strokeWidth={2.4} />
             </span>
           ) : currentResult ? (
             <span className="domain-availability-check" aria-hidden="true">
-              <X size={9} strokeWidth={2.4} />
+              <CircleQuestionMark size={10} strokeWidth={2.2} />
             </span>
           ) : null}
           <span>{statusLabel}</span>
