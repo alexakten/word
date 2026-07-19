@@ -100,7 +100,9 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
       ? `${domain} available!`
       : currentResult?.status === "registered"
         ? `${domain} is taken`
-        : "Check availability";
+        : currentResult?.status === "unknown"
+          ? `Check if ${domain} is available`
+          : "Check availability";
   const showRegistrarLinks = Boolean(currentResult);
   const resultMessage = currentResult?.status !== "unknown"
     && currentResult?.message
