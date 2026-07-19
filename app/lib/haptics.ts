@@ -1,4 +1,4 @@
-import { WebHaptics } from "web-haptics";
+import { WebHaptics, type HapticInput } from "web-haptics";
 
 let haptics: WebHaptics | null = null;
 
@@ -8,14 +8,14 @@ function prefersReducedMotion(): boolean {
 }
 
 function getHaptics(): WebHaptics | null {
-  if (typeof window === "undefined" || !WebHaptics.isSupported || prefersReducedMotion()) {
-    return null;
-  }
-  if (!haptics) haptics = new WebHaptics();
+  if (typeof window === "undefined" || prefersReducedMotion()) return null;
+  // Always create an instance — on iOS (no Vibration API) web-haptics falls
+  // back to a switch-input click that can still produce system haptics.
+  if (!haptics) haptics = new WebHaptics({ showSwitch: false });
   return haptics;
 }
 
-function trigger(input: Parameters<WebHaptics["trigger"]>[0]) {
+function trigger(input: HapticInput = "selection") {
   const instance = getHaptics();
   if (!instance) return;
   void instance.trigger(input);
