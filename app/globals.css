@@ -3957,7 +3957,7 @@ kbd {
     color: #1a1a1a;
     cursor: pointer;
     font-size: .72rem;
-    font-weight: 500;
+    font-weight: 500 !important;
     letter-spacing: .02em;
     line-height: 1.2;
     text-align: center;
@@ -4253,7 +4253,7 @@ html[data-layout="mobile"] .page-shell .mobile-discover-toolbar-button.has-setti
   color: #1a1a1a;
   cursor: pointer;
   font-size: .72rem;
-  font-weight: 500;
+  font-weight: 500 !important;
   letter-spacing: .02em;
   line-height: 1.2;
   text-align: center;
@@ -4269,6 +4269,16 @@ html[data-layout="mobile"] .page-shell .mobile-discover-toolbar-button.has-setti
 
 html[data-layout="mobile"] .page-shell .mobile-discover-toolbar-button.active {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05), inset 0 0 0 1px rgba(21, 21, 19, .18) !important;
+}
+
+html[data-layout="mobile"]:not([data-colorway="light"]) .page-shell .mobile-discover-toolbar-button,
+html[data-layout="mobile"]:not([data-colorway="light"]) .page-shell .mobile-discover-toolbar-button.has-settings,
+html[data-layout="mobile"]:not([data-colorway="light"]) .page-shell .mobile-discover-toolbar-button.active,
+html[data-layout="mobile"]:not([data-colorway="light"]) .page-shell .mobile-discover-toolbar-button.has-settings.active,
+html[data-layout="mobile"]:not([data-colorway="light"]) .page-shell .mobile-discover-toolbar-button:hover,
+html[data-layout="mobile"]:not([data-colorway="light"]) .page-shell .mobile-discover-toolbar-button.has-settings:hover {
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 html[data-colorway="yellow"] .mobile-discover-toolbar-button,

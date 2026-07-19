@@ -4,6 +4,7 @@ import { RefreshCw, X } from "lucide-react";
 import { sounds } from "../../lib/sounds";
 import type { MixSideSettings, SliceMode } from "../../syllables";
 import { MixSideSetting } from "./mix-side-setting";
+import { SettingsPanelScroll } from "./settings-panel-scroll";
 
 type SliceSide = "left" | "right";
 
@@ -60,16 +61,18 @@ export function SliceSidePanel({ side, word, sliceMode, settings, syllables, onS
       aria-label={`${labelPrefix} slice settings`}
     >
       <SlicePanelHeader title={title} settingsApplied={settingsApplied} onReset={onReset} />
-      <MixSideSetting
-        labelPrefix={labelPrefix}
-        word={word}
-        settings={settings}
-        sliceMode={sliceMode}
-        syllableCount={syllables}
-        hasWord={Boolean(word)}
-        onChange={onChange}
-        onSliceModeChange={onSliceModeChange}
-      />
+      <SettingsPanelScroll>
+        <MixSideSetting
+          labelPrefix={labelPrefix}
+          word={word}
+          settings={settings}
+          sliceMode={sliceMode}
+          syllableCount={syllables}
+          hasWord={Boolean(word)}
+          onChange={onChange}
+          onSliceModeChange={onSliceModeChange}
+        />
+      </SettingsPanelScroll>
     </aside>
   );
 }
@@ -104,35 +107,37 @@ export function SliceSettingsPanel({ leftWord, rightWord, leftSliceMode, rightSl
         onReset={onReset}
         onMobileClose={onMobileClose}
       />
-      <div className="slice-settings-grid">
-        <div className="slice-settings-side">
-          <MixSideSetting
-            labelPrefix="Left word"
-            word={leftWord}
-            settings={leftSettings}
-            sliceMode={leftSliceMode}
-            syllableCount={leftSyllables}
-            hasWord={Boolean(leftWord)}
-            onChange={onLeftChange}
-            onSliceModeChange={onLeftSliceModeChange}
-          />
-        </div>
-        <div className="slice-settings-side">
-          <div className="settings-panel-header slice-side-title">
-            <p>Slice right</p>
+      <SettingsPanelScroll>
+        <div className="slice-settings-grid">
+          <div className="slice-settings-side">
+            <MixSideSetting
+              labelPrefix="Left word"
+              word={leftWord}
+              settings={leftSettings}
+              sliceMode={leftSliceMode}
+              syllableCount={leftSyllables}
+              hasWord={Boolean(leftWord)}
+              onChange={onLeftChange}
+              onSliceModeChange={onLeftSliceModeChange}
+            />
           </div>
-          <MixSideSetting
-            labelPrefix="Right word"
-            word={rightWord}
-            settings={rightSettings}
-            sliceMode={rightSliceMode}
-            syllableCount={rightSyllables}
-            hasWord={Boolean(rightWord)}
-            onChange={onRightChange}
-            onSliceModeChange={onRightSliceModeChange}
-          />
+          <div className="slice-settings-side">
+            <div className="settings-panel-header slice-side-title">
+              <p>Slice right</p>
+            </div>
+            <MixSideSetting
+              labelPrefix="Right word"
+              word={rightWord}
+              settings={rightSettings}
+              sliceMode={rightSliceMode}
+              syllableCount={rightSyllables}
+              hasWord={Boolean(rightWord)}
+              onChange={onRightChange}
+              onSliceModeChange={onRightSliceModeChange}
+            />
+          </div>
         </div>
-      </div>
+      </SettingsPanelScroll>
     </aside>
   );
 }
