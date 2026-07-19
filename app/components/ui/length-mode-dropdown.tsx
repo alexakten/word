@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { LENGTH_MODE_OPTIONS } from "../../lib/constants";
+import { sounds } from "../../lib/sounds";
 import type { LengthMode } from "../../lib/types";
 
 export function LengthModeDropdown({ value, label = "Comparison", disabled = false, inline = false, onChange }: {
@@ -29,6 +30,7 @@ export function LengthModeDropdown({ value, label = "Comparison", disabled = fal
   }, [open]);
 
   const selectOption = (nextValue: LengthMode) => {
+    sounds.click();
     onChange(nextValue);
     setOpen(false);
     setActiveIndex(-1);
@@ -53,6 +55,7 @@ export function LengthModeDropdown({ value, label = "Comparison", disabled = fal
         disabled={disabled}
         onClick={() => {
           if (disabled) return;
+          sounds.click();
           if (open) {
             setOpen(false);
             setActiveIndex(-1);

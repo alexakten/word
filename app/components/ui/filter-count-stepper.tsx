@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import { sounds } from "../../lib/sounds";
 
 export function FilterCountStepper({ id, groupLabel, decreaseLabel, increaseLabel, count, max, onChange }: {
   id: string;
@@ -18,7 +19,10 @@ export function FilterCountStepper({ id, groupLabel, decreaseLabel, increaseLabe
         className="filter-count-step"
         disabled={count === 0}
         aria-label={decreaseLabel}
-        onClick={() => onChange(count - 1)}
+        onClick={() => {
+          sounds.click();
+          onChange(count - 1);
+        }}
       >
         <Minus size={16} strokeWidth={2} color="currentColor" aria-hidden="true" />
       </button>
@@ -33,7 +37,10 @@ export function FilterCountStepper({ id, groupLabel, decreaseLabel, increaseLabe
         className="filter-count-step"
         disabled={count >= max}
         aria-label={increaseLabel}
-        onClick={() => onChange(count + 1)}
+        onClick={() => {
+          sounds.click();
+          onChange(count + 1);
+        }}
       >
         <Plus size={16} strokeWidth={2} color="currentColor" aria-hidden="true" />
       </button>

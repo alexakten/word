@@ -9,6 +9,7 @@ import {
   syncColorwayUrlParam,
   type Colorway,
 } from "../../lib/colorways";
+import { sounds } from "../../lib/sounds";
 import { useControlPop } from "./use-control-pop";
 
 const COLORWAY_EVENT = "spellsurf:colorway";
@@ -50,7 +51,8 @@ export function ColorwaySwitcher() {
           aria-pressed={activeColorway === colorway.id}
           title={colorway.label}
           onClick={(event) => {
-            pop(event);
+            pop(event, { sound: false });
+            if (colorway.id !== activeColorway) sounds.toggle();
             setActiveColorway(colorway.id);
             window.dispatchEvent(new CustomEvent(COLORWAY_EVENT, { detail: colorway.id }));
           }}

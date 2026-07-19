@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { sounds } from "../lib/sounds";
 import type { ApiHealth, ForgeHistoryEntry, ForgeSlot, WordResult } from "../lib/types";
 import { applyApiHealth, emptyForgeSlot, isFetchFailure } from "../lib/word-utils";
 
@@ -246,13 +247,16 @@ export function useForge({ setApiHealth, savedWords, saveWords }: UseForgeOption
     if (!words.every((word, slotIndex) => fitsForgeSlotConstraints(word, slotIndex))) return;
     const word = words.map((item) => item.word.replace(/\s+/g, "").toLowerCase()).join("");
     const exists = savedWords.some((saved) => saved.word.toLowerCase() === word);
-    saveWords(exists
-      ? savedWords.filter((saved) => saved.word.toLowerCase() !== word)
-      : [...savedWords, {
-        word,
-        definition: `A coined word combining “${words[0].word}” and “${words[1].word}”.`,
-        partOfSpeech: "coined word",
-      }]);
+    if (exists) {
+      saveWords(savedWords.filter((saved) => saved.word.toLowerCase() !== word));
+      return;
+    }
+    saveWords([...savedWords, {
+      word,
+      definition: `A coined word combining “${words[0].word}” and “${words[1].word}”.`,
+      partOfSpeech: "coined word",
+    }]);
+    sounds.successMinimal();
   };
 
   const moveThroughForgeHistory = useCallback((direction: -1 | 1) => {

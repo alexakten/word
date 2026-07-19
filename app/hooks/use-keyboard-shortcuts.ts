@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { relations } from "../lib/constants";
+import { sounds } from "../lib/sounds";
 import type { AppMode, DiscoverMobilePanel, PartOfSpeech, WordResult } from "../lib/types";
 
 type KeyboardActions = {
@@ -72,6 +73,7 @@ export function useKeyboardShortcuts({
 
       if (event.key.toLowerCase() === "f" && appMode === "discover") {
         event.preventDefault();
+        sounds.tick();
         setMobileDiscoverPanel(null);
         setFocusMode((focused) => !focused);
         return;
@@ -79,6 +81,7 @@ export function useKeyboardShortcuts({
 
       if (event.code === "Space" || event.key === "Enter") {
         event.preventDefault();
+        sounds.tick();
         if (appMode === "discover") generateVisibleWords();
         if (appMode === "combine") void actionsRef.current.runForgePrimary();
         if (appMode === "find") void actionsRef.current.runAdvancedSearch();
@@ -87,6 +90,7 @@ export function useKeyboardShortcuts({
 
       if (event.key === "ArrowLeft") {
         event.preventDefault();
+        sounds.tick();
         if (appMode === "discover") void findWord();
         else actionsRef.current.moveThroughForgeHistory(-1);
         return;
@@ -94,6 +98,7 @@ export function useKeyboardShortcuts({
 
       if (event.key === "ArrowRight") {
         event.preventDefault();
+        sounds.tick();
         if (appMode === "discover") void findSecondaryWord();
         else actionsRef.current.moveThroughForgeHistory(1);
         return;
@@ -101,18 +106,21 @@ export function useKeyboardShortcuts({
 
       if (event.key === "ArrowUp" && appMode === "discover") {
         event.preventDefault();
+        sounds.tick();
         moveThroughSplitHistory(-1);
         return;
       }
 
       if (event.key === "ArrowDown" && appMode === "discover") {
         event.preventDefault();
+        sounds.tick();
         moveThroughSplitHistory(1);
         return;
       }
 
       if (event.key.toLowerCase() === "r" && appMode === "discover") {
         event.preventDefault();
+        sounds.drop();
         resetAllDiscoverSettings();
         return;
       }
@@ -125,7 +133,10 @@ export function useKeyboardShortcuts({
       }
 
       const relation = appMode === "discover" ? relations.find((item) => item.key === event.key.toLowerCase()) : undefined;
-      if (relation) void findWord(relation);
+      if (relation) {
+        sounds.tick();
+        void findWord(relation);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);

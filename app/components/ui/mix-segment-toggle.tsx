@@ -1,5 +1,6 @@
 "use client";
 
+import { sounds } from "../../lib/sounds";
 import { useActiveTabClipPath } from "./use-active-tab-clip-path";
 
 export function MixSegmentToggle<T extends string>({ value, label, options, disabled = false, className = "", onChange }: {
@@ -23,7 +24,10 @@ export function MixSegmentToggle<T extends string>({ value, label, options, disa
               type="button"
               aria-pressed={value === option.value}
               disabled={disabled}
-              onClick={() => onChange(option.value)}
+              onClick={() => {
+                sounds.click();
+                onChange(option.value);
+              }}
             >
               {option.label}
             </button>

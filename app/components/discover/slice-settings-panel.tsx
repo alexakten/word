@@ -1,6 +1,7 @@
 "use client";
 
 import { RefreshCw, X } from "lucide-react";
+import { sounds } from "../../lib/sounds";
 import type { MixSideSettings, SliceMode } from "../../syllables";
 import { MixSideSetting } from "./mix-side-setting";
 
@@ -21,7 +22,10 @@ function SlicePanelHeader({ title, settingsApplied, onReset, onMobileClose }: {
           type="button"
           aria-hidden={!settingsApplied}
           tabIndex={settingsApplied ? undefined : -1}
-          onClick={onReset}
+          onClick={() => {
+            sounds.drop();
+            onReset();
+          }}
         >
           <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
           Reset

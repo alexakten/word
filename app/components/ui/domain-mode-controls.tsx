@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NAME_DISPLAY_MODE_OPTIONS, POPULAR_TLDS } from "../../lib/constants";
+import { sounds } from "../../lib/sounds";
 import type { NameDisplayMode } from "../../lib/types";
 import { MixSegmentToggle } from "./mix-segment-toggle";
 
@@ -24,6 +25,7 @@ function TldDropdown({ value, disabled = false, onChange }: { value: string; dis
   }, [open]);
 
   const selectTld = (tld: string) => {
+    sounds.click();
     onChange(tld);
     setOpen(false);
     setActiveIndex(-1);
@@ -45,6 +47,7 @@ function TldDropdown({ value, disabled = false, onChange }: { value: string; dis
         disabled={disabled}
         onClick={() => {
           if (disabled) return;
+          sounds.click();
           if (open) {
             setOpen(false);
             setActiveIndex(-1);

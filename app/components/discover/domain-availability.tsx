@@ -3,6 +3,7 @@
 import { track } from "@vercel/analytics";
 import { Check, LoaderCircle, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { sounds } from "../../lib/sounds";
 import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
 
 type AvailabilityResult = {
@@ -59,6 +60,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
         return;
       }
       setResult(payload);
+      if (payload.status === "available") sounds.success();
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         setResult({

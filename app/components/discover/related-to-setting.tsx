@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { sounds } from "../../lib/sounds";
 import { MAX_TAG_LENGTH, MAX_TAGS, parseTags } from "../../lib/tags";
 
 type TagEntrySettingProps = {
@@ -139,7 +140,14 @@ export function TagEntrySetting({
         {tags.map((tag, index) => (
           <span className="related-tag" key={`${tag.toLowerCase()}-${index}`}>
             {tag}
-            <button type="button" aria-label={`Remove ${tag}`} onClick={() => removeTag(index)}>
+            <button
+              type="button"
+              aria-label={`Remove ${tag}`}
+              onClick={() => {
+                sounds.click();
+                removeTag(index);
+              }}
+            >
               <X size={12} strokeWidth={1.8} aria-hidden="true" />
             </button>
           </span>
@@ -202,7 +210,10 @@ export function TagEntrySetting({
               aria-selected={index === activeSuggestion}
               className={index === activeSuggestion ? "active" : ""}
               onPointerDown={(event) => event.preventDefault()}
-              onClick={() => addTags([word])}
+              onClick={() => {
+                sounds.click();
+                addTags([word]);
+              }}
             >
               {word}
             </li>

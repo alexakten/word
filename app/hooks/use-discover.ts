@@ -13,6 +13,7 @@ import {
   type WordResult,
 } from "../lib/types";
 import { parseMixSideSettings, parseSideSettings, syncDiscoverUrlParams } from "../lib/url-params";
+import { sounds } from "../lib/sounds";
 import { pickRandomTag } from "../lib/tags";
 import { applyApiHealth, isFetchFailure, stripSplitFields } from "../lib/word-utils";
 import { normalizePronunciation } from "../pronunciation";
@@ -79,12 +80,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [secondaryWordLetters, setSecondaryWordLetters] = useState("");
   const [secondaryWordLengthMode, setSecondaryWordLengthMode] = useState<LengthMode>("exact");
   const [secondaryWordRelatedTo, setSecondaryWordRelatedTo] = useState("");
-  const [result, setResult] = useState<WordResult>({
-    word: "",
-    definition: "",
-    partOfSpeech: "",
-  });
-  const [secondaryResult, setSecondaryResult] = useState<WordResult>({ word: "", definition: "", partOfSpeech: "" });
+  const [result, setResult] = useState<WordResult>(RESET_LEFT_WORD);
+  const [secondaryResult, setSecondaryResult] = useState<WordResult>(RESET_RIGHT_WORD);
   const [leftWordDraft, setLeftWordDraft] = useState("");
   const [rightWordDraft, setRightWordDraft] = useState("");
   const [secondaryLoading, setSecondaryLoading] = useState(false);
@@ -95,9 +92,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const secondaryRequestRef = useRef<AbortController | null>(null);
   const splitBatchRequestRef = useRef(0);
   const wordCopyTimerRef = useRef(0);
-  const initialWordLoaded = useRef(false);
-  const wordHistoryRef = useRef<WordResult[]>([]);
-  const historyIndexRef = useRef(-1);
+  const wordHistoryRef = useRef<WordResult[]>([RESET_LEFT_WORD]);
+  const historyIndexRef = useRef(0);
   const splitHistoryRef = useRef<SplitHistoryEntry[]>([]);
   const splitHistoryIndexRef = useRef(-1);
   const splitHistoryBatchDepthRef = useRef(0);
@@ -256,12 +252,14 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       splitLeft: stripSplitFields(result),
       splitRight: stripSplitFields(secondaryResult),
     }, ...savedWords]);
+    sounds.successMinimal();
   }, [combinedSplitIsSaved, displayedCombinedWord, leftWordValue, mixedWordParts.leftChunk, mixedWordParts.rightChunk, result, rightWordValue, saveWords, savedWords, secondaryResult]);
 
   const copyDisplayedWord = useCallback(async (word: string) => {
     if (!word) return;
     try {
       await navigator.clipboard.writeText(word.replace(/\s+/g, "").toLowerCase());
+      sounds.success();
       window.clearTimeout(wordCopyTimerRef.current);
       setWordCopyStatus("copied");
       wordCopyTimerRef.current = window.setTimeout(() => setWordCopyStatus("hidden"), 2000);
@@ -637,11 +635,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   ]);
 
   useEffect(() => {
-    if (initialWordLoaded.current) return;
-    initialWordLoaded.current = true;
-    generateVisibleWords();
-  }, [generateVisibleWords]);
-  useEffect(() => {
     if (splitHistoryBatchDepthRef.current > 0 || !result.word || !secondaryResult.word) return;
     const current = splitHistoryRef.current[splitHistoryIndexRef.current];
     const entry = { left: result, right: secondaryResult };
@@ -654,11 +647,15 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     splitHistoryIndexRef.current = splitHistoryRef.current.length - 1;
   }, [result, secondaryResult, splitHistoryRevision]);
 
+  const leftSyllablesApplied = wordSyllables !== DEFAULT_SYLLABLES
+    || wordSyllableMode !== DEFAULT_WORD_SYLLABLE_MODE;
+  const rightSyllablesApplied = secondaryWordSyllables !== DEFAULT_SYLLABLES
+    || secondaryWordSyllableMode !== DEFAULT_WORD_SYLLABLE_MODE;
   const leftSettingsCount = [
     Boolean(leftWordDraft.trim()),
     Boolean(wordRelatedTo.trim()),
     wordType !== "any",
-    Boolean(wordSyllables),
+    leftSyllablesApplied,
     Boolean(wordStartsWith),
     Boolean(wordEndsWith),
     Boolean(wordLetters),
@@ -667,7 +664,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     Boolean(rightWordDraft.trim()),
     Boolean(secondaryWordRelatedTo.trim()),
     secondaryWordType !== "any",
-    Boolean(secondaryWordSyllables),
+    rightSyllablesApplied,
     Boolean(secondaryWordStartsWith),
     Boolean(secondaryWordEndsWith),
     Boolean(secondaryWordLetters),

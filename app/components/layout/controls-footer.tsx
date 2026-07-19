@@ -5,7 +5,9 @@ import type { HomeState } from "../../hooks/use-home";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
+import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
+import { sounds } from "../../lib/sounds";
 
 export type ControlsFooterProps = Pick<
   HomeState,
@@ -159,7 +161,13 @@ export function ControlsFooter(props: ControlsFooterProps) {
               <kbd>F</kbd>
               <span>Focus</span>
             </button>
-            <button type="button" onClick={resetAllDiscoverSettings}>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.drop();
+                resetAllDiscoverSettings();
+              }}
+            >
               <kbd>R</kbd>
               <span>Reset</span>
             </button>
@@ -216,7 +224,10 @@ export function ControlsFooter(props: ControlsFooterProps) {
           </button>
         </div> : null}
         {appMode === "discover" ? (
-          <AboutDrawer />
+          <div className="sound-about-actions">
+            <SoundToggle />
+            <AboutDrawer />
+          </div>
         ) : (
           <div className="controls-end">
             <SavedWordsPanel
@@ -227,7 +238,12 @@ export function ControlsFooter(props: ControlsFooterProps) {
               saveWords={saveWords}
               loadSavedWord={loadSavedWord}
             />
-            {!isMobileLayout ? <AboutDrawer /> : null}
+            {!isMobileLayout ? (
+              <div className="sound-about-actions">
+                <SoundToggle />
+                <AboutDrawer />
+              </div>
+            ) : null}
           </div>
         )}
       </div>

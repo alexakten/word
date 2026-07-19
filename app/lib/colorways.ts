@@ -11,7 +11,7 @@ export const colorways = [
 export type Colorway = (typeof colorways)[number]["id"];
 
 export const COLORWAY_PARAM = "colorway";
-export const DEFAULT_COLORWAY: Colorway = "light";
+export const DEFAULT_COLORWAY: Colorway = "blue";
 
 const colorwayIds = new Set<string>(colorways.map((colorway) => colorway.id));
 

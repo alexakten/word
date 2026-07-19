@@ -1,6 +1,7 @@
 "use client";
 
 import { wordTypes } from "../../lib/constants";
+import { sounds } from "../../lib/sounds";
 import type { WordTypeTabsProps } from "../../lib/types";
 import { useActiveTabClipPath } from "./use-active-tab-clip-path";
 
@@ -16,7 +17,10 @@ export function WordTypeTabs({ value, label, className = "", onChange }: WordTyp
               ref={value === type.value ? activeTabRef : null}
               type="button"
               aria-pressed={value === type.value}
-              onClick={() => onChange(type.value)}
+              onClick={() => {
+                sounds.click();
+                onChange(type.value);
+              }}
             >
               {type.label}
             </button>

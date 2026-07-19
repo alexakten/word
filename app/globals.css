@@ -388,9 +388,13 @@ button {
   height: 19px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 .35rem;
+  background: #F6F5F4;
+  color: var(--muted);
   font-size: .5rem;
+  font-weight: 500;
 }
 
 .saved-modal-backdrop {
@@ -1855,6 +1859,11 @@ button {
   gap: .65rem;
 }
 
+.settings-panel-header .settings-reset-placeholder {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .settings-panel-header button.mobile-panel-close {
   display: none;
   flex: none;
@@ -1876,10 +1885,6 @@ button {
   color: var(--ink);
 }
 
-.settings-panel-header .settings-reset-placeholder {
-  visibility: hidden;
-  pointer-events: none;
-}
 
 .settings-group+.settings-group {
   margin-top: 1.5rem;
@@ -3069,12 +3074,18 @@ html:not([data-font-family="serif"]) .split-combined-word * {
 }
 
 .split-definition-ellipsis {
+  display: none;
   position: absolute;
   right: 0;
   bottom: 0;
   padding-left: .16em;
   background: var(--surface);
   line-height: inherit;
+}
+
+/* Manual ellipsis only on mobile — desktop line-clamp already draws one. */
+.page-shell.mobile-layout .split-definition-ellipsis {
+  display: inline;
 }
 
 .split-definition.expanded {
@@ -3986,7 +3997,8 @@ kbd {
     transform: translateX(-50%);
   }
 
-  .page-shell.discover-mode .mobile-bottom-bar .about-drawer-trigger {
+  .page-shell.discover-mode .mobile-bottom-bar .about-drawer-trigger,
+  .page-shell.discover-mode .mobile-bottom-bar .sound-toggle {
     align-self: flex-end;
   }
 
@@ -4248,7 +4260,6 @@ html[data-colorway="brown"] .mobile-discover-toolbar-button.has-settings {
   height: calc(20px + .7rem);
   padding: 0 .35rem;
   font-size: 12px;
-  font-weight: 500;
 }
 
 .page-shell.discover-mode.mobile-layout .mobile-bottom-domain-mode-controls {
@@ -4257,9 +4268,7 @@ html[data-colorway="brown"] .mobile-discover-toolbar-button.has-settings {
   justify-self: center;
 }
 
-.page-shell.discover-mode.mobile-layout .mobile-bottom-meta-row>.about-drawer-trigger {
-  width: calc(20px + .7rem);
-  height: calc(20px + .7rem);
+.page-shell.discover-mode.mobile-layout .mobile-bottom-meta-row>.sound-about-actions {
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
@@ -4423,7 +4432,15 @@ html[data-colorway="light"] .compact-save-word-button.liked:hover {
   transform: translateX(-50%);
 }
 
-.about-drawer-trigger {
+.sound-about-actions {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: .45rem;
+}
+
+.about-drawer-trigger,
+.sound-toggle {
   display: inline-flex;
   width: calc(20px + .7rem);
   height: calc(20px + .7rem);
@@ -4438,13 +4455,22 @@ html[data-colorway="light"] .compact-save-word-button.liked:hover {
   cursor: pointer;
 }
 
-.page-shell.mobile-layout .about-drawer-trigger {
+.page-shell.mobile-layout .about-drawer-trigger,
+.page-shell.mobile-layout .sound-toggle {
   align-self: flex-end;
 }
 
-.about-drawer-trigger:hover {
+.about-drawer-trigger:hover,
+.sound-toggle:hover {
   background: #EFEDE9;
   color: var(--ink);
+}
+
+.sound-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: copy-hint-icon-swap .24s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .about-drawer-overlay {
@@ -5219,7 +5245,8 @@ kbd {
   color: var(--ink);
 }
 
-.saved-modal {
+.saved-modal,
+.about-drawer-content {
   --ink: #1a1a1a;
   --muted: #5a5a5a;
   --faint: #8a8a8a;
@@ -5228,12 +5255,50 @@ kbd {
   color: #1a1a1a;
 }
 
-.saved-modal .settings-panel-header button {
+.about-drawer-content .about-drawer-title,
+.about-drawer-content .about-drawer-lead,
+.about-drawer-content .about-drawer-body section h3,
+.about-drawer-content .about-drawer-body section p,
+.about-drawer-content .about-drawer-credit {
+  color: inherit;
+}
+
+.about-drawer-content .about-drawer-lead,
+.about-drawer-content .about-drawer-body section p,
+.about-drawer-content .about-drawer-credit {
   color: #5a5a5a;
 }
 
-.saved-modal .settings-panel-header button:hover {
+.about-drawer-content .about-drawer-title,
+.about-drawer-content .about-drawer-body section h3 {
   color: #1a1a1a;
+}
+
+.about-drawer-content button.about-drawer-close {
+  background: #F6F5F4 !important;
+  color: #5a5a5a !important;
+}
+
+.about-drawer-content button.about-drawer-close:hover {
+  background: #EFEDE9 !important;
+  color: #1a1a1a !important;
+}
+
+.saved-modal .settings-panel-header button {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px !important;
+  padding: 0;
+  background: #F6F5F4 !important;
+  color: #5a5a5a !important;
+}
+
+.saved-modal .settings-panel-header button:hover {
+  background: #EFEDE9 !important;
+  color: #1a1a1a !important;
 }
 
 .saved-modal .saved-word,
@@ -5281,7 +5346,8 @@ kbd {
 .domain-registrar-links a,
 .compact-save-word-button,
 .about-drawer-trigger,
-button.about-drawer-close,
+.sound-toggle,
+.saved-toggle span,
 .page-shell.mobile-layout .mobile-generate-button {
   border: 0 !important;
   border-radius: 14px !important;
@@ -5372,7 +5438,7 @@ html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings.active 
 .settings-filter-set > .settings-group:first-child,
 .about-drawer-body,
 .about-drawer-credit {
-  border-color: var(--ink);
+  border-color: #F6F5F4;
 }
 
 .split-settings-panel .settings-group.settings-actions,
@@ -5435,12 +5501,21 @@ html[data-colorway="light"] .mobile-discover-toolbar-button.has-settings.active 
 }
 
 .rule {
-  background: var(--hero-ink);
+  background: rgba(21, 21, 19, .14);
 }
 
 .split-definitions article + article,
 .slice-settings-side + .slice-settings-side {
-  border-color: currentColor;
+  border-color: rgba(21, 21, 19, .1);
+}
+
+html:not([data-colorway="light"]) .rule {
+  background: rgba(255, 255, 255, .28);
+}
+
+html:not([data-colorway="light"]) .split-definitions article + article,
+html:not([data-colorway="light"]) .slice-settings-side + .slice-settings-side {
+  border-color: rgba(255, 255, 255, .22);
 }
 
 .site-header,

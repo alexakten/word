@@ -53,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-colorway="light" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="en" data-colorway="blue" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: colorwayBootstrapScript }} />
       </head>

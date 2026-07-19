@@ -16,9 +16,11 @@ import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls } from "../ui/domain-mode-controls";
+import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import type { HomeState } from "../../hooks/use-home";
+import { sounds } from "../../lib/sounds";
 import { parseTags } from "../../lib/tags";
 
 export type DiscoverViewProps = Pick<
@@ -223,7 +225,10 @@ export function DiscoverView(props: DiscoverViewProps) {
             type="button"
             aria-hidden={!leftSettingsApplied}
             tabIndex={leftSettingsApplied ? undefined : -1}
-            onClick={resetPrimarySettings}
+            onClick={() => {
+              sounds.drop();
+              resetPrimarySettings();
+            }}
           >
             <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
             Reset
@@ -278,7 +283,10 @@ export function DiscoverView(props: DiscoverViewProps) {
             type="button"
             aria-hidden={!rightSettingsApplied}
             tabIndex={rightSettingsApplied ? undefined : -1}
-            onClick={resetSecondarySettings}
+            onClick={() => {
+              sounds.drop();
+              resetSecondarySettings();
+            }}
           >
             <RefreshCw size={12} strokeWidth={1.5} aria-hidden="true" />
             Reset
@@ -536,7 +544,10 @@ export function DiscoverView(props: DiscoverViewProps) {
             onDisplayModeChange={setNameDisplayMode}
             onTldChange={setSelectedTld}
           />
-          <AboutDrawer showBrand />
+          <div className="sound-about-actions">
+            <SoundToggle />
+            <AboutDrawer showBrand />
+          </div>
         </div>
         <div className="mobile-generate-wrap">
           <ApiHealthStatus health={apiHealth} />
