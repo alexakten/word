@@ -10,6 +10,7 @@ type AvailabilityResult = {
   domain: string;
   status: "available" | "registered" | "unknown";
   message?: string;
+  priceLabel?: string;
 };
 
 const registrarLinks = [
@@ -88,7 +89,9 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
     ? undefined
     : currentResult?.message;
   const registrarHelperText = currentResult?.status === "available"
-    ? "Confirm availability and buy on registrar"
+    ? currentResult.priceLabel
+      ? `About ${currentResult.priceLabel} — confirm and buy on registrar`
+      : "Confirm availability and buy on registrar"
     : currentResult?.status === "registered"
       ? "Other TLDs might be available"
       : "Check availability on registrar";

@@ -1,13 +1,22 @@
 import { domainToASCII } from "node:url";
+import {
+  checkGodaddyAvailability,
+  formatGodaddyPrice,
+  getGodaddyPat,
+  getOneYearPrice,
+} from "../../lib/godaddy";
 
 type AvailabilityStatus = "available" | "registered" | "unknown";
+type AvailabilitySource = "godaddy" | "rdap";
 
 type AvailabilityResult = {
   domain: string;
   status: AvailabilityStatus;
-  source: "rdap";
+  source: AvailabilitySource;
   checkedAt: string;
   message?: string;
+  definitive?: boolean;
+  priceLabel?: string;
 };
 
 type BootstrapRegistry = {
@@ -179,6 +188,62 @@ async function queryRdap(domain: string): Promise<AvailabilityResult> {
   }
 }
 
+async function queryGodaddy(domain: string): Promise<AvailabilityResult | null> {
+  if (!getGodaddyPat()) return null;
+
+  const checkedAt = new Date().toISOString();
+  const result = await checkGodaddyAvailability(domain);
+  if (!result) return null;
+
+  if (!result.ok) {
+    if (!result.retryable) {
+      return {
+        domain,
+        status: "unknown",
+        source: "godaddy",
+        checkedAt,
+        message: result.message,
+      };
+    }
+    return null;
+  }
+
+  const yearPrice = getOneYearPrice(result.data.prices);
+  const priceLabel = yearPrice
+    ? `${formatGodaddyPrice(yearPrice.price)}/yr`
+    : undefined;
+
+  return {
+    domain: result.data.domain || domain,
+    status: result.data.available ? "available" : "registered",
+    source: "godaddy",
+    checkedAt,
+    definitive: result.data.definitive,
+    priceLabel,
+  };
+}
+
+async function resolveAvailability(domain: string): Promise<AvailabilityResult> {
+  const godaddyResult = await queryGodaddy(domain);
+  if (godaddyResult?.status === "available" || godaddyResult?.status === "registered") {
+    return godaddyResult;
+  }
+
+  // Surface credential problems instead of silently falling back.
+  if (godaddyResult?.message?.includes("authentication failed")) {
+    return godaddyResult;
+  }
+
+  const rdapResult = await queryRdap(domain);
+  if (godaddyResult?.status === "unknown" && rdapResult.status === "unknown") {
+    return {
+      ...rdapResult,
+      message: godaddyResult.message || rdapResult.message,
+    };
+  }
+  return rdapResult;
+}
+
 async function checkAvailability(domain: string) {
   const cached = resultCache.get(domain);
   if (cached && cached.expiresAt > Date.now()) return cached.result;
@@ -186,7 +251,7 @@ async function checkAvailability(domain: string) {
   const existing = inFlightChecks.get(domain);
   if (existing) return existing;
 
-  const request = queryRdap(domain)
+  const request = resolveAvailability(domain)
     .then((result) => {
       resultCache.set(domain, { result, expiresAt: Date.now() + RESULT_TTL_MS });
       return result;
