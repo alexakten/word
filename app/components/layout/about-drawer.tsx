@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { Info, X } from "lucide-react";
 import { Drawer } from "vaul";
-import { WordmarkLink } from "./wordmark-link";
 
-export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
+export function AboutDrawer() {
   const [open, setOpen] = useState(false);
 
   return (
@@ -35,15 +34,7 @@ export function AboutDrawer({ showBrand = false }: { showBrand?: boolean }) {
           </button>
           <div className="about-drawer-inner">
             <Drawer.Handle className="about-drawer-handle" />
-            {showBrand ? (
-              <Drawer.Title asChild>
-                <div className="about-drawer-brand">
-                  <WordmarkLink />
-                </div>
-              </Drawer.Title>
-            ) : (
-              <Drawer.Title className="about-drawer-title">About Spellsurf</Drawer.Title>
-            )}
+            <Drawer.Title className="about-drawer-title">About Spellsurf</Drawer.Title>
             <Drawer.Description className="about-drawer-lead">
               Discover and create new words by combining syllables from existing words.{" "}
               Powered by the{" "}

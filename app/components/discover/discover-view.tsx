@@ -536,7 +536,7 @@ export function DiscoverView(props: DiscoverViewProps) {
           />
           <div className="sound-about-actions">
             <SoundToggle />
-            <AboutDrawer showBrand />
+            <AboutDrawer />
           </div>
         </div>
         <div className="mobile-generate-wrap">
