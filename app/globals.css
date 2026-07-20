@@ -3656,6 +3656,100 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .controls-bar .saved-
   pointer-events: none;
 }
 
+html[data-embed-capture="1"] .page-shell,
+html[data-embed-capture="1"] .page-shell.embed-content-zoom,
+html[data-embed-capture="1"] .page-shell.discover-mode {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+html[data-embed-capture="1"] .site-header,
+html[data-embed-capture="1"] .discover-top-brand,
+html[data-embed-capture="1"] .split-settings-panel,
+html[data-embed-capture="1"] .split-slice-panel,
+html[data-embed-capture="1"] .split-sidebar-stack,
+html[data-embed-capture="1"] .controls,
+html[data-embed-capture="1"] .saved-modal,
+html[data-embed-capture="1"] .status,
+html[data-embed-capture="1"] .mobile-bottom-bar,
+html[data-embed-capture="1"] .mobile-discover-toolbar,
+html[data-embed-capture="1"] .mobile-style-toolbar,
+html[data-embed-capture="1"] .mobile-panel-backdrop,
+html[data-embed-capture="1"] .word-copy-hint,
+html[data-embed-capture="1"] .domain-availability,
+html[data-embed-capture="1"] .handle-availability,
+.page-shell.embed-capture .site-header,
+.page-shell.embed-capture .discover-top-brand,
+.page-shell.embed-capture .split-settings-panel,
+.page-shell.embed-capture .split-slice-panel,
+.page-shell.embed-capture .split-sidebar-stack,
+.page-shell.embed-capture .controls,
+.page-shell.embed-capture .saved-modal,
+.page-shell.embed-capture .status,
+.page-shell.embed-capture .mobile-bottom-bar,
+.page-shell.embed-capture .mobile-discover-toolbar,
+.page-shell.embed-capture .mobile-style-toolbar,
+.page-shell.embed-capture .mobile-panel-backdrop,
+.page-shell.embed-capture .word-copy-hint,
+.page-shell.embed-capture .domain-availability,
+.page-shell.embed-capture .handle-availability {
+  display: none !important;
+}
+
+/* Word only (hide descriptions): keep source words + pronunciation + rules; hide definition copy. */
+.page-shell.hide-descriptions .split-definition {
+  display: none !important;
+}
+
+/* Combo only: just the centered combined word.
+ * Must beat embed `display: grid !important` on .split-definitions. */
+.page-shell.combo-only .split-definitions,
+html[data-embed="1"] .page-shell.combo-only .split-definitions,
+html[data-embed="1"] .page-shell.combo-only.discover-mode .split-word-anchor .split-definitions,
+html[data-embed="1"][data-layout="mobile"] .page-shell.combo-only.discover-mode .split-word-anchor .split-definitions {
+  display: none !important;
+}
+
+/*
+ * Admin embed: center the combo word, and zoom by increasing real type sizes
+ * (not transform:scale) so captures stay sharp.
+ */
+html[data-embed="1"] {
+  --embed-content-zoom: 1;
+  --embed-left-column: 28rem;
+  --embed-right-column: 28rem;
+  /* Wide enough for the wider side on each half, so the midline stays centered. */
+  --embed-columns-span: calc(2 * max(var(--embed-left-column), var(--embed-right-column)));
+  --embed-content-width: min(
+    100%,
+    max(
+      calc(36rem * var(--embed-content-zoom, 1)),
+      var(--embed-columns-span)
+    )
+  );
+}
+
+html[data-embed="1"] .split-word-anchor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  min-height: 0;
+}
+
+html[data-embed="1"] .page-shell.hide-descriptions .split-word-stage,
+html[data-embed="1"] .page-shell.combo-only .split-word-stage {
+  place-items: center;
+}
+
+html[data-embed="1"] .split-word-anchor .split-definitions {
+  width: 100%;
+  margin-top: calc(3rem * var(--embed-content-zoom, 1));
+}
+
 .shortcut-row {
   display: flex;
   align-items: flex-start;
@@ -5941,4 +6035,359 @@ html[data-colorway="brown"] .save-legend.liked kbd {
   background: #fff !important;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12) !important;
   color: #111 !important;
+}
+
+/* —— Admin screenshot studio —— */
+
+.admin-studio {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  height: 100svh;
+  max-height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(59, 130, 245, 0.12), transparent 55%),
+    linear-gradient(180deg, #eef1f6 0%, #e4e8ef 100%);
+  color: #1a1a1a;
+}
+
+.admin-studio,
+.admin-studio * {
+  color: #1a1a1a;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .65rem 1rem;
+  padding: .85rem 1.1rem;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.admin-toolbar-brand {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  min-width: 8.5rem;
+}
+
+.admin-toolbar-title {
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+}
+
+.admin-toolbar-meta {
+  font-size: .72rem;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+}
+
+.admin-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin-left: auto;
+}
+
+.admin-zoom-group {
+  padding: .15rem;
+  border: 1px solid rgba(26, 26, 26, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.admin-zoom-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-width: 8.5rem;
+  padding: 0 .15rem;
+}
+
+.admin-zoom-control input[type="range"] {
+  width: 7rem;
+  accent-color: #1a1a1a;
+  cursor: pointer;
+}
+
+.admin-icon-button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .4rem .65rem;
+  border: 1px solid rgba(26, 26, 26, 0.16);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: .75rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+
+.admin-chip:hover {
+  border-color: rgba(26, 26, 26, 0.35);
+}
+
+.admin-chip.is-active {
+  border-color: #1a1a1a;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.admin-chip.is-active,
+.admin-chip.is-active * {
+  color: #ffffff;
+}
+
+.admin-chip-ratio {
+  opacity: .7;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-chip.is-active .admin-chip-ratio {
+  opacity: .85;
+}
+
+.admin-icon-button,
+.admin-capture-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  border: 1px solid rgba(26, 26, 26, 0.16);
+  background: #ffffff;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, opacity .15s ease;
+}
+
+.admin-icon-button {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+}
+
+.admin-capture-button {
+  height: 2.1rem;
+  padding: 0 .9rem;
+  border-radius: 999px;
+  border-color: #1a1a1a;
+  background: #1a1a1a;
+  color: #ffffff;
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.admin-capture-button,
+.admin-capture-button * {
+  color: #ffffff;
+}
+
+.admin-capture-button:hover:not(:disabled),
+.admin-icon-button:hover {
+  border-color: #1a1a1a;
+}
+
+.admin-capture-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.admin-spinner {
+  animation: admin-spin 800ms linear infinite;
+}
+
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.admin-error {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: .55rem 1.1rem;
+  background: #fff1f0;
+  color: #9b1c1c;
+  font-size: .8rem;
+  border-bottom: 1px solid rgba(155, 28, 28, 0.12);
+}
+
+.admin-stage {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  min-height: 0;
+  min-width: 0;
+  padding: .65rem;
+  overflow: hidden;
+}
+
+.admin-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 18px 50px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+.admin-frame-iframe {
+  display: block;
+  border: 0;
+  transform-origin: top left;
+  background: var(--paper);
+  pointer-events: auto;
+}
+
+@media (max-width: 900px) {
+  .admin-toolbar {
+    align-items: flex-start;
+  }
+
+  .admin-toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}
+
+/*
+ * Admin embed zoom typography — must beat mobile/serif font-size rules.
+ * Social frames are often <1240px wide, so data-layout="mobile" is active.
+ */
+html[data-embed="1"] .page-shell.discover-mode .split-word-anchor,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-word-anchor {
+  width: var(--embed-content-width) !important;
+  max-width: var(--embed-content-width) !important;
+}
+
+html[data-embed="1"] .page-shell.hide-descriptions .split-word-anchor,
+html[data-embed="1"][data-layout="mobile"] .page-shell.hide-descriptions .split-word-anchor,
+html[data-embed="1"] .page-shell.combo-only .split-word-anchor,
+html[data-embed="1"][data-layout="mobile"] .page-shell.combo-only .split-word-anchor {
+  width: auto !important;
+  max-width: var(--embed-content-width) !important;
+}
+
+/* Equal halves so the midline stays centered; each side grows from that axis. */
+html[data-embed="1"] .page-shell.discover-mode .split-word-anchor .split-definitions,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-word-anchor .split-definitions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  justify-content: stretch;
+  width: min(100%, var(--embed-columns-span)) !important;
+  max-width: 100% !important;
+  margin-inline: auto;
+  /* Beat mobile's fixed 2rem margin so the gap tracks content zoom (and capture). */
+  margin-top: calc(3rem * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-definitions article:first-child,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-definitions article:first-child {
+  justify-self: end;
+  width: min(100%, var(--embed-left-column));
+  max-width: var(--embed-left-column);
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-definitions article:last-child,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-definitions article:last-child {
+  justify-self: start;
+  width: min(100%, var(--embed-right-column));
+  max-width: var(--embed-right-column);
+}
+
+.admin-zoom-control:has(input:disabled) {
+  opacity: .4;
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-combined-word,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
+  font-size: calc(60px * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"][data-font-family="serif"] .page-shell.discover-mode .split-combined-word,
+html[data-embed="1"][data-font-family="serif"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
+  font-size: calc(68px * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-source-word,
+html[data-embed="1"] .page-shell.discover-mode .mix-source-word,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-source-word,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .mix-source-word {
+  margin-bottom: calc(0.55rem * var(--embed-content-zoom, 1));
+  font-size: calc(1.65rem * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"][data-font-family="serif"] .page-shell.discover-mode .split-source-word,
+html[data-embed="1"][data-font-family="serif"] .page-shell.discover-mode .mix-source-word,
+html[data-embed="1"][data-font-family="serif"][data-layout="mobile"] .page-shell.discover-mode .split-source-word,
+html[data-embed="1"][data-font-family="serif"][data-layout="mobile"] .page-shell.discover-mode .mix-source-word {
+  font-size: calc(1.85rem * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-eyebrow,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-eyebrow {
+  font-size: calc(0.62rem * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-eyebrow > span {
+  padding-inline: calc(0.55rem * var(--embed-content-zoom, 1));
+}
+
+html[data-embed="1"] .page-shell.discover-mode .pronunciation-inline,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .pronunciation-inline {
+  font-size: calc(0.78rem * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-definitions .rule,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-definitions .rule {
+  width: calc(38px * var(--embed-content-zoom, 1));
+  height: calc(1px * var(--embed-content-zoom, 1));
+  margin-block: calc(1rem * var(--embed-content-zoom, 1));
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-definitions article {
+  padding-right: calc(1.5rem * var(--embed-content-zoom, 1));
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-definitions article + article {
+  padding-right: 0;
+  padding-left: calc(1.5rem * var(--embed-content-zoom, 1));
+  border-left-width: calc(1px * var(--embed-content-zoom, 1));
+}
+
+html[data-embed="1"] .page-shell.discover-mode .split-definition,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-definition {
+  font-size: calc(18px * var(--embed-content-zoom, 1)) !important;
+}
+
+html[data-embed="1"][data-font-family="serif"] .page-shell.discover-mode .split-definition,
+html[data-embed="1"][data-font-family="serif"][data-layout="mobile"] .page-shell.discover-mode .split-definition {
+  font-size: calc(20px * var(--embed-content-zoom, 1)) !important;
 }
