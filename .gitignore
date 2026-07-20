@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local browser downloads (Puppeteer / Chrome for Testing)
+.browsers/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
