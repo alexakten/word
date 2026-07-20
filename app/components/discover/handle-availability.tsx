@@ -84,9 +84,8 @@ export function HandleAvailability({ handle, className = "" }: { handle: string;
           <li key={entry.platform}>
             <PlatformChip
               entry={entry}
-              onClick={() => track("Handle Platform Clicked", {
+              onClick={() => track(`${entry.label} Clicked`, {
                 handle,
-                platform: entry.platform,
                 status: entry.status,
               })}
             />
