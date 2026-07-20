@@ -1,7 +1,23 @@
 "use client";
 
 import { useEffect } from "react";
-import { clampColumnRem, isEmbedBridgeMessage, isEmbedMode } from "../lib/embed-bridge";
+import {
+  clampColumnRem,
+  isBackgroundImageUrl,
+  isEmbedBridgeMessage,
+  isEmbedMode,
+  normalizeHexColor,
+  parseEmbedFontFamily,
+  type EmbedFontFamily,
+} from "../lib/embed-bridge";
+
+function clampBgScale(value: number) {
+  return Math.min(3, Math.max(1, value));
+}
+
+function clampBgPan(value: number) {
+  return Math.min(50, Math.max(-50, value));
+}
 
 type UseEmbedBridgeOptions = {
   setFocusMode: (value: boolean) => void;
@@ -14,6 +30,13 @@ type UseEmbedBridgeOptions = {
   setContentZoom: (value: number) => void;
   setLeftColumnRem: (value: number) => void;
   setRightColumnRem: (value: number) => void;
+  setBackgroundColor: (value: string) => void;
+  setTextColor: (value: string) => void;
+  setFontFamily: (value: EmbedFontFamily) => void;
+  setBackgroundImage: (value: string | null) => void;
+  setBackgroundImageScale: (value: number) => void;
+  setBackgroundImageX: (value: number) => void;
+  setBackgroundImageY: (value: number) => void;
 };
 
 /** Apply admin studio controls when the app is loaded inside `/?embed=1`. */
@@ -28,6 +51,13 @@ export function useEmbedBridge({
   setContentZoom,
   setLeftColumnRem,
   setRightColumnRem,
+  setBackgroundColor,
+  setTextColor,
+  setFontFamily,
+  setBackgroundImage,
+  setBackgroundImageScale,
+  setBackgroundImageX,
+  setBackgroundImageY,
 }: UseEmbedBridgeOptions) {
   useEffect(() => {
     if (!isEmbedMode()) return;
@@ -65,11 +95,39 @@ export function useEmbedBridge({
       if (typeof event.data.rightColumnRem === "number") {
         setRightColumnRem(clampColumnRem(event.data.rightColumnRem));
       }
+      const background = normalizeHexColor(event.data.backgroundColor);
+      if (background) setBackgroundColor(background);
+      const text = normalizeHexColor(event.data.textColor);
+      if (text) setTextColor(text);
+      const fontFamily = parseEmbedFontFamily(event.data.fontFamily);
+      if (fontFamily) setFontFamily(fontFamily);
+      if ("backgroundImage" in event.data) {
+        const image = event.data.backgroundImage;
+        if (image === null || image === "") {
+          setBackgroundImage(null);
+        } else if (isBackgroundImageUrl(image)) {
+          setBackgroundImage(image);
+        }
+      }
+      if (typeof event.data.backgroundImageScale === "number" && Number.isFinite(event.data.backgroundImageScale)) {
+        setBackgroundImageScale(clampBgScale(event.data.backgroundImageScale));
+      }
+      if (typeof event.data.backgroundImageX === "number" && Number.isFinite(event.data.backgroundImageX)) {
+        setBackgroundImageX(clampBgPan(event.data.backgroundImageX));
+      }
+      if (typeof event.data.backgroundImageY === "number" && Number.isFinite(event.data.backgroundImageY)) {
+        setBackgroundImageY(clampBgPan(event.data.backgroundImageY));
+      }
     };
 
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [
+    setBackgroundColor,
+    setBackgroundImage,
+    setBackgroundImageScale,
+    setBackgroundImageX,
+    setBackgroundImageY,
     setCaptureHeight,
     setCaptureMode,
     setCaptureScale,
@@ -77,8 +135,10 @@ export function useEmbedBridge({
     setComboOnly,
     setContentZoom,
     setFocusMode,
+    setFontFamily,
     setHideDescriptions,
     setLeftColumnRem,
     setRightColumnRem,
+    setTextColor,
   ]);
 }

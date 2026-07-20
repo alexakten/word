@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import favicon from "./favicon.png";
 import { colorwayBootstrapScript } from "./lib/colorways";
 import { layoutBootstrapScript } from "./lib/viewport";
-import { sans, serif } from "./fonts";
+import { sans, serif, inter, openRunde } from "./fonts";
 import "./globals.css";
 
 const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://spellsurf.com");
@@ -59,7 +59,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: layoutBootstrapScript }} />
         <script dangerouslySetInnerHTML={{ __html: colorwayBootstrapScript }} />
       </head>
-      <body className={`${sans.className} ${serif.variable} min-h-full flex flex-col`}>
+      <body className={`${sans.className} ${openRunde.variable} ${inter.variable} ${serif.variable} min-h-full flex flex-col`}>
         {children}
         <Analytics />
       </body>

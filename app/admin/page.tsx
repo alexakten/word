@@ -1,8 +1,18 @@
 "use client";
 
-import { Camera, Eye, EyeOff, Focus, LoaderCircle, RefreshCw, Type, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, Check, Copy, Crop, Eye, EyeOff, Focus, ImagePlus, LoaderCircle, RefreshCw, Type, X, ZoomIn, ZoomOut } from "lucide-react";
 import { domToPng } from "modern-screenshot";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent, type WheelEvent } from "react";
+import {
+  BUILTIN_COLOR_COMBOS,
+  findMatchingColorCombo,
+  parseColorCombo,
+  readLocalColorCombos,
+  serializeColorCombo,
+  upsertLocalColorCombo,
+  slugifyComboId,
+  type AdminColorCombo,
+} from "../lib/admin-color-combos";
 import {
   defaultExportScaleForPreset,
   exportScalesForPreset,
@@ -11,7 +21,7 @@ import {
   type ExportScale,
   type SocialPreset,
 } from "../lib/admin-presets";
-import { clampColumnRem, EMBED_MESSAGE_TYPE } from "../lib/embed-bridge";
+import { clampColumnRem, DEFAULT_EMBED_BACKGROUND, DEFAULT_EMBED_FONT, DEFAULT_EMBED_TEXT, EMBED_FONT_OPTIONS, EMBED_MESSAGE_TYPE, isImageFile, normalizeHexColor, type EmbedFontFamily } from "../lib/embed-bridge";
 
 const DEFAULT_PRESET = SOCIAL_PRESETS[0]!;
 const EMBED_SRC = "/?embed=1";
@@ -22,6 +32,7 @@ const MIN_COLUMN_REM = 6;
 const MAX_COLUMN_REM = 40;
 const COLUMN_STEP = 1;
 const DEFAULT_COLUMN_REM = 28;
+const MAX_BACKGROUND_IMAGE_BYTES = 4 * 1024 * 1024;
 
 function downloadDataUrl(dataUrl: string, filename: string) {
   const link = document.createElement("a");
@@ -42,6 +53,30 @@ export default function AdminPage() {
   const [focusMode, setFocusMode] = useState(true);
   const [hideDescriptions, setHideDescriptions] = useState(false);
   const [comboOnly, setComboOnly] = useState(false);
+  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_EMBED_BACKGROUND);
+  const [textColor, setTextColor] = useState(DEFAULT_EMBED_TEXT);
+  const [fontFamily, setFontFamilyState] = useState<EmbedFontFamily>(DEFAULT_EMBED_FONT);
+  const [backgroundHexDraft, setBackgroundHexDraft] = useState(DEFAULT_EMBED_BACKGROUND);
+  const [textHexDraft, setTextHexDraft] = useState(DEFAULT_EMBED_TEXT);
+  const [localColorCombos, setLocalColorCombos] = useState<AdminColorCombo[]>([]);
+  const [copiedCombo, setCopiedCombo] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [backgroundImageName, setBackgroundImageName] = useState("");
+  const [backgroundImageScale, setBackgroundImageScale] = useState(1);
+  const [backgroundImageX, setBackgroundImageX] = useState(0);
+  const [backgroundImageY, setBackgroundImageY] = useState(0);
+  const [dragOverFrame, setDragOverFrame] = useState(false);
+  const [fileDragActive, setFileDragActive] = useState(false);
+  const [panningImage, setPanningImage] = useState(false);
+  const [cropMode, setCropMode] = useState(false);
+  const backgroundImageInputRef = useRef<HTMLInputElement>(null);
+  const panDragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+  } | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [iframeReady, setIframeReady] = useState(false);
   const [error, setError] = useState("");
@@ -52,6 +87,16 @@ export default function AdminPage() {
   const exportScaleOptions = exportScalesForPreset(preset);
   const maxScale = maxExportScaleForPreset(preset);
   const activeExportScale = Math.min(exportScale, maxScale);
+  const colorCombos = useMemo(() => {
+    const builtinIds = new Set(BUILTIN_COLOR_COMBOS.map((entry) => entry.id));
+    const extras = localColorCombos.filter((entry) => !builtinIds.has(entry.id));
+    return [...BUILTIN_COLOR_COMBOS, ...extras];
+  }, [localColorCombos]);
+  const activeColorCombo = findMatchingColorCombo(colorCombos, backgroundColor, textColor);
+
+  useEffect(() => {
+    setLocalColorCombos(readLocalColorCombos());
+  }, []);
 
   useEffect(() => {
     const nextDefault = defaultExportScaleForPreset(preset);
@@ -69,6 +114,13 @@ export default function AdminPage() {
     contentZoom?: number;
     leftColumnRem?: number;
     rightColumnRem?: number;
+    backgroundColor?: string;
+    textColor?: string;
+    fontFamily?: EmbedFontFamily;
+    backgroundImage?: string | null;
+    backgroundImageScale?: number;
+    backgroundImageX?: number;
+    backgroundImageY?: number;
   }) => {
     const frame = iframeRef.current?.contentWindow;
     if (!frame) return;
@@ -85,10 +137,35 @@ export default function AdminPage() {
         contentZoom: next?.contentZoom ?? contentZoom,
         leftColumnRem: next?.leftColumnRem ?? leftColumnRem,
         rightColumnRem: next?.rightColumnRem ?? rightColumnRem,
+        backgroundColor: next?.backgroundColor ?? backgroundColor,
+        textColor: next?.textColor ?? textColor,
+        fontFamily: next?.fontFamily ?? fontFamily,
+        backgroundImage: next && "backgroundImage" in next
+          ? next.backgroundImage ?? null
+          : backgroundImage,
+        backgroundImageScale: next?.backgroundImageScale ?? backgroundImageScale,
+        backgroundImageX: next?.backgroundImageX ?? backgroundImageX,
+        backgroundImageY: next?.backgroundImageY ?? backgroundImageY,
       },
       window.location.origin,
     );
-  }, [comboOnly, contentZoom, focusMode, hideDescriptions, leftColumnRem, preset.height, preset.width, rightColumnRem]);
+  }, [
+    backgroundColor,
+    backgroundImage,
+    backgroundImageScale,
+    backgroundImageX,
+    backgroundImageY,
+    comboOnly,
+    contentZoom,
+    focusMode,
+    fontFamily,
+    hideDescriptions,
+    leftColumnRem,
+    preset.height,
+    preset.width,
+    rightColumnRem,
+    textColor,
+  ]);
 
   const updateFitScale = useCallback(() => {
     const stage = stageRef.current;
@@ -164,6 +241,291 @@ export default function AdminPage() {
     setComboOnly(next);
     postEmbedState({ comboOnly: next });
   };
+
+  const setBackground = (value: string) => {
+    setBackgroundColor(value);
+    setBackgroundHexDraft(value);
+    postEmbedState({ backgroundColor: value });
+  };
+
+  const setText = (value: string) => {
+    setTextColor(value);
+    setTextHexDraft(value);
+    postEmbedState({ textColor: value });
+  };
+
+  const setFont = (value: EmbedFontFamily) => {
+    setFontFamilyState(value);
+    postEmbedState({ fontFamily: value });
+  };
+
+  const commitBackgroundHex = (raw: string) => {
+    const next = normalizeHexColor(raw);
+    if (!next) {
+      setBackgroundHexDraft(backgroundColor);
+      return;
+    }
+    setBackground(next);
+  };
+
+  const commitTextHex = (raw: string) => {
+    const next = normalizeHexColor(raw);
+    if (!next) {
+      setTextHexDraft(textColor);
+      return;
+    }
+    setText(next);
+  };
+
+  const resetColors = () => {
+    setBackground(DEFAULT_EMBED_BACKGROUND);
+    setText(DEFAULT_EMBED_TEXT);
+  };
+
+  const applyColorCombo = (combo: AdminColorCombo) => {
+    setBackgroundColor(combo.background);
+    setTextColor(combo.text);
+    setBackgroundHexDraft(combo.background);
+    setTextHexDraft(combo.text);
+    postEmbedState({
+      backgroundColor: combo.background,
+      textColor: combo.text,
+    });
+  };
+
+  const copyColorCombo = async () => {
+    const line = serializeColorCombo({
+      name: activeColorCombo?.name ?? "Custom",
+      background: backgroundColor,
+      text: textColor,
+    });
+    try {
+      await navigator.clipboard.writeText(line);
+      setCopiedCombo(true);
+      window.setTimeout(() => setCopiedCombo(false), 1600);
+    } catch {
+      setError("Could not copy combo. Copy it manually from the hex fields.");
+    }
+  };
+
+  const saveColorCombo = () => {
+    const suggested = activeColorCombo?.name ?? "Custom";
+    const name = window.prompt("Name this color combo", suggested)?.trim();
+    if (!name) return;
+    const combo: AdminColorCombo = {
+      id: slugifyComboId(name, backgroundColor, textColor),
+      name,
+      background: backgroundColor,
+      text: textColor,
+    };
+    setLocalColorCombos(upsertLocalColorCombo(combo));
+  };
+
+  const importColorCombo = (raw: string) => {
+    const combo = parseColorCombo(raw);
+    if (!combo) {
+      setError("Paste a combo like: spellsurf-combo: Blue | #3b82f5 | #ffffff");
+      return;
+    }
+    setError("");
+    applyColorCombo(combo);
+    setLocalColorCombos(upsertLocalColorCombo(combo));
+  };
+
+  const clearBackgroundImage = () => {
+    setBackgroundImage(null);
+    setBackgroundImageName("");
+    setBackgroundImageScale(1);
+    setBackgroundImageX(0);
+    setBackgroundImageY(0);
+    setCropMode(false);
+    setPanningImage(false);
+    panDragRef.current = null;
+    if (backgroundImageInputRef.current) backgroundImageInputRef.current.value = "";
+    postEmbedState({
+      backgroundImage: null,
+      backgroundImageScale: 1,
+      backgroundImageX: 0,
+      backgroundImageY: 0,
+    });
+  };
+
+  const applyBackgroundImageFile = useCallback((file: File, label?: string) => {
+    if (!isImageFile(file)) {
+      setError("Drop or choose an image file (PNG, JPG, WebP, etc.).");
+      return;
+    }
+    if (file.size > MAX_BACKGROUND_IMAGE_BYTES) {
+      setError("Background image must be under 4MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : null;
+      if (!result || (!result.startsWith("data:image/") && !result.startsWith("data:application/octet-stream"))) {
+        setError("Could not read that image.");
+        return;
+      }
+      // Some drops report empty MIME and read as octet-stream — normalize to an image data URL when possible.
+      const dataUrl = result.startsWith("data:image/")
+        ? result
+        : result.replace(/^data:application\/octet-stream/, "data:image/png");
+
+      setError("");
+      setBackgroundImage(dataUrl);
+      setBackgroundImageName(label?.trim() || file.name || "Background image");
+      setBackgroundImageScale(1);
+      setBackgroundImageX(0);
+      setBackgroundImageY(0);
+      try {
+        postEmbedState({
+          backgroundImage: dataUrl,
+          backgroundImageScale: 1,
+          backgroundImageX: 0,
+          backgroundImageY: 0,
+        });
+      } catch (error) {
+        console.error(error);
+        setError("Could not apply that image to the preview.");
+      }
+    };
+    reader.onerror = () => setError("Could not read that image.");
+    reader.readAsDataURL(file);
+  }, [postEmbedState]);
+  const setBackgroundImageZoom = (scale: number) => {
+    const next = Math.min(3, Math.max(1, Number(scale.toFixed(2))));
+    setBackgroundImageScale(next);
+    postEmbedState({ backgroundImageScale: next });
+  };
+
+  const setBackgroundImagePan = (x: number, y: number) => {
+    const nextX = Math.min(50, Math.max(-50, x));
+    const nextY = Math.min(50, Math.max(-50, y));
+    setBackgroundImageX(nextX);
+    setBackgroundImageY(nextY);
+    postEmbedState({ backgroundImageX: nextX, backgroundImageY: nextY });
+  };
+
+  const resetBackgroundImageFrame = () => {
+    setBackgroundImageScale(1);
+    setBackgroundImageX(0);
+    setBackgroundImageY(0);
+    postEmbedState({
+      backgroundImageScale: 1,
+      backgroundImageX: 0,
+      backgroundImageY: 0,
+    });
+  };
+
+  const onFrameDragOver = (event: DragEvent<HTMLDivElement>) => {
+    if (![...event.dataTransfer.types].includes("Files")) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setDragOverFrame(true);
+  };
+
+  const onFrameDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+    setDragOverFrame(false);
+  };
+
+  const onFrameDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragOverFrame(false);
+    setFileDragActive(false);
+    const file = Array.from(event.dataTransfer.files).find(isImageFile);
+    if (!file) {
+      setError("Drop an image file onto the frame.");
+      return;
+    }
+    applyBackgroundImageFile(file);
+  };
+
+  const onFramePanPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!cropMode || !backgroundImage || event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    panDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: backgroundImageX,
+      originY: backgroundImageY,
+    };
+    setPanningImage(true);
+  };
+
+  const onFramePanPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = panDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const frame = event.currentTarget.getBoundingClientRect();
+    if (frame.width <= 0 || frame.height <= 0) return;
+    const dx = ((event.clientX - drag.startX) / frame.width) * 100;
+    const dy = ((event.clientY - drag.startY) / frame.height) * 100;
+    setBackgroundImagePan(drag.originX + dx, drag.originY + dy);
+  };
+
+  const onFramePanPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = panDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    panDragRef.current = null;
+    setPanningImage(false);
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // already released
+    }
+  };
+
+  const onFrameWheel = (event: WheelEvent<HTMLDivElement>) => {
+    if (!cropMode || !backgroundImage) return;
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -0.08 : 0.08;
+    setBackgroundImageZoom(backgroundImageScale + delta);
+  };
+
+  useEffect(() => {
+    let depth = 0;
+    const hasFiles = (event: globalThis.DragEvent) =>
+      [...(event.dataTransfer?.types ?? [])].includes("Files");
+
+    const onEnter = (event: globalThis.DragEvent) => {
+      if (!hasFiles(event)) return;
+      depth += 1;
+      setFileDragActive(true);
+    };
+    const onLeave = (event: globalThis.DragEvent) => {
+      if (!hasFiles(event)) return;
+      depth = Math.max(0, depth - 1);
+      if (depth === 0) {
+        setFileDragActive(false);
+        setDragOverFrame(false);
+      }
+    };
+    // Required so the browser fires `drop` instead of navigating away.
+    const onDragOver = (event: globalThis.DragEvent) => {
+      if (!hasFiles(event)) return;
+      event.preventDefault();
+    };
+    const onDrop = (event: globalThis.DragEvent) => {
+      if (hasFiles(event)) event.preventDefault();
+      depth = 0;
+      setFileDragActive(false);
+      setDragOverFrame(false);
+    };
+
+    window.addEventListener("dragenter", onEnter);
+    window.addEventListener("dragleave", onLeave);
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragenter", onEnter);
+      window.removeEventListener("dragleave", onLeave);
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, []);
 
   const capture = async () => {
     const iframe = iframeRef.current;
@@ -391,6 +753,233 @@ export default function AdminPage() {
             {hideDescriptions ? <EyeOff size={13} strokeWidth={1.9} /> : <Eye size={13} strokeWidth={1.9} />}
             <span>{hideDescriptions ? "No defs" : "Descriptions"}</span>
           </button>
+          <label className="admin-font-control" title="Display font">
+            <span className="admin-toolbar-meta">Font</span>
+            <select
+              className="admin-font-select"
+              value={fontFamily}
+              onChange={(event) => setFont(event.target.value as EmbedFontFamily)}
+              aria-label="Display font"
+            >
+              {EMBED_FONT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="admin-toolbar-group admin-color-group" role="group" aria-label="Colors">
+          <label className="admin-color-control" title="Saved color combos">
+            <span className="admin-toolbar-meta">Combo</span>
+            <select
+              className="admin-color-combo-select"
+              value={activeColorCombo?.id ?? ""}
+              onChange={(event) => {
+                const combo = colorCombos.find((entry) => entry.id === event.target.value);
+                if (combo) applyColorCombo(combo);
+              }}
+              aria-label="Saved color combos"
+            >
+              <option value="" disabled>
+                Custom
+              </option>
+              {colorCombos.map((combo) => (
+                <option key={combo.id} value={combo.id}>
+                  {combo.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="admin-color-control" title="Background color">
+            <span className="admin-toolbar-meta">Bg</span>
+            <input
+              type="color"
+              value={backgroundColor}
+              onChange={(event) => setBackground(event.target.value)}
+              aria-label="Background color"
+            />
+            <input
+              className="admin-color-hex"
+              type="text"
+              value={backgroundHexDraft}
+              spellCheck={false}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              inputMode="text"
+              maxLength={7}
+              aria-label="Background hex"
+              placeholder="#3b82f5"
+              onChange={(event) => setBackgroundHexDraft(event.target.value)}
+              onBlur={(event) => commitBackgroundHex(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.currentTarget.blur();
+                }
+              }}
+              onPaste={(event) => {
+                const pasted = event.clipboardData.getData("text");
+                const combo = parseColorCombo(pasted);
+                if (combo) {
+                  event.preventDefault();
+                  importColorCombo(pasted);
+                  return;
+                }
+                const next = normalizeHexColor(pasted);
+                if (!next) return;
+                event.preventDefault();
+                setBackground(next);
+              }}
+            />
+          </label>
+          <label className="admin-color-control" title="Text and divider color">
+            <span className="admin-toolbar-meta">Text</span>
+            <input
+              type="color"
+              value={textColor}
+              onChange={(event) => setText(event.target.value)}
+              aria-label="Text color"
+            />
+            <input
+              className="admin-color-hex"
+              type="text"
+              value={textHexDraft}
+              spellCheck={false}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              inputMode="text"
+              maxLength={7}
+              aria-label="Text hex"
+              placeholder="#ffffff"
+              onChange={(event) => setTextHexDraft(event.target.value)}
+              onBlur={(event) => commitTextHex(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.currentTarget.blur();
+                }
+              }}
+              onPaste={(event) => {
+                const pasted = event.clipboardData.getData("text");
+                const combo = parseColorCombo(pasted);
+                if (combo) {
+                  event.preventDefault();
+                  importColorCombo(pasted);
+                  return;
+                }
+                const next = normalizeHexColor(pasted);
+                if (!next) return;
+                event.preventDefault();
+                setText(next);
+              }}
+            />
+          </label>
+          <button
+            type="button"
+            className="admin-chip"
+            onClick={() => void copyColorCombo()}
+            title="Copy shareable combo line"
+          >
+            {copiedCombo ? <Check size={13} strokeWidth={1.9} /> : <Copy size={13} strokeWidth={1.9} />}
+            <span>{copiedCombo ? "Copied" : "Copy"}</span>
+          </button>
+          <button
+            type="button"
+            className="admin-chip"
+            onClick={saveColorCombo}
+            title="Save current colors to this browser’s combo list"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            className="admin-chip"
+            onClick={resetColors}
+            title="Reset to default blue / white"
+          >
+            Reset
+          </button>
+          <input
+            ref={backgroundImageInputRef}
+            className="admin-file-input"
+            type="file"
+            accept="image/*"
+            aria-label="Upload temporary background image"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) applyBackgroundImageFile(file);
+            }}
+          />
+          <button
+            type="button"
+            className={["admin-chip", backgroundImage ? "is-active" : ""].filter(Boolean).join(" ")}
+            onClick={() => backgroundImageInputRef.current?.click()}
+            title="Upload a temporary background image, or drag one onto the frame"
+          >
+            <ImagePlus size={13} strokeWidth={1.9} />
+            <span>{backgroundImage ? "Image" : "Bg image"}</span>
+          </button>
+          {backgroundImage ? (
+            <>
+              {!cropMode ? (
+                <button
+                  type="button"
+                  className="admin-chip"
+                  onClick={() => setCropMode(true)}
+                  title="Drag and zoom the background image"
+                >
+                  <Crop size={13} strokeWidth={1.9} />
+                  <span>Crop</span>
+                </button>
+              ) : (
+                <>
+                  <label className="admin-zoom-control" title="Background image zoom">
+                    <span className="admin-toolbar-meta">{Math.round(backgroundImageScale * 100)}%</span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={3}
+                      step={0.05}
+                      value={backgroundImageScale}
+                      onChange={(event) => setBackgroundImageZoom(Number(event.target.value))}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="admin-chip"
+                    onClick={resetBackgroundImageFrame}
+                    title="Reset image framing"
+                  >
+                    Recenter
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-chip is-active"
+                    onClick={() => {
+                      setCropMode(false);
+                      setPanningImage(false);
+                      panDragRef.current = null;
+                    }}
+                    title="Finish cropping"
+                  >
+                    <Check size={13} strokeWidth={1.9} />
+                    <span>Done</span>
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                className="admin-chip"
+                onClick={clearBackgroundImage}
+                title={backgroundImageName ? `Clear ${backgroundImageName}` : "Clear background image"}
+              >
+                <X size={13} strokeWidth={1.9} />
+                <span>Clear img</span>
+              </button>
+            </>
+          ) : null}
         </div>
 
         <div className="admin-toolbar-actions">
@@ -426,14 +1015,40 @@ export default function AdminPage() {
 
       <div className="admin-stage" ref={stageRef}>
         <div
-          className="admin-frame"
+          className={[
+            "admin-frame",
+            dragOverFrame ? "is-drop-target" : "",
+            fileDragActive ? "is-file-drag" : "",
+            backgroundImage ? "has-bg-image" : "",
+            cropMode ? "is-crop-mode" : "",
+            panningImage ? "is-panning" : "",
+          ].filter(Boolean).join(" ")}
           style={{ width: frameWidth, height: frameHeight }}
           data-platform={preset.platform}
+          onDragEnter={onFrameDragOver}
+          onDragOver={onFrameDragOver}
+          onDragLeave={onFrameDragLeave}
+          onDrop={onFrameDrop}
         >
+          {backgroundImage ? (
+            <div
+              className="admin-frame-bg-preview"
+              aria-hidden="true"
+              style={{
+                transform: `translate(${backgroundImageX}%, ${backgroundImageY}%) scale(${backgroundImageScale})`,
+              }}
+            >
+              {/* Local preview so drops are visible even if the iframe message is delayed. */}
+              <img src={backgroundImage} alt="" draggable={false} />
+            </div>
+          ) : null}
           <iframe
             key={`${preset.id}-${frameKey}`}
             ref={iframeRef}
-            className="admin-frame-iframe"
+            className={[
+              "admin-frame-iframe",
+              backgroundImage ? "has-bg-image" : "",
+            ].filter(Boolean).join(" ")}
             title="Spellsurf preview"
             src={EMBED_SRC}
             style={{
@@ -446,6 +1061,32 @@ export default function AdminPage() {
               window.setTimeout(() => postEmbedState(), 50);
             }}
           />
+          <div
+            className="admin-frame-overlay"
+            onDragEnter={onFrameDragOver}
+            onDragOver={onFrameDragOver}
+            onDragLeave={onFrameDragLeave}
+            onDrop={onFrameDrop}
+            onPointerDown={onFramePanPointerDown}
+            onPointerMove={onFramePanPointerMove}
+            onPointerUp={onFramePanPointerUp}
+            onPointerCancel={onFramePanPointerUp}
+            onWheel={onFrameWheel}
+            title={
+              cropMode
+                ? "Drag to reframe · scroll to zoom"
+                : fileDragActive
+                  ? "Drop image"
+                  : backgroundImage
+                    ? "Click Crop to reframe the image"
+                    : "Drop an image here"
+            }
+          >
+            {dragOverFrame ? <span className="admin-frame-drop-label">Drop image</span> : null}
+            {cropMode && !dragOverFrame && !panningImage ? (
+              <span className="admin-frame-drop-label">Drag to move · scroll to zoom</span>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

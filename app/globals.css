@@ -5996,6 +5996,85 @@ html:not([data-colorway="light"]) .slice-settings-side + .slice-settings-side {
   border-color: rgba(255, 255, 255, .22);
 }
 
+/* Admin temporary background image — real layer above the theme paper color. */
+html[data-embed-bg-image="1"] .page-shell {
+  isolation: isolate;
+  overflow: hidden !important;
+  background-image: none !important;
+}
+
+.embed-bg-image-layer {
+  position: fixed;
+  inset: -40%;
+  /* Behind content inside the isolated page-shell — do not force siblings to position:relative
+     (that overrides .split-word-stage { position: fixed } and breaks centering). */
+  z-index: -1;
+  pointer-events: none;
+  transform-origin: center center;
+  will-change: transform;
+  overflow: hidden;
+  background-color: var(--paper);
+}
+
+.embed-bg-image-layer img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+html[data-embed-bg-image="1"],
+html[data-embed-bg-image="1"] body {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html[data-embed-bg-image="1"] .page-shell {
+  background-color: transparent !important;
+}
+
+html[data-embed-colors="1"] .rule {
+  background: color-mix(in srgb, var(--hero-ink) 28%, transparent);
+}
+
+html[data-embed-colors="1"] .split-definitions article + article {
+  border-color: color-mix(in srgb, var(--hero-ink) 22%, transparent);
+}
+
+/* Admin embed font faces (Open Runde / Inter / Newsreader). */
+html[data-embed="1"][data-embed-font="openRunde"] body {
+  font-family: var(--font-open-runde), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="inter"] body {
+  font-family: var(--font-inter), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="inter"] .split-combined-word,
+html[data-embed="1"][data-embed-font="inter"] .single-main-word,
+html[data-embed="1"][data-embed-font="inter"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="inter"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="inter"] .split-source-word,
+html[data-embed="1"][data-embed-font="inter"] .mix-source-word,
+html[data-embed="1"][data-embed-font="inter"] .split-definition {
+  font-family: var(--font-inter), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="openRunde"] .split-combined-word,
+html[data-embed="1"][data-embed-font="openRunde"] .single-main-word,
+html[data-embed="1"][data-embed-font="openRunde"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="openRunde"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="openRunde"] .split-source-word,
+html[data-embed="1"][data-embed-font="openRunde"] .mix-source-word,
+html[data-embed="1"][data-embed-font="openRunde"] .split-definition {
+  font-family: var(--font-open-runde), system-ui, sans-serif !important;
+}
+
 .site-header,
 .discover-top-brand,
 .controls {
@@ -6257,12 +6336,102 @@ html[data-colorway="brown"] .save-legend.liked kbd {
     0 0 0 1px rgba(15, 23, 42, 0.06);
 }
 
+.admin-frame.is-drop-target {
+  box-shadow:
+    0 0 0 2px #1a1a1a,
+    0 18px 50px rgba(15, 23, 42, 0.16);
+}
+
+.admin-frame-bg-preview {
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  pointer-events: none;
+  transform-origin: center center;
+  overflow: hidden;
+}
+
+.admin-frame-bg-preview img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 .admin-frame-iframe {
+  position: relative;
+  z-index: 1;
   display: block;
   border: 0;
   transform-origin: top left;
   background: var(--paper);
   pointer-events: auto;
+}
+
+.admin-frame-iframe.has-bg-image {
+  background: transparent;
+}
+
+.admin-frame.is-file-drag .admin-frame-iframe,
+.admin-frame.is-crop-mode .admin-frame-iframe {
+  pointer-events: none;
+}
+
+.admin-frame-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.admin-frame.is-crop-mode .admin-frame-overlay,
+.admin-frame.is-file-drag .admin-frame-overlay {
+  pointer-events: auto;
+}
+
+.admin-frame.is-crop-mode {
+  box-shadow:
+    0 0 0 2px #1a1a1a,
+    0 18px 50px rgba(15, 23, 42, 0.16);
+}
+
+.admin-frame.is-crop-mode .admin-frame-overlay {
+  background: color-mix(in srgb, #0f172a 6%, transparent);
+}
+
+.admin-frame:not(.has-bg-image) .admin-frame-overlay,
+.admin-frame.is-file-drag:not(.has-bg-image) .admin-frame-overlay {
+  cursor: copy;
+}
+
+.admin-frame.is-crop-mode .admin-frame-overlay {
+  cursor: grab;
+}
+
+.admin-frame.is-panning .admin-frame-overlay {
+  cursor: grabbing;
+}
+
+.admin-frame-drop-label {
+  pointer-events: none;
+  padding: .55rem .85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1a1a1a;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
 
 @media (max-width: 900px) {
@@ -6324,6 +6493,93 @@ html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-defi
 
 .admin-zoom-control:has(input:disabled) {
   opacity: .4;
+}
+
+.admin-color-group {
+  align-items: center;
+}
+
+.admin-color-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.admin-color-control input[type="color"] {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid rgba(26, 26, 26, 0.14);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.admin-color-control input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.admin-color-control input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 4px;
+}
+
+.admin-color-hex {
+  width: 5.5rem;
+  padding: .35rem .45rem;
+  border: 1px solid rgba(26, 26, 26, 0.14);
+  border-radius: 6px;
+  background: #fff;
+  color: #1a1a1a;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem;
+  letter-spacing: .02em;
+}
+
+.admin-color-hex:focus {
+  outline: 2px solid rgba(26, 26, 26, 0.2);
+  outline-offset: 1px;
+}
+
+.admin-color-combo-select {
+  min-width: 7.5rem;
+  max-width: 10rem;
+  padding: .35rem .45rem;
+  border: 1px solid rgba(26, 26, 26, 0.14);
+  border-radius: 6px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: .72rem;
+  cursor: pointer;
+}
+
+.admin-font-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.admin-font-select {
+  min-width: 7.25rem;
+  padding: .35rem .45rem;
+  border: 1px solid rgba(26, 26, 26, 0.14);
+  border-radius: 6px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: .72rem;
+  cursor: pointer;
+}
+
+.admin-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 html[data-embed="1"] .page-shell.discover-mode .split-combined-word,

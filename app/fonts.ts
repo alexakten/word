@@ -27,6 +27,7 @@ export const serif = newsreader;
 export const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-inter",
 });
 
 export const openRunde = localFont({
@@ -53,6 +54,7 @@ export const openRunde = localFont({
     },
   ],
   display: "swap",
+  variable: "--font-open-runde",
 });
 
 /** Toggle sans face between Inter and Open Runde. */
