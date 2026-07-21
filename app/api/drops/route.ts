@@ -2,7 +2,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DROPS_PUBLICATION_ID = "pub_c6b80026-9bab-497c-859b-d164d8dbcedd";
 
 export async function POST(request: Request) {
-  let body: { email?: unknown; website?: unknown; consent?: unknown };
+  let body: { email?: unknown; website?: unknown };
 
   try {
     body = await request.json();
@@ -18,13 +18,6 @@ export async function POST(request: Request) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   if (!EMAIL_PATTERN.test(email) || email.length > 254) {
     return Response.json({ message: "Please enter a valid email address." }, { status: 400 });
-  }
-
-  if (body.consent !== true) {
-    return Response.json(
-      { message: "Please confirm that you’d like to receive Spellsurf Drops." },
-      { status: 400 },
-    );
   }
 
   const apiKey = process.env.BEEHIIV_API_KEY;

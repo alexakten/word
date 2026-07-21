@@ -24,7 +24,6 @@ export function SignupForm() {
         body: JSON.stringify({
           email: formData.get("email"),
           website: formData.get("website"),
-          consent: formData.get("consent") === "yes",
         }),
       });
       const data = (await response.json()) as { message?: string };
@@ -61,19 +60,9 @@ export function SignupForm() {
         <button type="submit" disabled={status === "submitting" || status === "success"}>
           {status === "submitting" ? "Joining…" : status === "success" ? "You’re in ✓" : "Get Drops"}
         </button>
-        <label className={styles.consent}>
-          <input
-            name="consent"
-            type="checkbox"
-            value="yes"
-            required
-            disabled={status === "submitting" || status === "success"}
-          />
-          <span>I agree to receive Spellsurf Drops by email. Unsubscribe anytime.</span>
-        </label>
       </form>
       <p className={styles.formNote} aria-live="polite">
-        {message}
+        {message || "By subscribing, you agree to receive Spellsurf Drops by email."}
       </p>
     </div>
   );

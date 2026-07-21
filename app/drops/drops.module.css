@@ -211,35 +211,14 @@
   opacity: 0.72;
 }
 
-.consent {
-  position: absolute;
-  top: calc(100% + 11px);
-  left: 2px;
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.35;
-  cursor: pointer;
-}
-
-.consent input {
-  width: 13px;
-  height: 13px;
-  margin: 1px 0 0;
-  flex: 0 0 auto;
-  accent-color: var(--drops-ink);
-}
-
 .formNote {
   min-height: 18px;
-  margin: 42px 0 0;
+  margin: 12px 0 0;
   color: rgba(255, 255, 255, 0.58);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.01em;
+  text-align: center;
 }
 
 .honeypot {
