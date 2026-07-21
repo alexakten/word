@@ -1,8 +1,12 @@
 "use client";
 
-import { Camera, Check, Copy, Crop, Eye, EyeOff, Focus, ImagePlus, LoaderCircle, RefreshCw, Settings2, Type, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, Check, Copy, Crop, Eye, EyeOff, Focus, ImagePlus, LoaderCircle, RefreshCw, Settings2, Type, X } from "lucide-react";
 import { domToPng } from "modern-screenshot";
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent, type WheelEvent } from "react";
+import { AdminMenu } from "./components/admin-menu";
+import { AdminSegmented } from "./components/admin-segmented";
+import { AdminStepper } from "./components/admin-stepper";
+import { AdminToggle } from "./components/admin-toggle";
 import {
   BUILTIN_COLOR_COMBOS,
   findMatchingColorCombo,
@@ -19,9 +23,28 @@ import {
   maxExportScaleForPreset,
   SOCIAL_PRESETS,
   type ExportScale,
-  type SocialPreset,
 } from "../lib/admin-presets";
 import { clampColumnRem, clampFontWeight, clampLetterSpacing, DEFAULT_EMBED_BACKGROUND, DEFAULT_EMBED_FONT, DEFAULT_EMBED_FONT_WEIGHT, DEFAULT_EMBED_LETTER_SPACING, DEFAULT_EMBED_TEXT, EMBED_FONT_OPTIONS, EMBED_FONT_WEIGHTS, EMBED_MESSAGE_TYPE, fontWeightLabel, isImageFile, MAX_EMBED_LETTER_SPACING, MIN_EMBED_LETTER_SPACING, normalizeHexColor, type EmbedFontFamily } from "../lib/embed-bridge";
+
+const EMBED_FONT_FAMILY_CSS: Record<EmbedFontFamily, string> = {
+  openRunde: "var(--font-open-runde), system-ui, sans-serif",
+  inter: "var(--font-inter), system-ui, sans-serif",
+  newsreader: "var(--font-serif), Georgia, serif",
+  playfair: "var(--font-playfair), Georgia, serif",
+  caveat: "var(--font-caveat), cursive",
+  parabolica: "var(--font-parabolica), system-ui, sans-serif",
+  aboreto: "var(--font-aboreto), Georgia, serif",
+  afacad: "var(--font-afacad), system-ui, sans-serif",
+  calSans: "var(--font-cal-sans), system-ui, sans-serif",
+  instrumentSerif: "var(--font-instrument-serif), Georgia, serif",
+  redaction: "var(--font-redaction), Georgia, serif",
+  redaction10: "var(--font-redaction-10), Georgia, serif",
+  redaction20: "var(--font-redaction-20), Georgia, serif",
+  redaction35: "var(--font-redaction-35), Georgia, serif",
+  redaction50: "var(--font-redaction-50), Georgia, serif",
+  redaction70: "var(--font-redaction-70), Georgia, serif",
+  redaction100: "var(--font-redaction-100), Georgia, serif",
+};
 
 const DEFAULT_PRESET = SOCIAL_PRESETS[0]!;
 const EMBED_SRC = "/?embed=1";
@@ -698,107 +721,76 @@ export default function AdminPage() {
         </div>
 
         <div className="admin-toolbar-brand">
-          <span className="admin-toolbar-title">Spellsurf Admin</span>
-          <span className="admin-toolbar-meta">Screenshot studio</span>
+          <span className="admin-toolbar-title">Spellsurf</span>
         </div>
 
-        <div className="admin-toolbar-group" role="group" aria-label="Aspect ratio">
-          {SOCIAL_PRESETS.map((entry) => (
-            <PresetButton
-              key={entry.id}
-              preset={entry}
-              active={entry.id === preset.id}
-              onSelect={() => setPresetId(entry.id)}
-            />
-          ))}
+        <div className="admin-toolbar-section" role="group" aria-label="Format">
+          <AdminSegmented
+            ariaLabel="Aspect ratio"
+            value={preset.id}
+            onChange={setPresetId}
+            options={SOCIAL_PRESETS.map((entry) => ({
+              value: entry.id,
+              title: `${entry.width}×${entry.height}`,
+              label: (
+                <>
+                  <span>{entry.label}</span>
+                  <span className="admin-segment-meta">{entry.ratio}</span>
+                </>
+              ),
+            }))}
+          />
+          <AdminSegmented
+            ariaLabel="Export scale"
+            value={activeExportScale}
+            onChange={(next) => setExportScale(next as ExportScale)}
+            options={exportScaleOptions.map((entry) => ({
+              value: entry.id,
+              label: entry.label,
+            }))}
+          />
         </div>
 
-        <div className="admin-toolbar-group" role="group" aria-label="Export scale">
-          {exportScaleOptions.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              className={["admin-chip", activeExportScale === entry.id ? "is-active" : ""].filter(Boolean).join(" ")}
-              onClick={() => setExportScale(entry.id)}
-            >
-              {entry.label}
-            </button>
-          ))}
-        </div>
+        <div className="admin-toolbar-divider" aria-hidden="true" />
 
-        <div className="admin-toolbar-group admin-zoom-group" role="group" aria-label="Content zoom">
+        <div className="admin-toolbar-section" role="group" aria-label="Zoom and columns">
+          <AdminStepper
+            label="Zoom"
+            ariaLabel="Content zoom"
+            value={contentZoomPercent}
+            min={MIN_ZOOM}
+            max={MAX_ZOOM}
+            step={ZOOM_STEP}
+            formatValue={(next) => `${next}%`}
+            onChange={setZoom}
+          />
+          <AdminStepper
+            label="Left"
+            ariaLabel="Left description column width"
+            title="Left description column width"
+            value={leftColumnRem}
+            min={MIN_COLUMN_REM}
+            max={MAX_COLUMN_REM}
+            step={COLUMN_STEP}
+            disabled={hideDescriptions || comboOnly}
+            formatValue={(next) => `${next}rem`}
+            onChange={setLeftWidth}
+          />
+          <AdminStepper
+            label="Right"
+            ariaLabel="Right description column width"
+            title="Right description column width"
+            value={rightColumnRem}
+            min={MIN_COLUMN_REM}
+            max={MAX_COLUMN_REM}
+            step={COLUMN_STEP}
+            disabled={hideDescriptions || comboOnly}
+            formatValue={(next) => `${next}rem`}
+            onChange={setRightWidth}
+          />
           <button
             type="button"
-            className="admin-icon-button"
-            onClick={() => setZoom(contentZoomPercent - ZOOM_STEP)}
-            aria-label="Zoom content out"
-            title="Zoom content out"
-            disabled={contentZoomPercent <= MIN_ZOOM}
-          >
-            <ZoomOut size={15} strokeWidth={1.8} />
-          </button>
-          <label className="admin-zoom-control">
-            <span className="admin-toolbar-meta">{contentZoomPercent}%</span>
-            <input
-              type="range"
-              min={MIN_ZOOM}
-              max={MAX_ZOOM}
-              step={ZOOM_STEP}
-              value={contentZoomPercent}
-              onChange={(event) => setZoom(Number(event.target.value))}
-            />
-          </label>
-          <button
-            type="button"
-            className="admin-icon-button"
-            onClick={() => setZoom(contentZoomPercent + ZOOM_STEP)}
-            aria-label="Zoom content in"
-            title="Zoom content in"
-            disabled={contentZoomPercent >= MAX_ZOOM}
-          >
-            <ZoomIn size={15} strokeWidth={1.8} />
-          </button>
-          {[100, 160, 200, 250].map((percent) => (
-            <button
-              key={percent}
-              type="button"
-              className={["admin-chip", contentZoomPercent === percent ? "is-active" : ""].filter(Boolean).join(" ")}
-              onClick={() => setZoom(percent)}
-              title={`Set content zoom to ${percent}%`}
-            >
-              {percent}%
-            </button>
-          ))}
-        </div>
-
-        <div className="admin-toolbar-group admin-zoom-group" role="group" aria-label="Description column widths">
-          <label className="admin-zoom-control" title="Left description column width">
-            <span className="admin-toolbar-meta">L {leftColumnRem}rem</span>
-            <input
-              type="range"
-              min={MIN_COLUMN_REM}
-              max={MAX_COLUMN_REM}
-              step={COLUMN_STEP}
-              value={leftColumnRem}
-              disabled={hideDescriptions || comboOnly}
-              onChange={(event) => setLeftWidth(Number(event.target.value))}
-            />
-          </label>
-          <label className="admin-zoom-control" title="Right description column width">
-            <span className="admin-toolbar-meta">R {rightColumnRem}rem</span>
-            <input
-              type="range"
-              min={MIN_COLUMN_REM}
-              max={MAX_COLUMN_REM}
-              step={COLUMN_STEP}
-              value={rightColumnRem}
-              disabled={hideDescriptions || comboOnly}
-              onChange={(event) => setRightWidth(Number(event.target.value))}
-            />
-          </label>
-          <button
-            type="button"
-            className="admin-chip"
+            className="admin-ghost-button"
             disabled={hideDescriptions || comboOnly}
             onClick={() => {
               setLeftColumnRem(DEFAULT_COLUMN_REM);
@@ -814,29 +806,94 @@ export default function AdminPage() {
           </button>
         </div>
 
-        <div className="admin-toolbar-group" role="group" aria-label="Composition">
+        <div className="admin-toolbar-divider" aria-hidden="true" />
+
+        <div className="admin-toolbar-section" role="group" aria-label="Typography">
+          <AdminMenu
+            label="Font"
+            ariaLabel="Display font"
+            title="Display font"
+            value={fontFamily}
+            className="admin-font-menu"
+            menuClassName="admin-font-menu-panel"
+            onChange={setFont}
+            options={EMBED_FONT_OPTIONS.map((option) => ({
+              value: option.value,
+              label: option.label,
+              style: { fontFamily: EMBED_FONT_FAMILY_CSS[option.value] },
+            }))}
+            renderValue={(option) =>
+              option ? (
+                <span style={{ fontFamily: EMBED_FONT_FAMILY_CSS[option.value as EmbedFontFamily] }}>
+                  {option.label}
+                </span>
+              ) : (
+                "Font"
+              )
+            }
+          />
+          <AdminMenu
+            label="Weight"
+            ariaLabel="Font weight"
+            title="Font weight"
+            value={fontWeight}
+            disabled={EMBED_FONT_WEIGHTS[fontFamily].length <= 1}
+            onChange={setWeight}
+            options={EMBED_FONT_WEIGHTS[fontFamily].map((weight) => ({
+              value: weight,
+              label: `${fontWeightLabel(weight)} · ${weight}`,
+            }))}
+          />
+          <AdminStepper
+            label="Spacing"
+            ariaLabel="Letter spacing"
+            title="Letter spacing (kerning)"
+            value={letterSpacing}
+            min={MIN_EMBED_LETTER_SPACING}
+            max={MAX_EMBED_LETTER_SPACING}
+            step={1}
+            formatValue={(next) => `${next > 0 ? `+${next}` : next}%`}
+            onChange={setLetterSpacing}
+          />
           <button
             type="button"
-            className={["admin-chip", focusMode ? "is-active" : ""].filter(Boolean).join(" ")}
-            onClick={toggleFocusMode}
-            title="Hide chrome and focus the word"
+            className="admin-ghost-button"
+            disabled={letterSpacing === DEFAULT_EMBED_LETTER_SPACING}
+            onClick={() => setLetterSpacing(DEFAULT_EMBED_LETTER_SPACING)}
+            title={`Reset letter spacing to ${DEFAULT_EMBED_LETTER_SPACING}%`}
           >
+            −6%
+          </button>
+        </div>
+
+        <div className="admin-toolbar-divider" aria-hidden="true" />
+
+        <div className="admin-toolbar-section" role="group" aria-label="Composition">
+          <AdminToggle active={focusMode} onClick={toggleFocusMode} title="Hide chrome and focus the word">
             <Focus size={13} strokeWidth={1.9} />
             <span>Focus</span>
-          </button>
-          <button
-            type="button"
-            className={["admin-chip", comboOnly ? "is-active" : ""].filter(Boolean).join(" ")}
+          </AdminToggle>
+          <AdminToggle
+            active={comboOnly}
             onClick={toggleComboOnly}
             title={comboOnly ? "Show source words and info" : "Show only the combo word, centered"}
           >
             <Type size={13} strokeWidth={1.9} />
-            <span>Combo only</span>
-          </button>
-          <label className="admin-override-control" title="Replace the combo word with custom text">
-            <span className="admin-toolbar-meta">Text</span>
+            <span>Combo</span>
+          </AdminToggle>
+          <AdminToggle
+            active={!hideDescriptions}
+            onClick={toggleDescriptions}
+            disabled={comboOnly}
+            title={hideDescriptions ? "Show definition text" : "Hide definition text (keep pronunciation)"}
+          >
+            {hideDescriptions ? <EyeOff size={13} strokeWidth={1.9} /> : <Eye size={13} strokeWidth={1.9} />}
+            <span>Defs</span>
+          </AdminToggle>
+          <label className="admin-field" title="Replace the combo word with custom text">
+            <span className="admin-control-label">Text</span>
             <input
-              className="admin-override-input"
+              className="admin-field-input"
               type="text"
               value={overrideText}
               placeholder="Custom word…"
@@ -851,105 +908,50 @@ export default function AdminPage() {
           {overrideText ? (
             <button
               type="button"
-              className="admin-chip"
+              className="admin-icon-button"
               onClick={() => setOverrideText("")}
               title="Clear custom text"
+              aria-label="Clear custom text"
             >
               <X size={13} strokeWidth={1.9} />
-              <span>Clear text</span>
             </button>
           ) : null}
-          <button
-            type="button"
-            className={["admin-chip", hideDescriptions ? "is-active" : ""].filter(Boolean).join(" ")}
-            onClick={toggleDescriptions}
-            disabled={comboOnly}
-            title={hideDescriptions ? "Show definition text" : "Hide definition text (keep pronunciation)"}
-          >
-            {hideDescriptions ? <EyeOff size={13} strokeWidth={1.9} /> : <Eye size={13} strokeWidth={1.9} />}
-            <span>{hideDescriptions ? "No defs" : "Descriptions"}</span>
-          </button>
-          <label className="admin-font-control" title="Display font">
-            <span className="admin-toolbar-meta">Font</span>
-            <select
-              className="admin-font-select"
-              value={fontFamily}
-              onChange={(event) => setFont(event.target.value as EmbedFontFamily)}
-              aria-label="Display font"
-            >
-              {EMBED_FONT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="admin-font-control" title="Font weight">
-            <span className="admin-toolbar-meta">Weight</span>
-            <select
-              className="admin-font-weight-select"
-              value={fontWeight}
-              disabled={EMBED_FONT_WEIGHTS[fontFamily].length <= 1}
-              onChange={(event) => setWeight(Number(event.target.value))}
-              aria-label="Font weight"
-            >
-              {EMBED_FONT_WEIGHTS[fontFamily].map((weight) => (
-                <option key={weight} value={weight}>
-                  {fontWeightLabel(weight)} ({weight})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="admin-letter-spacing-control" title="Letter spacing (kerning)">
-            <span className="admin-toolbar-meta">Spacing</span>
-            <span className="admin-toolbar-meta admin-letter-spacing-value">
-              {letterSpacing > 0 ? `+${letterSpacing}` : letterSpacing}%
-            </span>
-            <input
-              type="range"
-              min={MIN_EMBED_LETTER_SPACING}
-              max={MAX_EMBED_LETTER_SPACING}
-              step={1}
-              value={letterSpacing}
-              onChange={(event) => setLetterSpacing(Number(event.target.value))}
-              aria-label="Letter spacing"
-            />
-          </label>
-          <button
-            type="button"
-            className="admin-chip"
-            disabled={letterSpacing === DEFAULT_EMBED_LETTER_SPACING}
-            onClick={() => setLetterSpacing(DEFAULT_EMBED_LETTER_SPACING)}
-            title={`Reset letter spacing to ${DEFAULT_EMBED_LETTER_SPACING}%`}
-          >
-            −6%
-          </button>
         </div>
 
-        <div className="admin-toolbar-group admin-color-group" role="group" aria-label="Colors">
-          <label className="admin-color-control" title="Saved color combos">
-            <span className="admin-toolbar-meta">Combo</span>
-            <select
-              className="admin-color-combo-select"
-              value={activeColorCombo?.id ?? ""}
-              onChange={(event) => {
-                const combo = colorCombos.find((entry) => entry.id === event.target.value);
-                if (combo) applyColorCombo(combo);
-              }}
-              aria-label="Saved color combos"
-            >
-              <option value="" disabled>
-                Custom
-              </option>
-              {colorCombos.map((combo) => (
-                <option key={combo.id} value={combo.id}>
-                  {combo.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="admin-color-control" title="Background color">
-            <span className="admin-toolbar-meta">Bg</span>
+        <div className="admin-toolbar-divider" aria-hidden="true" />
+
+        <div className="admin-toolbar-section admin-color-section" role="group" aria-label="Colors">
+          <AdminMenu
+            label="Combo"
+            ariaLabel="Saved color combos"
+            title="Saved color combos"
+            value={activeColorCombo?.id ?? ""}
+            placeholder="Custom"
+            onChange={(comboId) => {
+              const combo = colorCombos.find((entry) => entry.id === comboId);
+              if (combo) applyColorCombo(combo);
+            }}
+            options={colorCombos.map((combo) => ({
+              value: combo.id,
+              label: combo.name,
+            }))}
+            renderOption={(option) => {
+              const combo = colorCombos.find((entry) => entry.id === option.value);
+              return (
+                <span className="admin-combo-option">
+                  <span
+                    className="admin-combo-swatch"
+                    style={{
+                      background: `linear-gradient(135deg, ${combo?.background ?? "#ccc"} 50%, ${combo?.text ?? "#111"} 50%)`,
+                    }}
+                  />
+                  <span>{option.label}</span>
+                </span>
+              );
+            }}
+          />
+          <label className="admin-color-field" title="Background color">
+            <span className="admin-control-label">Bg</span>
             <input
               type="color"
               value={backgroundColor}
@@ -990,8 +992,8 @@ export default function AdminPage() {
               }}
             />
           </label>
-          <label className="admin-color-control" title="Text and divider color">
-            <span className="admin-toolbar-meta">Text</span>
+          <label className="admin-color-field" title="Text and divider color">
+            <span className="admin-control-label">Text</span>
             <input
               type="color"
               value={textColor}
@@ -1034,7 +1036,7 @@ export default function AdminPage() {
           </label>
           <button
             type="button"
-            className="admin-chip"
+            className="admin-ghost-button"
             onClick={() => void copyColorCombo()}
             title="Copy shareable combo line"
           >
@@ -1043,7 +1045,7 @@ export default function AdminPage() {
           </button>
           <button
             type="button"
-            className="admin-chip"
+            className="admin-ghost-button"
             onClick={saveColorCombo}
             title="Save current colors to this browser’s combo list"
           >
@@ -1051,7 +1053,7 @@ export default function AdminPage() {
           </button>
           <button
             type="button"
-            className="admin-chip"
+            className="admin-ghost-button"
             onClick={resetColors}
             title="Reset to default blue / white"
           >
@@ -1068,21 +1070,20 @@ export default function AdminPage() {
               if (file) applyBackgroundImageFile(file);
             }}
           />
-          <button
-            type="button"
-            className={["admin-chip", backgroundImage ? "is-active" : ""].filter(Boolean).join(" ")}
+          <AdminToggle
+            active={Boolean(backgroundImage)}
             onClick={() => backgroundImageInputRef.current?.click()}
             title="Upload a temporary background image, or drag one onto the frame"
           >
             <ImagePlus size={13} strokeWidth={1.9} />
             <span>{backgroundImage ? "Image" : "Bg image"}</span>
-          </button>
+          </AdminToggle>
           {backgroundImage ? (
             <>
               {!cropMode ? (
                 <button
                   type="button"
-                  className="admin-chip"
+                  className="admin-ghost-button"
                   onClick={() => setCropMode(true)}
                   title="Drag and zoom the background image"
                 >
@@ -1091,28 +1092,27 @@ export default function AdminPage() {
                 </button>
               ) : (
                 <>
-                  <label className="admin-zoom-control" title="Background image zoom">
-                    <span className="admin-toolbar-meta">{Math.round(backgroundImageScale * 100)}%</span>
-                    <input
-                      type="range"
-                      min={1}
-                      max={3}
-                      step={0.05}
-                      value={backgroundImageScale}
-                      onChange={(event) => setBackgroundImageZoom(Number(event.target.value))}
-                    />
-                  </label>
+                  <AdminStepper
+                    label="Crop"
+                    ariaLabel="Background image zoom"
+                    title="Background image zoom"
+                    value={Number(backgroundImageScale.toFixed(2))}
+                    min={1}
+                    max={3}
+                    step={0.05}
+                    formatValue={(next) => `${Math.round(next * 100)}%`}
+                    onChange={setBackgroundImageZoom}
+                  />
                   <button
                     type="button"
-                    className="admin-chip"
+                    className="admin-ghost-button"
                     onClick={resetBackgroundImageFrame}
                     title="Reset image framing"
                   >
                     Recenter
                   </button>
-                  <button
-                    type="button"
-                    className="admin-chip is-active"
+                  <AdminToggle
+                    active
                     onClick={() => {
                       setCropMode(false);
                       setPanningImage(false);
@@ -1122,17 +1122,17 @@ export default function AdminPage() {
                   >
                     <Check size={13} strokeWidth={1.9} />
                     <span>Done</span>
-                  </button>
+                  </AdminToggle>
                 </>
               )}
               <button
                 type="button"
-                className="admin-chip"
+                className="admin-ghost-button"
                 onClick={clearBackgroundImage}
                 title={backgroundImageName ? `Clear ${backgroundImageName}` : "Clear background image"}
               >
                 <X size={13} strokeWidth={1.9} />
-                <span>Clear img</span>
+                <span>Clear</span>
               </button>
             </>
           ) : null}
@@ -1162,7 +1162,7 @@ export default function AdminPage() {
             ) : (
               <Camera size={15} strokeWidth={1.8} />
             )}
-            <span>{capturing ? "Capturing…" : "Capture PNG"}</span>
+            <span>{capturing ? "Capturing…" : "Capture"}</span>
           </button>
         </div>
       </header>
@@ -1246,27 +1246,5 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function PresetButton({
-  preset,
-  active,
-  onSelect,
-}: {
-  preset: SocialPreset;
-  active: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={["admin-chip", active ? "is-active" : ""].filter(Boolean).join(" ")}
-      onClick={onSelect}
-      title={`${preset.width}×${preset.height}`}
-    >
-      <span>{preset.label}</span>
-      <span className="admin-chip-ratio">{preset.ratio}</span>
-    </button>
   );
 }
