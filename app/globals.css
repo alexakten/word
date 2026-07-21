@@ -6776,6 +6776,27 @@ html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-defi
   gap: .35rem;
 }
 
+.admin-override-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.admin-override-input {
+  width: 9.5rem;
+  padding: .35rem .5rem;
+  border: 1px solid rgba(26, 26, 26, 0.14);
+  border-radius: 6px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: .72rem;
+}
+
+.admin-override-input:focus {
+  outline: 1px solid #1a1a1a;
+  outline-offset: 1px;
+}
+
 .admin-font-select {
   min-width: 7.25rem;
   padding: .35rem .45rem;

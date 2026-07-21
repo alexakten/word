@@ -31,6 +31,7 @@ export default function Home() {
   const [fontFamily, setFontFamily] = useState<EmbedFontFamily>(DEFAULT_EMBED_FONT);
   const [fontWeight, setFontWeight] = useState(DEFAULT_EMBED_FONT_WEIGHT);
   const [letterSpacing, setLetterSpacing] = useState(DEFAULT_EMBED_LETTER_SPACING);
+  const [overrideText, setOverrideText] = useState("");
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backgroundImageScale, setBackgroundImageScale] = useState(1);
   const [backgroundImageX, setBackgroundImageX] = useState(0);
@@ -53,6 +54,7 @@ export default function Home() {
     setFontFamily,
     setFontWeight,
     setLetterSpacing,
+    setOverrideText,
     setBackgroundImage,
     setBackgroundImageScale,
     setBackgroundImageX,
@@ -244,7 +246,7 @@ export default function Home() {
         }}
       />
 
-      {appMode === "discover" ? <DiscoverView {...home} /> : null}
+      {appMode === "discover" ? <DiscoverView {...home} embedOverrideText={overrideText} /> : null}
 
       <ControlsFooter {...home} />
     </main>

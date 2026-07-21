@@ -37,6 +37,7 @@ type UseEmbedBridgeOptions = {
   setFontFamily: (value: EmbedFontFamily) => void;
   setFontWeight: (value: number) => void;
   setLetterSpacing: (value: number) => void;
+  setOverrideText: (value: string) => void;
   setBackgroundImage: (value: string | null) => void;
   setBackgroundImageScale: (value: number) => void;
   setBackgroundImageX: (value: number) => void;
@@ -60,6 +61,7 @@ export function useEmbedBridge({
   setFontFamily,
   setFontWeight,
   setLetterSpacing,
+  setOverrideText,
   setBackgroundImage,
   setBackgroundImageScale,
   setBackgroundImageX,
@@ -114,6 +116,9 @@ export function useEmbedBridge({
       if (typeof event.data.letterSpacing === "number" && Number.isFinite(event.data.letterSpacing)) {
         setLetterSpacing(clampLetterSpacing(event.data.letterSpacing));
       }
+      if ("overrideText" in event.data) {
+        setOverrideText(typeof event.data.overrideText === "string" ? event.data.overrideText : "");
+      }
       if ("backgroundImage" in event.data) {
         const image = event.data.backgroundImage;
         if (image === null || image === "") {
@@ -153,6 +158,7 @@ export function useEmbedBridge({
     setHideDescriptions,
     setLeftColumnRem,
     setLetterSpacing,
+    setOverrideText,
     setRightColumnRem,
     setTextColor,
   ]);

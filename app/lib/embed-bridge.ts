@@ -34,6 +34,10 @@ export type EmbedBridgeMessage = {
    */
   letterSpacing?: number;
   /**
+   * Admin override for the displayed combo word. Empty string / null clears.
+   */
+  overrideText?: string | null;
+  /**
    * Temporary full-bleed background image for admin embed (data URL).
    * Pass `null` to clear.
    */

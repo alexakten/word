@@ -144,6 +144,7 @@ const BLOCKED_EXACT = new Set([
   "spics",
   "wetback",
   "wetbacks",
+  "wigger",
   "wog",
   "wogs",
   "zipperhead",
@@ -171,6 +172,7 @@ const BLOCKED_SUBSTRINGS = [
   "kike",
   "raghead",
   "wetback",
+  "wigger",
   "zipperhead",
 ];
 

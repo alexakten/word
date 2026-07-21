@@ -58,6 +58,7 @@ export default function AdminPage() {
   const [fontFamily, setFontFamilyState] = useState<EmbedFontFamily>(DEFAULT_EMBED_FONT);
   const [fontWeight, setFontWeightState] = useState(DEFAULT_EMBED_FONT_WEIGHT);
   const [letterSpacing, setLetterSpacingState] = useState(DEFAULT_EMBED_LETTER_SPACING);
+  const [overrideText, setOverrideTextState] = useState("");
   const [backgroundHexDraft, setBackgroundHexDraft] = useState(DEFAULT_EMBED_BACKGROUND);
   const [textHexDraft, setTextHexDraft] = useState(DEFAULT_EMBED_TEXT);
   const [localColorCombos, setLocalColorCombos] = useState<AdminColorCombo[]>([]);
@@ -121,6 +122,7 @@ export default function AdminPage() {
     fontFamily?: EmbedFontFamily;
     fontWeight?: number;
     letterSpacing?: number;
+    overrideText?: string | null;
     backgroundImage?: string | null;
     backgroundImageScale?: number;
     backgroundImageX?: number;
@@ -146,6 +148,9 @@ export default function AdminPage() {
         fontFamily: next?.fontFamily ?? fontFamily,
         fontWeight: next?.fontWeight ?? fontWeight,
         letterSpacing: next?.letterSpacing ?? letterSpacing,
+        overrideText: next && "overrideText" in next
+          ? next.overrideText ?? ""
+          : overrideText,
         backgroundImage: next && "backgroundImage" in next
           ? next.backgroundImage ?? null
           : backgroundImage,
@@ -169,6 +174,7 @@ export default function AdminPage() {
     hideDescriptions,
     leftColumnRem,
     letterSpacing,
+    overrideText,
     preset.height,
     preset.width,
     rightColumnRem,
@@ -279,6 +285,11 @@ export default function AdminPage() {
     const next = clampLetterSpacing(value);
     setLetterSpacingState(next);
     postEmbedState({ letterSpacing: next });
+  };
+
+  const setOverrideText = (value: string) => {
+    setOverrideTextState(value);
+    postEmbedState({ overrideText: value });
   };
 
   const commitBackgroundHex = (raw: string) => {
@@ -765,6 +776,32 @@ export default function AdminPage() {
             <Type size={13} strokeWidth={1.9} />
             <span>Combo only</span>
           </button>
+          <label className="admin-override-control" title="Replace the combo word with custom text">
+            <span className="admin-toolbar-meta">Text</span>
+            <input
+              className="admin-override-input"
+              type="text"
+              value={overrideText}
+              placeholder="Custom word…"
+              spellCheck={false}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              aria-label="Custom combo word"
+              onChange={(event) => setOverrideText(event.target.value)}
+            />
+          </label>
+          {overrideText ? (
+            <button
+              type="button"
+              className="admin-chip"
+              onClick={() => setOverrideText("")}
+              title="Clear custom text"
+            >
+              <X size={13} strokeWidth={1.9} />
+              <span>Clear text</span>
+            </button>
+          ) : null}
           <button
             type="button"
             className={["admin-chip", hideDescriptions ? "is-active" : ""].filter(Boolean).join(" ")}

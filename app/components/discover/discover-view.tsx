@@ -120,7 +120,10 @@ export type DiscoverViewProps = Pick<
   | "savedMenuRef"
   | "saveWords"
   | "loadSavedWord"
->;
+> & {
+  /** Admin embed: replace the mixed combo word with this text when non-empty. */
+  embedOverrideText?: string | null;
+};
 
 export function DiscoverView(props: DiscoverViewProps) {
   const {
@@ -217,9 +220,13 @@ export function DiscoverView(props: DiscoverViewProps) {
     savedMenuRef,
     saveWords,
     loadSavedWord,
+    embedOverrideText,
   } = props;
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
+  const overrideWord = embedOverrideText?.trim() ?? "";
+  const hasOverrideWord = overrideWord.length > 0;
+  const effectiveDisplayedName = hasOverrideWord ? overrideWord : displayedName;
 
   useHistorySideTap({
     enabled: isMobileLayout && !mobileDiscoverPanel,
@@ -392,32 +399,44 @@ export function DiscoverView(props: DiscoverViewProps) {
                 <button
                   className="split-combined-word copyable-word mix-combined-word"
                   type="button"
-                  disabled={!leftWordValue || !rightWordValue || loading || secondaryLoading || splitBatchLoading}
-                  aria-label={`Copy ${displayedName}`}
-                  onClick={() => void copyDisplayedWord(displayedName)}
+                  disabled={
+                    hasOverrideWord
+                      ? false
+                      : !leftWordValue || !rightWordValue || loading || secondaryLoading || splitBatchLoading
+                  }
+                  aria-label={`Copy ${effectiveDisplayedName}`}
+                  onClick={() => void copyDisplayedWord(effectiveDisplayedName)}
                   onPointerEnter={() => {
                     if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
                   }}
                 >
-                  {nameDisplayMode === "handle" && displayedCombinedWord ? (
-                    <span className="handle-at" aria-hidden="true">@</span>
-                  ) : null}
-                  <span
-                    className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
-                    key={`mix-left-${mixedWordParts.leftChunk}`}
-                  >
-                    {mixedWordParts.leftChunk || "——"}
-                  </span>
-                  <span
-                    className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
-                    data-view-transition-word
-                    key={`mix-right-${mixedWordParts.rightChunk}`}
-                  >
-                    {mixedWordParts.rightChunk || "——"}
-                  </span>
-                  {nameDisplayMode === "domain" && displayedCombinedWord ? (
-                    <span className="domain-tld">{selectedTld}</span>
-                  ) : null}
+                  {hasOverrideWord ? (
+                    <span className="mix-word-part" key={`override-${overrideWord}`}>
+                      {overrideWord}
+                    </span>
+                  ) : (
+                    <>
+                      {nameDisplayMode === "handle" && displayedCombinedWord ? (
+                        <span className="handle-at" aria-hidden="true">@</span>
+                      ) : null}
+                      <span
+                        className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
+                        key={`mix-left-${mixedWordParts.leftChunk}`}
+                      >
+                        {mixedWordParts.leftChunk || "——"}
+                      </span>
+                      <span
+                        className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
+                        data-view-transition-word
+                        key={`mix-right-${mixedWordParts.rightChunk}`}
+                      >
+                        {mixedWordParts.rightChunk || "——"}
+                      </span>
+                      {nameDisplayMode === "domain" && displayedCombinedWord ? (
+                        <span className="domain-tld">{selectedTld}</span>
+                      ) : null}
+                    </>
+                  )}
                 </button>
           </div>
           <div className="split-definitions">
