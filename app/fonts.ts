@@ -124,31 +124,107 @@ export const redaction = localFont({
   variable: "--font-redaction",
 });
 
-function redactionOptical(size: 10 | 20 | 35 | 50 | 70 | 100) {
-  return localFont({
-    src: [
-      {
-        path: `../public/fonts/Redaction${size}-Regular.otf`,
-        weight: "400",
-        style: "normal",
-      },
-      {
-        path: `../public/fonts/Redaction${size}-Bold.otf`,
-        weight: "700",
-        style: "normal",
-      },
-    ],
-    display: "swap",
-    variable: `--font-redaction-${size}`,
-  });
-}
+export const redaction10 = localFont({
+  src: [
+    {
+      path: "../public/fonts/Redaction10-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Redaction10-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  variable: "--font-redaction-10",
+});
 
-export const redaction10 = redactionOptical(10);
-export const redaction20 = redactionOptical(20);
-export const redaction35 = redactionOptical(35);
-export const redaction50 = redactionOptical(50);
-export const redaction70 = redactionOptical(70);
-export const redaction100 = redactionOptical(100);
+export const redaction20 = localFont({
+  src: [
+    {
+      path: "../public/fonts/Redaction20-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Redaction20-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  variable: "--font-redaction-20",
+});
+
+export const redaction35 = localFont({
+  src: [
+    {
+      path: "../public/fonts/Redaction35-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Redaction35-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  variable: "--font-redaction-35",
+});
+
+export const redaction50 = localFont({
+  src: [
+    {
+      path: "../public/fonts/Redaction50-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Redaction50-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  variable: "--font-redaction-50",
+});
+
+export const redaction70 = localFont({
+  src: [
+    {
+      path: "../public/fonts/Redaction70-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Redaction70-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  variable: "--font-redaction-70",
+});
+
+export const redaction100 = localFont({
+  src: [
+    {
+      path: "../public/fonts/Redaction100-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Redaction100-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  variable: "--font-redaction-100",
+});
 
 /** Toggle sans face between Inter and Open Runde. */
 export type SansFace = "inter" | "openRunde";
