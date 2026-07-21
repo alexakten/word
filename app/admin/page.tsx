@@ -51,6 +51,7 @@ const EMBED_SRC = "/?embed=1";
 const MIN_ZOOM = 50;
 const MAX_ZOOM = 400;
 const ZOOM_STEP = 5;
+const ZOOM_PRESETS = [100, 160, 200, 250] as const;
 const MIN_COLUMN_REM = 6;
 const MAX_COLUMN_REM = 40;
 const COLUMN_STEP = 1;
@@ -754,8 +755,18 @@ export default function AdminPage() {
         <div className="admin-toolbar-divider" aria-hidden="true" />
 
         <div className="admin-toolbar-section" role="group" aria-label="Zoom and columns">
-          <AdminStepper
+          <AdminSegmented
             label="Zoom"
+            ariaLabel="Zoom presets"
+            value={contentZoomPercent}
+            onChange={setZoom}
+            options={ZOOM_PRESETS.map((percent) => ({
+              value: percent,
+              label: `${percent}%`,
+            }))}
+          />
+          <AdminStepper
+            label="Fine"
             ariaLabel="Content zoom"
             value={contentZoomPercent}
             min={MIN_ZOOM}

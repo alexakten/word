@@ -1,0 +1,274 @@
+.page {
+  --drops-blue: #3b82f5;
+  --drops-blue-deep: #2563eb;
+  --drops-blue-soft: #60a5fa;
+  --drops-ink: #ffffff;
+  --drops-muted: rgba(255, 255, 255, 0.72);
+
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 32px 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, var(--drops-blue-soft), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 80% 110%, rgba(37, 99, 235, 0.9), transparent 50%),
+    linear-gradient(165deg, var(--drops-blue) 0%, var(--drops-blue-deep) 100%);
+  color: var(--drops-ink);
+  font-family: var(--font-open-runde), system-ui, sans-serif;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 70%, rgba(255, 255, 255, 0.12), transparent 28rem),
+    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.08), transparent 22rem);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+.center {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 42rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.brand {
+  margin: 0 0 10px;
+  color: inherit;
+  font-size: clamp(2.75rem, 9vw, 4.25rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+  text-decoration: none;
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.15rem, 3.2vw, 1.45rem);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.88;
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.perks {
+  list-style: none;
+  margin: 36px 0 40px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 22px;
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.26s both;
+}
+
+.perks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--drops-ink);
+  flex-shrink: 0;
+}
+
+.check svg {
+  width: 12px;
+  height: 12px;
+}
+
+.countdown {
+  margin: 28px 0 0;
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+.countdownLabel {
+  margin: 0 0 14px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.countdownGrid {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+}
+
+.countdownUnit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 4.25rem;
+  padding: 12px 10px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.countdownValue {
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.countdownUnitLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.formWrap {
+  width: min(100%, 28rem);
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
+}
+
+.form {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.form:focus-within {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.form input[type="email"] {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--drops-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.form input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.form button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 18px;
+  background: var(--drops-ink);
+  color: var(--drops-blue-deep);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.form button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.form button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.formNote {
+  min-height: 18px;
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-2%, 1.5%, 0) scale(1.04);
+  }
+}
+
+@media (max-width: 540px) {
+  .form {
+    display: grid;
+  }
+
+  .form input[type="email"] {
+    height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow,
+  .center,
+  .brand,
+  .title,
+  .perks,
+  .countdown,
+  .formWrap,
+  .form,
+  .form button {
+    animation: none;
+    transition: none;
+  }
+}
