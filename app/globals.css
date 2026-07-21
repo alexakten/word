@@ -5091,18 +5091,6 @@ html[data-colorway="light"] .drops-nav-link:hover {
   outline-offset: 2px;
 }
 
-.drops-nav-label-short {
-  display: none;
-}
-
-html[data-layout="mobile"] .drops-nav-label-full {
-  display: none;
-}
-
-html[data-layout="mobile"] .drops-nav-label-short {
-  display: inline;
-}
-
 .about-drawer-trigger,
 .sound-toggle {
   display: inline-flex;
