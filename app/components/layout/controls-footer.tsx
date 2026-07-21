@@ -144,7 +144,12 @@ export function ControlsFooter(props: ControlsFooterProps) {
           <div className="mobile-style-right-actions">
             <SoundToggle />
             <AboutDrawer />
-            <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+            <Link className="drops-nav-link" href="/drops">
+              <span className="drops-nav-label-full">Get Drops</span>
+              <span className="drops-nav-label-short">Drops</span>
+              {" "}
+              <span aria-hidden="true">↗</span>
+            </Link>
           </div>
         </div>
       ) : null}

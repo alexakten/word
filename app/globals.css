@@ -5091,6 +5091,18 @@ html[data-colorway="light"] .drops-nav-link:hover {
   outline-offset: 2px;
 }
 
+.drops-nav-label-short {
+  display: none;
+}
+
+html[data-layout="mobile"] .drops-nav-label-full {
+  display: none;
+}
+
+html[data-layout="mobile"] .drops-nav-label-short {
+  display: inline;
+}
+
 .about-drawer-trigger,
 .sound-toggle {
   display: inline-flex;
@@ -5115,6 +5127,7 @@ html[data-layout="mobile"] .page-shell .sound-toggle {
 /* Comfortable touch targets for the mobile generator chrome. */
 html[data-layout="mobile"] .page-shell.discover-mode {
   --mobile-control-size: 44px;
+  --mobile-style-control-size: 36px;
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-discover-toolbar-button,
@@ -5146,6 +5159,33 @@ html[data-layout="mobile"] .page-shell.discover-mode .settings-panel-header butt
   height: var(--mobile-control-size);
   min-height: var(--mobile-control-size);
   border-radius: 999px !important;
+}
+
+/* Second-row style toolbar: a bit more compact than Left / Slice / Right. */
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .compact-save-word-button,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .saved-toggle span,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .about-drawer-trigger,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .sound-toggle {
+  width: var(--mobile-style-control-size);
+  min-width: var(--mobile-style-control-size);
+  height: var(--mobile-style-control-size);
+  min-height: var(--mobile-style-control-size);
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .font-cycle-button,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .drops-nav-link {
+  width: auto;
+  min-width: 0;
+  height: var(--mobile-style-control-size);
+  min-height: var(--mobile-style-control-size);
+  padding-inline: .55rem;
+  font-size: 11px;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .colorway-swatch {
+  width: 16px;
+  height: 16px;
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-generate-button {

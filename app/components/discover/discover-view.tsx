@@ -407,7 +407,12 @@ export function DiscoverView(props: DiscoverViewProps) {
               <AboutDrawer />
             </DesktopTooltip>
             <DesktopTooltip label="Spellsurf Drops newsletter">
-              <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+              <Link className="drops-nav-link" href="/drops">
+                <span className="drops-nav-label-full">Get Drops</span>
+                <span className="drops-nav-label-short">Drops</span>
+                {" "}
+                <span aria-hidden="true">↗</span>
+              </Link>
             </DesktopTooltip>
           </div>
         </div>
