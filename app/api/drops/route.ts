@@ -1,7 +1,8 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DROPS_PUBLICATION_ID = "pub_c6b80026-9bab-497c-859b-d164d8dbcedd";
 
 export async function POST(request: Request) {
-  let body: { email?: unknown; website?: unknown };
+  let body: { email?: unknown; website?: unknown; consent?: unknown };
 
   try {
     body = await request.json();
@@ -19,10 +20,16 @@ export async function POST(request: Request) {
     return Response.json({ message: "Please enter a valid email address." }, { status: 400 });
   }
 
-  const apiKey = process.env.BEEHIIV_API_KEY;
-  const publicationId = process.env.BEEHIIV_PUBLICATION_ID;
+  if (body.consent !== true) {
+    return Response.json(
+      { message: "Please confirm that you’d like to receive Spellsurf Drops." },
+      { status: 400 },
+    );
+  }
 
-  if (!apiKey || !publicationId) {
+  const apiKey = process.env.BEEHIIV_API_KEY;
+
+  if (!apiKey) {
     console.error("Drops signup is missing Beehiiv configuration.");
     return Response.json(
       { message: "Signups are temporarily unavailable. Please try again soon." },
@@ -32,7 +39,7 @@ export async function POST(request: Request) {
 
   try {
     const response = await fetch(
-      `https://api.beehiiv.com/v2/publications/${encodeURIComponent(publicationId)}/subscriptions`,
+      `https://api.beehiiv.com/v2/publications/${DROPS_PUBLICATION_ID}/subscriptions`,
       {
         method: "POST",
         headers: {
