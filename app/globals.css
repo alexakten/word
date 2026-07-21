@@ -5831,6 +5831,20 @@ html[data-layout="mobile"] .page-shell.discover-mode .theme-cycle-swatch {
   height: 24px;
 }
 
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .theme-cycle-button,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .colorway-switcher {
+  width: var(--mobile-style-control-size);
+  max-width: var(--mobile-style-control-size);
+  min-width: var(--mobile-style-control-size);
+  height: var(--mobile-style-control-size);
+  min-height: var(--mobile-style-control-size);
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .theme-cycle-swatch {
+  width: 18px;
+  height: 18px;
+}
+
 .style-toolbar .colorway-switcher {
   justify-self: end;
 }
