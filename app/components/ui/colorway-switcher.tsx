@@ -58,7 +58,6 @@ export function ColorwaySwitcher() {
         className="theme-cycle-button"
         type="button"
         aria-label={`Theme: ${colorways.find((colorway) => colorway.id === activeColorway)?.label}. Choose next theme`}
-        title="Change color theme"
         onClick={cycleColorway}
       >
         <span

@@ -2,6 +2,7 @@
 
 import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { AffixSettings } from "../discover/affix-settings";
 import { DomainAvailability } from "../discover/domain-availability";
 import { HandleAvailability } from "../discover/handle-availability";
@@ -26,6 +27,14 @@ import type { HomeState } from "../../hooks/use-home";
 import { useHistorySideTap } from "../../hooks/use-history-side-tap";
 import { sounds } from "../../lib/sounds";
 import { parseTags } from "../../lib/tags";
+
+const SHOW_DESKTOP_TOOLTIPS = false;
+
+function DesktopTooltip({ label, children }: { label: string; children: ReactNode }) {
+  return SHOW_DESKTOP_TOOLTIPS
+    ? <span className="desktop-top-tooltip" data-tooltip={label}>{children}</span>
+    : <>{children}</>;
+}
 
 export type DiscoverViewProps = Pick<
   HomeState,
@@ -357,33 +366,49 @@ export function DiscoverView(props: DiscoverViewProps) {
       <div className="discover-top-brand">
         <div className="style-toolbar">
           <div className="style-toolbar-actions style-toolbar-actions-left">
-            <ColorwaySwitcher />
-            <SavedWordsPanel
-              savedWords={savedWords}
-              savedOpen={savedOpen}
-              setSavedOpen={setSavedOpen}
-              savedMenuRef={savedMenuRef}
-              saveWords={saveWords}
-              loadSavedWord={loadSavedWord}
-            />
-            <SaveHeartButton
-              liked={combinedSplitIsSaved}
-              disabled={!displayedCombinedWord}
-              onToggle={toggleCombinedSaved}
-            />
+            <DesktopTooltip label="Change theme">
+              <ColorwaySwitcher />
+            </DesktopTooltip>
+            <DesktopTooltip label="Saved words">
+              <SavedWordsPanel
+                savedWords={savedWords}
+                savedOpen={savedOpen}
+                setSavedOpen={setSavedOpen}
+                savedMenuRef={savedMenuRef}
+                saveWords={saveWords}
+                loadSavedWord={loadSavedWord}
+              />
+            </DesktopTooltip>
+            <DesktopTooltip label={combinedSplitIsSaved ? "Remove saved word" : "Save this word"}>
+              <SaveHeartButton
+                liked={combinedSplitIsSaved}
+                disabled={!displayedCombinedWord}
+                onToggle={toggleCombinedSaved}
+              />
+            </DesktopTooltip>
           </div>
-          <DomainModeControls
-            className="top-domain-mode-controls"
-            displayMode={nameDisplayMode}
-            selectedTld={selectedTld}
-            onDisplayModeChange={setNameDisplayMode}
-            onTldChange={setSelectedTld}
-          />
+          <DesktopTooltip label="Name format">
+            <DomainModeControls
+              className="top-domain-mode-controls"
+              displayMode={nameDisplayMode}
+              selectedTld={selectedTld}
+              onDisplayModeChange={setNameDisplayMode}
+              onTldChange={setSelectedTld}
+            />
+          </DesktopTooltip>
           <div className="style-toolbar-actions style-toolbar-actions-right">
-            <TypographyControls />
-            <SoundToggle />
-            <AboutDrawer />
-            <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+            <DesktopTooltip label="Switch font">
+              <TypographyControls />
+            </DesktopTooltip>
+            <DesktopTooltip label="Toggle sound">
+              <SoundToggle />
+            </DesktopTooltip>
+            <DesktopTooltip label="About Spellsurf">
+              <AboutDrawer />
+            </DesktopTooltip>
+            <DesktopTooltip label="Spellsurf Drops newsletter">
+              <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+            </DesktopTooltip>
           </div>
         </div>
         {nameDisplayMode === "domain" && displayedDomain ? (

@@ -21,9 +21,9 @@ export const metadata: Metadata = {
 };
 
 const perks = [
-  "5 premium domains",
-  "Exclusive handles (X, IG, TikTok)",
-  "Each Friday",
+  "New premium domains each week",
+  "Exclusive social handles (X, IG, TikTok)",
+  "Be the first to claim premium brands",
 ];
 
 export default function DropsPage() {
