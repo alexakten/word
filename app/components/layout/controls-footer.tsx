@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Heart } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import type { HomeState } from "../../hooks/use-home";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
+import { SaveHeartButton } from "../ui/save-heart-button";
 import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { sounds } from "../../lib/sounds";
@@ -137,16 +138,11 @@ export function ControlsFooter(props: ControlsFooterProps) {
               saveWords={saveWords}
               loadSavedWord={loadSavedWord}
             />
-            <button
-              className={["compact-save-word-button", combinedSplitIsSaved ? "liked" : ""].filter(Boolean).join(" ")}
-              type="button"
-              aria-label={combinedSplitIsSaved ? "Remove from saved words" : "Save word"}
-              aria-pressed={combinedSplitIsSaved}
+            <SaveHeartButton
+              liked={combinedSplitIsSaved}
               disabled={!displayedCombinedWord}
-              onClick={toggleCombinedSaved}
-            >
-              <Heart size={15} strokeWidth={1.6} fill={combinedSplitIsSaved ? "currentColor" : "none"} aria-hidden="true" />
-            </button>
+              onToggle={toggleCombinedSaved}
+            />
           </div>
         ) : null}
         {appMode === "discover" ? (

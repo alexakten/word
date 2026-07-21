@@ -4653,6 +4653,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-meta-row>.so
 }
 
 .compact-save-word-button {
+  position: relative;
   display: inline-flex;
   width: calc(20px + .7rem);
   height: calc(20px + .7rem);
@@ -4665,6 +4666,8 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-meta-row>.so
   background: #F6F5F4;
   color: var(--muted);
   cursor: pointer;
+  overflow: visible;
+  isolation: isolate;
 }
 
 .compact-save-word-button:hover,
@@ -4681,6 +4684,131 @@ html[data-colorway="light"] .compact-save-word-button.liked:hover {
 .compact-save-word-button:disabled {
   cursor: not-allowed;
   opacity: .35;
+}
+
+.compact-save-word-button .save-heart-icon {
+  position: relative;
+  z-index: 2;
+  transform-origin: center;
+}
+
+.compact-save-word-button .save-heart-ring,
+.compact-save-word-button .save-heart-sparks {
+  position: absolute;
+  inset: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.compact-save-word-button .save-heart-ring {
+  border: 1.5px solid #fd4c1f;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.35);
+}
+
+.compact-save-word-button .save-heart-spark {
+  --spark-angle: calc(var(--spark-i) * 45deg);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #fd4c1f;
+  opacity: 0;
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--spark-angle))
+    translateY(0)
+    scale(0.4);
+}
+
+.compact-save-word-button .save-heart-spark:nth-child(odd) {
+  width: 3px;
+  height: 3px;
+  background: #ff8a5c;
+}
+
+.compact-save-word-button .save-heart-spark:nth-child(3n) {
+  background: #ffc857;
+}
+
+.compact-save-word-button.is-bursting .save-heart-icon {
+  animation: save-heart-pop 0.55s cubic-bezier(0.15, 1.45, 0.35, 1) both;
+}
+
+.compact-save-word-button.is-bursting .save-heart-ring {
+  animation: save-heart-ring 0.55s ease-out both;
+}
+
+.compact-save-word-button.is-bursting .save-heart-spark {
+  animation: save-heart-spark 0.6s cubic-bezier(0.12, 0.75, 0.28, 1) both;
+  animation-delay: calc(var(--spark-i) * 8ms);
+}
+
+@keyframes save-heart-pop {
+  0% {
+    transform: scale(0.2);
+  }
+  28% {
+    transform: scale(1.35);
+  }
+  55% {
+    transform: scale(0.92);
+  }
+  78% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes save-heart-ring {
+  0% {
+    opacity: .85;
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+  70% {
+    opacity: .35;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.9);
+  }
+}
+
+@keyframes save-heart-spark {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--spark-angle))
+      translateY(0)
+      scale(0.25);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--spark-angle))
+      translateY(-16px)
+      scale(0.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compact-save-word-button.is-bursting .save-heart-icon,
+  .compact-save-word-button.is-bursting .save-heart-ring,
+  .compact-save-word-button.is-bursting .save-heart-spark {
+    animation: none;
+  }
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row,
