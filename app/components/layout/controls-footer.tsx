@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
+import Link from "next/link";
 import type { HomeState } from "../../hooks/use-home";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
@@ -123,8 +124,28 @@ export function ControlsFooter(props: ControlsFooterProps) {
       ) : null}
       {appMode === "discover" ? (
         <div className="mobile-style-toolbar">
-          <ColorwaySwitcher />
+          <div className="mobile-style-left-actions">
+            <ColorwaySwitcher />
+            <SavedWordsPanel
+              savedWords={savedWords}
+              savedOpen={savedOpen}
+              setSavedOpen={setSavedOpen}
+              savedMenuRef={savedMenuRef}
+              saveWords={saveWords}
+              loadSavedWord={loadSavedWord}
+            />
+            <SaveHeartButton
+              liked={combinedSplitIsSaved}
+              disabled={!displayedCombinedWord}
+              onToggle={toggleCombinedSaved}
+            />
+          </div>
           <TypographyControls />
+          <div className="mobile-style-right-actions">
+            <SoundToggle />
+            <AboutDrawer />
+            <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
+          </div>
         </div>
       ) : null}
       <div className="controls-bar">
@@ -219,6 +240,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
         </div> : null}
         {appMode === "discover" ? (
           <div className="sound-about-actions">
+            <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
             <SoundToggle />
             <AboutDrawer />
           </div>
@@ -233,6 +255,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
               loadSavedWord={loadSavedWord}
             />
             <div className="sound-about-actions desktop-layout-only">
+              <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
               <SoundToggle />
               <AboutDrawer />
             </div>

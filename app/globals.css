@@ -3846,6 +3846,11 @@ kbd {
 .shortcut-row kbd {
   border: 0;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12);
+  color: var(--paper);
+}
+
+html[data-colorway="light"] .shortcut-row kbd {
+  color: var(--accent);
 }
 
 .space-button {
@@ -4185,29 +4190,47 @@ kbd {
   }
 
   .page-shell.discover-mode .mobile-style-toolbar {
-    display: flex;
+    display: grid;
     width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    justify-content: flex-start;
     gap: .55rem;
     margin-bottom: .85rem;
     pointer-events: auto;
   }
 
   .page-shell.discover-mode .mobile-style-toolbar .colorway-switcher {
-    flex: 0 0 auto;
+    justify-self: start;
     width: fit-content;
     max-width: fit-content;
   }
 
-  .page-shell.discover-mode .mobile-style-toolbar .colorway-swatch {
-    width: 18px;
-    height: 18px;
+  .page-shell.discover-mode .mobile-style-left-actions,
+  .page-shell.discover-mode .mobile-style-right-actions {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: .35rem;
+  }
+
+  .page-shell.discover-mode .mobile-style-left-actions {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .page-shell.discover-mode .mobile-style-right-actions {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .page-shell.discover-mode .mobile-style-toolbar .colorway-switcher > .colorway-swatch {
+    display: none;
   }
 
   .page-shell.discover-mode .mobile-style-toolbar .typography-controls {
-    flex: 0 0 auto;
-    margin-left: auto;
+    grid-column: 2;
+    justify-self: center;
+    margin-left: 0;
   }
 
   .page-shell.discover-mode .mobile-discover-toolbar-button,
@@ -4623,6 +4646,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions
 }
 
 .desktop-bottom-left-actions .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-toggle,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-toggle {
   width: calc(20px + .7rem);
   height: calc(20px + .7rem);
@@ -4633,6 +4657,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions
 }
 
 .desktop-bottom-left-actions .saved-toggle span,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-toggle span,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-toggle span {
   min-width: calc(20px + .7rem);
   height: calc(20px + .7rem);
@@ -4850,6 +4875,14 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability
   flex: none;
 }
 
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .domain-availability-trigger,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown-trigger,
+.page-shell.discover-mode .mobile-domain-availability-row .domain-availability-trigger,
+.page-shell.discover-mode .mobile-domain-availability-row .tld-dropdown-trigger {
+  height: 44px;
+  min-height: 44px;
+}
+
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-domain-availability .domain-availability-popover,
 .page-shell.discover-mode .mobile-domain-availability-row .domain-availability-popover {
   top: auto;
@@ -5020,6 +5053,45 @@ html[data-layout="mobile"] .page-shell .mobile-generate-wrap .api-health-status 
   gap: .45rem;
 }
 
+.drops-nav-link {
+  display: inline-flex;
+  min-height: calc(20px + .7rem);
+  align-items: center;
+  justify-content: center;
+  gap: .22rem;
+  border-radius: 999px;
+  padding: 0 .7rem;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  pointer-events: auto;
+  transition: background-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+.drops-nav-link:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  transform: scale(1.025);
+}
+
+html[data-colorway="light"] .drops-nav-link {
+  background: #3b82f5 !important;
+  color: #ffffff !important;
+}
+
+html[data-colorway="light"] .drops-nav-link:hover {
+  background: #2563eb !important;
+}
+
+.drops-nav-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .about-drawer-trigger,
 .sound-toggle {
   display: inline-flex;
@@ -5039,6 +5111,53 @@ html[data-layout="mobile"] .page-shell .mobile-generate-wrap .api-health-status 
 html[data-layout="mobile"] .page-shell .about-drawer-trigger,
 html[data-layout="mobile"] .page-shell .sound-toggle {
   align-self: flex-end;
+}
+
+/* Comfortable touch targets for the mobile generator chrome. */
+html[data-layout="mobile"] .page-shell.discover-mode {
+  --mobile-control-size: 44px;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-discover-toolbar-button,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-discover-toolbar-button.has-settings {
+  min-height: 48px;
+  padding-block: .75rem;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .typography-segment-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .domain-mode-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .domain-mode-controls,
+html[data-layout="mobile"] .page-shell.discover-mode .tld-dropdown-trigger,
+html[data-layout="mobile"] .page-shell.discover-mode .domain-availability-trigger,
+html[data-layout="mobile"] .page-shell.discover-mode .drops-nav-link {
+  min-height: var(--mobile-control-size);
+  height: var(--mobile-control-size);
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .compact-save-word-button,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-toggle span,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-toggle span,
+html[data-layout="mobile"] .page-shell.discover-mode .about-drawer-trigger,
+html[data-layout="mobile"] .page-shell.discover-mode .sound-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .settings-panel-header button.mobile-panel-close {
+  width: var(--mobile-control-size);
+  min-width: var(--mobile-control-size);
+  height: var(--mobile-control-size);
+  min-height: var(--mobile-control-size);
+  border-radius: 999px !important;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-generate-button {
+  min-height: 58px;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-generate-row .mobile-side-generate-button {
+  width: 58px;
+  min-width: 58px;
+  flex: 0 0 58px;
+  border-radius: 999px !important;
 }
 
 .about-drawer-trigger:hover,
@@ -5573,6 +5692,32 @@ h1,
   pointer-events: auto;
 }
 
+.mobile-colorway-cycle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px !important;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mobile-colorway-cycle-swatch {
+  pointer-events: none;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle {
+  display: inline-flex;
+  width: calc(20px + .7rem);
+  height: calc(20px + .7rem);
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle-swatch {
+  width: 24px;
+  height: 24px;
+}
+
 .style-toolbar .colorway-switcher {
   justify-self: end;
 }
@@ -5673,6 +5818,7 @@ h1,
   --swatch-ring: #825941;
 }
 
+.mobile-colorway-cycle-swatch,
 .colorway-swatch[aria-pressed="true"],
 .colorway-swatch:focus-visible {
   outline: none;
@@ -5697,6 +5843,35 @@ h1,
   gap: .35rem;
   white-space: nowrap;
   pointer-events: auto;
+}
+
+.mobile-typography-cycle {
+  display: none;
+  min-width: 58px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 .8rem;
+  background: var(--soft-surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transform-origin: center;
+}
+
+.mobile-typography-cycle.is-popping {
+  animation: control-pop .28s cubic-bezier(0, 0, .2, 1);
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-typography-cycle {
+  display: inline-flex;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .typography-segment-toggle {
+  display: none;
 }
 
 .typography-segment-toggle {

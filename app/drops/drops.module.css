@@ -37,7 +37,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: soften-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .brand {
@@ -48,7 +48,7 @@
   letter-spacing: -0.055em;
   line-height: 0.95;
   text-decoration: none;
-  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+  animation: soften-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
 }
 
 .title {
@@ -58,7 +58,7 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   opacity: 0.88;
-  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+  animation: soften-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 .perks {
@@ -70,7 +70,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px 22px;
-  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.26s both;
+  animation: soften-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.26s both;
 }
 
 .perks li {
@@ -101,7 +101,7 @@
 
 .countdown {
   margin: 28px 0 0;
-  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+  animation: soften-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
 }
 
 .countdownLabel {
@@ -150,7 +150,7 @@
 
 .formWrap {
   width: min(100%, 28rem);
-  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
+  animation: soften-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
 }
 
 .form {
@@ -203,7 +203,7 @@
 }
 
 .form button:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: scale(1.025);
 }
 
 .form button:disabled {
@@ -229,14 +229,14 @@
   clip-path: inset(50%);
 }
 
-@keyframes rise {
+@keyframes soften-in {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    filter: blur(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    filter: blur(0);
   }
 }
 

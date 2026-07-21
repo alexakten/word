@@ -12,13 +12,9 @@ import { SplitDescription } from "../discover/split-description";
 import { SyllableCountSetting } from "../discover/syllable-count-setting";
 import { WordCopyHint } from "../discover/word-copy-hint";
 import { WordLengthSetting } from "../discover/word-length-setting";
-import { AboutDrawer } from "../layout/about-drawer";
-import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
-import { SaveHeartButton } from "../ui/save-heart-button";
-import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import type { HomeState } from "../../hooks/use-home";
@@ -113,14 +109,6 @@ export type DiscoverViewProps = Pick<
   | "findWord"
   | "findSecondaryWord"
   | "apiHealth"
-  | "combinedSplitIsSaved"
-  | "toggleCombinedSaved"
-  | "savedWords"
-  | "savedOpen"
-  | "setSavedOpen"
-  | "savedMenuRef"
-  | "saveWords"
-  | "loadSavedWord"
 > & {
   /** Admin embed: replace the mixed combo word with this text when non-empty. */
   embedOverrideText?: string | null;
@@ -213,14 +201,6 @@ export function DiscoverView(props: DiscoverViewProps) {
     findWord,
     findSecondaryWord,
     apiHealth,
-    combinedSplitIsSaved,
-    toggleCombinedSaved,
-    savedWords,
-    savedOpen,
-    setSavedOpen,
-    savedMenuRef,
-    saveWords,
-    loadSavedWord,
     embedOverrideText,
   } = props;
   const leftIsGenerating = loading || splitBatchLoading;
@@ -540,21 +520,6 @@ export function DiscoverView(props: DiscoverViewProps) {
           </div>
         ) : null}
         <div className="mobile-bottom-meta-row">
-          <div className="mobile-bottom-left-actions">
-            <SavedWordsPanel
-              savedWords={savedWords}
-              savedOpen={savedOpen}
-              setSavedOpen={setSavedOpen}
-              savedMenuRef={savedMenuRef}
-              saveWords={saveWords}
-              loadSavedWord={loadSavedWord}
-            />
-            <SaveHeartButton
-              liked={combinedSplitIsSaved}
-              disabled={!displayedCombinedWord}
-              onToggle={toggleCombinedSaved}
-            />
-          </div>
           <DomainModeControls
             className="mobile-bottom-domain-mode-controls"
             displayMode={nameDisplayMode}
@@ -563,10 +528,6 @@ export function DiscoverView(props: DiscoverViewProps) {
             onDisplayModeChange={setNameDisplayMode}
             onTldChange={setSelectedTld}
           />
-          <div className="sound-about-actions">
-            <SoundToggle />
-            <AboutDrawer />
-          </div>
         </div>
         <div className="mobile-generate-wrap">
           <ApiHealthStatus health={apiHealth} />

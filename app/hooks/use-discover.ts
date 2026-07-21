@@ -106,10 +106,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordSyllables(DEFAULT_SYLLABLES);
     setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
-    setLeftSliceMode(DEFAULT_SLICE_MODE);
-    setRightSliceMode(DEFAULT_SLICE_MODE);
-    setMixLeftSettings({ ...defaultCustomMixLeftSettings });
-    setMixRightSettings({ ...defaultCustomMixRightSettings });
   }, []);
 
   const resetPrimaryFilters = useCallback(() => {

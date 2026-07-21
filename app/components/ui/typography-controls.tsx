@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react-hooks/refs -- clip-path refs are passed directly to rendered tab elements. */
+
 import { useEffect, useState } from "react";
 import { useActiveTabClipPath } from "./use-active-tab-clip-path";
 import { useControlPop } from "./use-control-pop";
@@ -22,6 +24,7 @@ export function TypographyControls() {
   const pop = useControlPop();
   const fontFamilyClip = useActiveTabClipPath(fontFamily);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- DOM font state hydrates the client control on mount. */
   useEffect(() => {
     const fromDom = parseFontFamily(document.documentElement.getAttribute("data-font-family"));
     if (fromDom) setFontFamily(fromDom);
@@ -34,6 +37,7 @@ export function TypographyControls() {
     window.addEventListener(FONT_FAMILY_EVENT, onFontFamilyChange);
     return () => window.removeEventListener(FONT_FAMILY_EVENT, onFontFamilyChange);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     const root = document.documentElement;
@@ -43,8 +47,24 @@ export function TypographyControls() {
     root.removeAttribute("data-font-italic");
   }, [fontFamily]);
 
+  const selectFontFamily = (next: FontFamily) => {
+    setFontFamily(next);
+    window.dispatchEvent(new CustomEvent(FONT_FAMILY_EVENT, { detail: next }));
+  };
+
   return (
     <div className="typography-controls" aria-label="Typography settings">
+      <button
+        className="mobile-typography-cycle"
+        type="button"
+        aria-label={`Font: ${fontFamily}. Switch to ${fontFamily === "sans" ? "serif" : "sans"}`}
+        onClick={(event) => {
+          pop(event);
+          selectFontFamily(fontFamily === "sans" ? "serif" : "sans");
+        }}
+      >
+        <span key={fontFamily}>{fontFamily === "sans" ? "Sans" : "Serif"}</span>
+      </button>
       <div className="typography-segment-toggle font-family-toggle" role="group" aria-label="Font family">
         <ul className="word-type-tab-list">
           {fontFamilyOptions.map((option) => (
@@ -56,8 +76,7 @@ export function TypographyControls() {
                 aria-pressed={fontFamily === option.value}
                 onClick={(event) => {
                   pop(event);
-                  setFontFamily(option.value);
-                  window.dispatchEvent(new CustomEvent(FONT_FAMILY_EVENT, { detail: option.value }));
+                  selectFontFamily(option.value);
                 }}
               >
                 {option.label}
