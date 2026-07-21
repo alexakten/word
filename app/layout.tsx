@@ -4,7 +4,26 @@ import { Analytics } from "@vercel/analytics/next";
 import favicon from "./favicon.png";
 import { colorwayBootstrapScript } from "./lib/colorways";
 import { layoutBootstrapScript } from "./lib/viewport";
-import { sans, serif, inter, openRunde } from "./fonts";
+import {
+  sans,
+  serif,
+  inter,
+  openRunde,
+  playfair,
+  caveat,
+  parabolica,
+  aboreto,
+  afacad,
+  calSans,
+  instrumentSerif,
+  redaction,
+  redaction10,
+  redaction20,
+  redaction35,
+  redaction50,
+  redaction70,
+  redaction100,
+} from "./fonts";
 import "./globals.css";
 
 const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://spellsurf.com");
@@ -59,7 +78,29 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: layoutBootstrapScript }} />
         <script dangerouslySetInnerHTML={{ __html: colorwayBootstrapScript }} />
       </head>
-      <body className={`${sans.className} ${openRunde.variable} ${inter.variable} ${serif.variable} min-h-full flex flex-col`}>
+      <body
+        className={[
+          sans.className,
+          openRunde.variable,
+          inter.variable,
+          serif.variable,
+          playfair.variable,
+          caveat.variable,
+          parabolica.variable,
+          aboreto.variable,
+          afacad.variable,
+          calSans.variable,
+          instrumentSerif.variable,
+          redaction.variable,
+          redaction10.variable,
+          redaction20.variable,
+          redaction35.variable,
+          redaction50.variable,
+          redaction70.variable,
+          redaction100.variable,
+          "min-h-full flex flex-col",
+        ].join(" ")}
+      >
         {children}
         <Analytics />
       </body>

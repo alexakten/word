@@ -6,7 +6,7 @@ import { ControlsFooter } from "./components/layout/controls-footer";
 import { SiteHeader } from "./components/layout/site-header";
 import { useEmbedBridge } from "./hooks/use-embed-bridge";
 import { useHome } from "./hooks/use-home";
-import { DEFAULT_EMBED_BACKGROUND, DEFAULT_EMBED_FONT, DEFAULT_EMBED_TEXT, isEmbedMode, type EmbedFontFamily } from "./lib/embed-bridge";
+import { DEFAULT_EMBED_BACKGROUND, DEFAULT_EMBED_FONT, DEFAULT_EMBED_FONT_WEIGHT, DEFAULT_EMBED_LETTER_SPACING, DEFAULT_EMBED_TEXT, clampFontWeight, isEmbedMode, type EmbedFontFamily } from "./lib/embed-bridge";
 
 export default function Home() {
   const home = useHome();
@@ -29,6 +29,8 @@ export default function Home() {
   const [backgroundColor, setBackgroundColor] = useState(DEFAULT_EMBED_BACKGROUND);
   const [textColor, setTextColor] = useState(DEFAULT_EMBED_TEXT);
   const [fontFamily, setFontFamily] = useState<EmbedFontFamily>(DEFAULT_EMBED_FONT);
+  const [fontWeight, setFontWeight] = useState(DEFAULT_EMBED_FONT_WEIGHT);
+  const [letterSpacing, setLetterSpacing] = useState(DEFAULT_EMBED_LETTER_SPACING);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backgroundImageScale, setBackgroundImageScale] = useState(1);
   const [backgroundImageX, setBackgroundImageX] = useState(0);
@@ -49,6 +51,8 @@ export default function Home() {
     setBackgroundColor,
     setTextColor,
     setFontFamily,
+    setFontWeight,
+    setLetterSpacing,
     setBackgroundImage,
     setBackgroundImageScale,
     setBackgroundImageX,
@@ -63,13 +67,16 @@ export default function Home() {
     root.dataset.embed = "1";
     root.dataset.embedColors = "1";
     root.dataset.embedFont = fontFamily;
-    root.dataset.fontFamily = fontFamily === "newsreader" ? "serif" : "sans";
+    root.dataset.fontFamily = fontFamily === "newsreader" || fontFamily === "playfair" || fontFamily === "instrumentSerif" ? "serif" : "sans";
+    const resolvedWeight = clampFontWeight(fontFamily, fontWeight);
     // Multiply real font sizes / column widths for capture so text is shaped at export DPI
     // (CSS zoom is ignored by DOM→PNG and looks soft — same problem as low deviceScaleFactor).
     root.style.setProperty("--embed-content-zoom", String(contentZoom * paintScale));
     root.style.setProperty("--embed-left-column", `${leftColumnRem * paintScale}rem`);
     root.style.setProperty("--embed-right-column", `${rightColumnRem * paintScale}rem`);
     root.style.setProperty("--embed-paint-scale", String(paintScale));
+    root.style.setProperty("--embed-letter-spacing", `${letterSpacing / 100}em`);
+    root.style.setProperty("--embed-font-weight", String(resolvedWeight));
     root.style.setProperty("--paper", backgroundColor);
     root.style.setProperty("--ink", textColor);
     root.style.setProperty("--hero-ink", textColor);
@@ -114,6 +121,8 @@ export default function Home() {
       root.style.removeProperty("--embed-left-column");
       root.style.removeProperty("--embed-right-column");
       root.style.removeProperty("--embed-paint-scale");
+      root.style.removeProperty("--embed-letter-spacing");
+      root.style.removeProperty("--embed-font-weight");
       root.style.removeProperty("--paper");
       root.style.removeProperty("--ink");
       root.style.removeProperty("--hero-ink");
@@ -141,7 +150,9 @@ export default function Home() {
     contentZoom,
     embedMode,
     fontFamily,
+    fontWeight,
     leftColumnRem,
+    letterSpacing,
     rightColumnRem,
     textColor,
   ]);

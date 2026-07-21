@@ -21,7 +21,7 @@ import {
   type ExportScale,
   type SocialPreset,
 } from "../lib/admin-presets";
-import { clampColumnRem, DEFAULT_EMBED_BACKGROUND, DEFAULT_EMBED_FONT, DEFAULT_EMBED_TEXT, EMBED_FONT_OPTIONS, EMBED_MESSAGE_TYPE, isImageFile, normalizeHexColor, type EmbedFontFamily } from "../lib/embed-bridge";
+import { clampColumnRem, clampFontWeight, clampLetterSpacing, DEFAULT_EMBED_BACKGROUND, DEFAULT_EMBED_FONT, DEFAULT_EMBED_FONT_WEIGHT, DEFAULT_EMBED_LETTER_SPACING, DEFAULT_EMBED_TEXT, EMBED_FONT_OPTIONS, EMBED_FONT_WEIGHTS, EMBED_MESSAGE_TYPE, fontWeightLabel, isImageFile, MAX_EMBED_LETTER_SPACING, MIN_EMBED_LETTER_SPACING, normalizeHexColor, type EmbedFontFamily } from "../lib/embed-bridge";
 
 const DEFAULT_PRESET = SOCIAL_PRESETS[0]!;
 const EMBED_SRC = "/?embed=1";
@@ -56,6 +56,8 @@ export default function AdminPage() {
   const [backgroundColor, setBackgroundColor] = useState(DEFAULT_EMBED_BACKGROUND);
   const [textColor, setTextColor] = useState(DEFAULT_EMBED_TEXT);
   const [fontFamily, setFontFamilyState] = useState<EmbedFontFamily>(DEFAULT_EMBED_FONT);
+  const [fontWeight, setFontWeightState] = useState(DEFAULT_EMBED_FONT_WEIGHT);
+  const [letterSpacing, setLetterSpacingState] = useState(DEFAULT_EMBED_LETTER_SPACING);
   const [backgroundHexDraft, setBackgroundHexDraft] = useState(DEFAULT_EMBED_BACKGROUND);
   const [textHexDraft, setTextHexDraft] = useState(DEFAULT_EMBED_TEXT);
   const [localColorCombos, setLocalColorCombos] = useState<AdminColorCombo[]>([]);
@@ -117,6 +119,8 @@ export default function AdminPage() {
     backgroundColor?: string;
     textColor?: string;
     fontFamily?: EmbedFontFamily;
+    fontWeight?: number;
+    letterSpacing?: number;
     backgroundImage?: string | null;
     backgroundImageScale?: number;
     backgroundImageX?: number;
@@ -140,6 +144,8 @@ export default function AdminPage() {
         backgroundColor: next?.backgroundColor ?? backgroundColor,
         textColor: next?.textColor ?? textColor,
         fontFamily: next?.fontFamily ?? fontFamily,
+        fontWeight: next?.fontWeight ?? fontWeight,
+        letterSpacing: next?.letterSpacing ?? letterSpacing,
         backgroundImage: next && "backgroundImage" in next
           ? next.backgroundImage ?? null
           : backgroundImage,
@@ -159,8 +165,10 @@ export default function AdminPage() {
     contentZoom,
     focusMode,
     fontFamily,
+    fontWeight,
     hideDescriptions,
     leftColumnRem,
+    letterSpacing,
     preset.height,
     preset.width,
     rightColumnRem,
@@ -255,8 +263,22 @@ export default function AdminPage() {
   };
 
   const setFont = (value: EmbedFontFamily) => {
+    const nextWeight = clampFontWeight(value, fontWeight);
     setFontFamilyState(value);
-    postEmbedState({ fontFamily: value });
+    setFontWeightState(nextWeight);
+    postEmbedState({ fontFamily: value, fontWeight: nextWeight });
+  };
+
+  const setWeight = (value: number) => {
+    const next = clampFontWeight(fontFamily, value);
+    setFontWeightState(next);
+    postEmbedState({ fontWeight: next });
+  };
+
+  const setLetterSpacing = (value: number) => {
+    const next = clampLetterSpacing(value);
+    setLetterSpacingState(next);
+    postEmbedState({ letterSpacing: next });
   };
 
   const commitBackgroundHex = (raw: string) => {
@@ -768,6 +790,46 @@ export default function AdminPage() {
               ))}
             </select>
           </label>
+          <label className="admin-font-control" title="Font weight">
+            <span className="admin-toolbar-meta">Weight</span>
+            <select
+              className="admin-font-weight-select"
+              value={fontWeight}
+              disabled={EMBED_FONT_WEIGHTS[fontFamily].length <= 1}
+              onChange={(event) => setWeight(Number(event.target.value))}
+              aria-label="Font weight"
+            >
+              {EMBED_FONT_WEIGHTS[fontFamily].map((weight) => (
+                <option key={weight} value={weight}>
+                  {fontWeightLabel(weight)} ({weight})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="admin-letter-spacing-control" title="Letter spacing (kerning)">
+            <span className="admin-toolbar-meta">Spacing</span>
+            <span className="admin-toolbar-meta admin-letter-spacing-value">
+              {letterSpacing > 0 ? `+${letterSpacing}` : letterSpacing}%
+            </span>
+            <input
+              type="range"
+              min={MIN_EMBED_LETTER_SPACING}
+              max={MAX_EMBED_LETTER_SPACING}
+              step={1}
+              value={letterSpacing}
+              onChange={(event) => setLetterSpacing(Number(event.target.value))}
+              aria-label="Letter spacing"
+            />
+          </label>
+          <button
+            type="button"
+            className="admin-chip"
+            disabled={letterSpacing === DEFAULT_EMBED_LETTER_SPACING}
+            onClick={() => setLetterSpacing(DEFAULT_EMBED_LETTER_SPACING)}
+            title={`Reset letter spacing to ${DEFAULT_EMBED_LETTER_SPACING}%`}
+          >
+            −6%
+          </button>
         </div>
 
         <div className="admin-toolbar-group admin-color-group" role="group" aria-label="Colors">

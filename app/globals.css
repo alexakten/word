@@ -6046,7 +6046,7 @@ html[data-embed-colors="1"] .split-definitions article + article {
   border-color: color-mix(in srgb, var(--hero-ink) 22%, transparent);
 }
 
-/* Admin embed font faces (Open Runde / Inter / Newsreader). */
+/* Admin embed font faces (Open Runde / Inter / Newsreader / Playfair / Caveat / Parabolica). */
 html[data-embed="1"][data-embed-font="openRunde"] body {
   font-family: var(--font-open-runde), system-ui, sans-serif !important;
 }
@@ -6073,6 +6073,218 @@ html[data-embed="1"][data-embed-font="openRunde"] .split-source-word,
 html[data-embed="1"][data-embed-font="openRunde"] .mix-source-word,
 html[data-embed="1"][data-embed-font="openRunde"] .split-definition {
   font-family: var(--font-open-runde), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="playfair"] body {
+  font-family: var(--font-playfair), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="playfair"] .split-combined-word,
+html[data-embed="1"][data-embed-font="playfair"] .single-main-word,
+html[data-embed="1"][data-embed-font="playfair"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="playfair"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="playfair"] .split-source-word,
+html[data-embed="1"][data-embed-font="playfair"] .mix-source-word,
+html[data-embed="1"][data-embed-font="playfair"] .split-definition {
+  font-family: var(--font-playfair), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="caveat"] body {
+  font-family: var(--font-caveat), cursive !important;
+}
+
+html[data-embed="1"][data-embed-font="caveat"] .split-combined-word,
+html[data-embed="1"][data-embed-font="caveat"] .single-main-word,
+html[data-embed="1"][data-embed-font="caveat"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="caveat"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="caveat"] .split-source-word,
+html[data-embed="1"][data-embed-font="caveat"] .mix-source-word,
+html[data-embed="1"][data-embed-font="caveat"] .split-definition {
+  font-family: var(--font-caveat), cursive !important;
+}
+
+html[data-embed="1"][data-embed-font="parabolica"] body {
+  font-family: var(--font-parabolica), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="parabolica"] .split-combined-word,
+html[data-embed="1"][data-embed-font="parabolica"] .single-main-word,
+html[data-embed="1"][data-embed-font="parabolica"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="parabolica"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="parabolica"] .split-source-word,
+html[data-embed="1"][data-embed-font="parabolica"] .mix-source-word,
+html[data-embed="1"][data-embed-font="parabolica"] .split-definition,
+html[data-embed="1"][data-embed-font="parabolica"] .split-combined-word * {
+  font-family: var(--font-parabolica), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="aboreto"] body {
+  font-family: var(--font-aboreto), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="aboreto"] .split-combined-word,
+html[data-embed="1"][data-embed-font="aboreto"] .single-main-word,
+html[data-embed="1"][data-embed-font="aboreto"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="aboreto"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="aboreto"] .split-source-word,
+html[data-embed="1"][data-embed-font="aboreto"] .mix-source-word,
+html[data-embed="1"][data-embed-font="aboreto"] .split-definition,
+html[data-embed="1"][data-embed-font="aboreto"] .split-combined-word * {
+  font-family: var(--font-aboreto), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="afacad"] body {
+  font-family: var(--font-afacad), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="afacad"] .split-combined-word,
+html[data-embed="1"][data-embed-font="afacad"] .single-main-word,
+html[data-embed="1"][data-embed-font="afacad"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="afacad"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="afacad"] .split-source-word,
+html[data-embed="1"][data-embed-font="afacad"] .mix-source-word,
+html[data-embed="1"][data-embed-font="afacad"] .split-definition {
+  font-family: var(--font-afacad), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="calSans"] body {
+  font-family: var(--font-cal-sans), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="calSans"] .split-combined-word,
+html[data-embed="1"][data-embed-font="calSans"] .single-main-word,
+html[data-embed="1"][data-embed-font="calSans"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="calSans"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="calSans"] .split-source-word,
+html[data-embed="1"][data-embed-font="calSans"] .mix-source-word,
+html[data-embed="1"][data-embed-font="calSans"] .split-definition {
+  font-family: var(--font-cal-sans), system-ui, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="instrumentSerif"] body {
+  font-family: var(--font-instrument-serif), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="instrumentSerif"] .split-combined-word,
+html[data-embed="1"][data-embed-font="instrumentSerif"] .single-main-word,
+html[data-embed="1"][data-embed-font="instrumentSerif"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="instrumentSerif"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="instrumentSerif"] .split-source-word,
+html[data-embed="1"][data-embed-font="instrumentSerif"] .mix-source-word,
+html[data-embed="1"][data-embed-font="instrumentSerif"] .split-definition {
+  font-family: var(--font-instrument-serif), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction"] body {
+  font-family: var(--font-redaction), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction"] .split-combined-word,
+html[data-embed="1"][data-embed-font="redaction"] .single-main-word,
+html[data-embed="1"][data-embed-font="redaction"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="redaction"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="redaction"] .split-source-word,
+html[data-embed="1"][data-embed-font="redaction"] .mix-source-word,
+html[data-embed="1"][data-embed-font="redaction"] .split-definition {
+  font-family: var(--font-redaction), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction10"] body {
+  font-family: var(--font-redaction-10), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction10"] .split-combined-word,
+html[data-embed="1"][data-embed-font="redaction10"] .single-main-word,
+html[data-embed="1"][data-embed-font="redaction10"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="redaction10"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="redaction10"] .split-source-word,
+html[data-embed="1"][data-embed-font="redaction10"] .mix-source-word,
+html[data-embed="1"][data-embed-font="redaction10"] .split-definition {
+  font-family: var(--font-redaction-10), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction20"] body {
+  font-family: var(--font-redaction-20), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction20"] .split-combined-word,
+html[data-embed="1"][data-embed-font="redaction20"] .single-main-word,
+html[data-embed="1"][data-embed-font="redaction20"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="redaction20"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="redaction20"] .split-source-word,
+html[data-embed="1"][data-embed-font="redaction20"] .mix-source-word,
+html[data-embed="1"][data-embed-font="redaction20"] .split-definition {
+  font-family: var(--font-redaction-20), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction35"] body {
+  font-family: var(--font-redaction-35), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction35"] .split-combined-word,
+html[data-embed="1"][data-embed-font="redaction35"] .single-main-word,
+html[data-embed="1"][data-embed-font="redaction35"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="redaction35"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="redaction35"] .split-source-word,
+html[data-embed="1"][data-embed-font="redaction35"] .mix-source-word,
+html[data-embed="1"][data-embed-font="redaction35"] .split-definition {
+  font-family: var(--font-redaction-35), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction50"] body {
+  font-family: var(--font-redaction-50), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction50"] .split-combined-word,
+html[data-embed="1"][data-embed-font="redaction50"] .single-main-word,
+html[data-embed="1"][data-embed-font="redaction50"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="redaction50"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="redaction50"] .split-source-word,
+html[data-embed="1"][data-embed-font="redaction50"] .mix-source-word,
+html[data-embed="1"][data-embed-font="redaction50"] .split-definition {
+  font-family: var(--font-redaction-50), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction70"] body {
+  font-family: var(--font-redaction-70), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction70"] .split-combined-word,
+html[data-embed="1"][data-embed-font="redaction70"] .single-main-word,
+html[data-embed="1"][data-embed-font="redaction70"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="redaction70"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="redaction70"] .split-source-word,
+html[data-embed="1"][data-embed-font="redaction70"] .mix-source-word,
+html[data-embed="1"][data-embed-font="redaction70"] .split-definition {
+  font-family: var(--font-redaction-70), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction100"] body {
+  font-family: var(--font-redaction-100), Georgia, serif !important;
+}
+
+html[data-embed="1"][data-embed-font="redaction100"] .split-combined-word,
+html[data-embed="1"][data-embed-font="redaction100"] .single-main-word,
+html[data-embed="1"][data-embed-font="redaction100"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="redaction100"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="redaction100"] .split-source-word,
+html[data-embed="1"][data-embed-font="redaction100"] .mix-source-word,
+html[data-embed="1"][data-embed-font="redaction100"] .split-definition {
+  font-family: var(--font-redaction-100), Georgia, serif !important;
+}
+
+/* Admin-controlled font weight for embed word content. */
+html[data-embed="1"] .page-shell.discover-mode .split-combined-word,
+html[data-embed="1"] .page-shell.discover-mode .split-combined-word *,
+html[data-embed="1"] .page-shell.discover-mode .split-source-word,
+html[data-embed="1"] .page-shell.discover-mode .mix-source-word,
+html[data-embed="1"] .page-shell.discover-mode .split-definition,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word *,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-source-word,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .mix-source-word,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-definition {
+  font-weight: var(--embed-font-weight, 400) !important;
 }
 
 .site-header,
@@ -6228,6 +6440,11 @@ html[data-colorway="brown"] .save-legend.liked kbd {
 
 .admin-chip:hover {
   border-color: rgba(26, 26, 26, 0.35);
+}
+
+.admin-chip:disabled {
+  opacity: .35;
+  cursor: default;
 }
 
 .admin-chip.is-active {
@@ -6570,6 +6787,41 @@ html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-defi
   cursor: pointer;
 }
 
+.admin-font-weight-select {
+  min-width: 7.5rem;
+  padding: .35rem .45rem;
+  border: 1px solid rgba(26, 26, 26, 0.14);
+  border-radius: 6px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: .72rem;
+  cursor: pointer;
+}
+
+.admin-font-weight-select:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+.admin-letter-spacing-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-width: 9.5rem;
+}
+
+.admin-letter-spacing-value {
+  min-width: 2.4rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-letter-spacing-control input[type="range"] {
+  width: 5.5rem;
+  accent-color: #1a1a1a;
+  cursor: pointer;
+}
+
 .admin-file-input {
   position: absolute;
   width: 1px;
@@ -6585,6 +6837,13 @@ html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-defi
 html[data-embed="1"] .page-shell.discover-mode .split-combined-word,
 html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
   font-size: calc(60px * var(--embed-content-zoom, 1)) !important;
+  letter-spacing: var(--embed-letter-spacing, -0.062em) !important;
+}
+
+/* Keep the join between left/right chunks in step with letter spacing. */
+html[data-embed="1"] .page-shell.discover-mode .split-combined-word.mix-combined-word,
+html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word.mix-combined-word {
+  gap: var(--embed-letter-spacing, -0.062em) !important;
 }
 
 html[data-embed="1"][data-font-family="serif"] .page-shell.discover-mode .split-combined-word,
@@ -6598,6 +6857,7 @@ html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-sour
 html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .mix-source-word {
   margin-bottom: calc(0.55rem * var(--embed-content-zoom, 1));
   font-size: calc(1.65rem * var(--embed-content-zoom, 1)) !important;
+  letter-spacing: var(--embed-letter-spacing, -0.03em) !important;
 }
 
 html[data-embed="1"][data-font-family="serif"] .page-shell.discover-mode .split-source-word,

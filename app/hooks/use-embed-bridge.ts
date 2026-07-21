@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import {
   clampColumnRem,
+  clampFontWeight,
+  clampLetterSpacing,
   isBackgroundImageUrl,
   isEmbedBridgeMessage,
   isEmbedMode,
@@ -33,6 +35,8 @@ type UseEmbedBridgeOptions = {
   setBackgroundColor: (value: string) => void;
   setTextColor: (value: string) => void;
   setFontFamily: (value: EmbedFontFamily) => void;
+  setFontWeight: (value: number) => void;
+  setLetterSpacing: (value: number) => void;
   setBackgroundImage: (value: string | null) => void;
   setBackgroundImageScale: (value: number) => void;
   setBackgroundImageX: (value: number) => void;
@@ -54,6 +58,8 @@ export function useEmbedBridge({
   setBackgroundColor,
   setTextColor,
   setFontFamily,
+  setFontWeight,
+  setLetterSpacing,
   setBackgroundImage,
   setBackgroundImageScale,
   setBackgroundImageX,
@@ -101,6 +107,13 @@ export function useEmbedBridge({
       if (text) setTextColor(text);
       const fontFamily = parseEmbedFontFamily(event.data.fontFamily);
       if (fontFamily) setFontFamily(fontFamily);
+      if (typeof event.data.fontWeight === "number" && Number.isFinite(event.data.fontWeight)) {
+        const face = fontFamily ?? "openRunde";
+        setFontWeight(clampFontWeight(face, event.data.fontWeight));
+      }
+      if (typeof event.data.letterSpacing === "number" && Number.isFinite(event.data.letterSpacing)) {
+        setLetterSpacing(clampLetterSpacing(event.data.letterSpacing));
+      }
       if ("backgroundImage" in event.data) {
         const image = event.data.backgroundImage;
         if (image === null || image === "") {
@@ -136,8 +149,10 @@ export function useEmbedBridge({
     setContentZoom,
     setFocusMode,
     setFontFamily,
+    setFontWeight,
     setHideDescriptions,
     setLeftColumnRem,
+    setLetterSpacing,
     setRightColumnRem,
     setTextColor,
   ]);
