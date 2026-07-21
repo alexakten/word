@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Heart, RefreshCw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
 import { AffixSettings } from "../discover/affix-settings";
 import { DomainAvailability } from "../discover/domain-availability";
 import { HandleAvailability } from "../discover/handle-availability";
@@ -17,6 +17,7 @@ import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
+import { SaveHeartButton } from "../ui/save-heart-button";
 import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
@@ -548,16 +549,11 @@ export function DiscoverView(props: DiscoverViewProps) {
               saveWords={saveWords}
               loadSavedWord={loadSavedWord}
             />
-            <button
-              className={["compact-save-word-button", combinedSplitIsSaved ? "liked" : ""].filter(Boolean).join(" ")}
-              type="button"
-              aria-label={combinedSplitIsSaved ? "Remove from saved words" : "Save word"}
-              aria-pressed={combinedSplitIsSaved}
+            <SaveHeartButton
+              liked={combinedSplitIsSaved}
               disabled={!displayedCombinedWord}
-              onClick={toggleCombinedSaved}
-            >
-              <Heart size={15} strokeWidth={1.6} fill={combinedSplitIsSaved ? "currentColor" : "none"} aria-hidden="true" />
-            </button>
+              onToggle={toggleCombinedSaved}
+            />
           </div>
           <DomainModeControls
             className="mobile-bottom-domain-mode-controls"
