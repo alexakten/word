@@ -144,28 +144,11 @@ export function ControlsFooter(props: ControlsFooterProps) {
           <div className="mobile-style-right-actions">
             <SoundToggle />
             <AboutDrawer />
-            <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
+            <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
       ) : null}
       <div className="controls-bar">
-        {appMode === "discover" ? (
-          <div className="desktop-bottom-left-actions desktop-layout-only">
-            <SavedWordsPanel
-              savedWords={savedWords}
-              savedOpen={savedOpen}
-              setSavedOpen={setSavedOpen}
-              savedMenuRef={savedMenuRef}
-              saveWords={saveWords}
-              loadSavedWord={loadSavedWord}
-            />
-            <SaveHeartButton
-              liked={combinedSplitIsSaved}
-              disabled={!displayedCombinedWord}
-              onToggle={toggleCombinedSaved}
-            />
-          </div>
-        ) : null}
         {appMode === "discover" ? (
           <div className="shortcut-row" aria-label="Word exploration shortcuts">
             <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
@@ -239,11 +222,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
           </button>
         </div> : null}
         {appMode === "discover" ? (
-          <div className="sound-about-actions">
-            <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
-            <SoundToggle />
-            <AboutDrawer />
-          </div>
+          null
         ) : (
           <div className="controls-end">
             <SavedWordsPanel
@@ -255,7 +234,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
               loadSavedWord={loadSavedWord}
             />
             <div className="sound-about-actions desktop-layout-only">
-              <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
+              <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
               <SoundToggle />
               <AboutDrawer />
             </div>

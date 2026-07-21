@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
+import Link from "next/link";
 import { AffixSettings } from "../discover/affix-settings";
 import { DomainAvailability } from "../discover/domain-availability";
 import { HandleAvailability } from "../discover/handle-availability";
@@ -12,9 +13,13 @@ import { SplitDescription } from "../discover/split-description";
 import { SyllableCountSetting } from "../discover/syllable-count-setting";
 import { WordCopyHint } from "../discover/word-copy-hint";
 import { WordLengthSetting } from "../discover/word-length-setting";
+import { AboutDrawer } from "../layout/about-drawer";
+import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
+import { SaveHeartButton } from "../ui/save-heart-button";
+import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import type { HomeState } from "../../hooks/use-home";
@@ -109,6 +114,14 @@ export type DiscoverViewProps = Pick<
   | "findWord"
   | "findSecondaryWord"
   | "apiHealth"
+  | "combinedSplitIsSaved"
+  | "toggleCombinedSaved"
+  | "savedWords"
+  | "savedOpen"
+  | "setSavedOpen"
+  | "savedMenuRef"
+  | "saveWords"
+  | "loadSavedWord"
 > & {
   /** Admin embed: replace the mixed combo word with this text when non-empty. */
   embedOverrideText?: string | null;
@@ -201,6 +214,14 @@ export function DiscoverView(props: DiscoverViewProps) {
     findWord,
     findSecondaryWord,
     apiHealth,
+    combinedSplitIsSaved,
+    toggleCombinedSaved,
+    savedWords,
+    savedOpen,
+    setSavedOpen,
+    savedMenuRef,
+    saveWords,
+    loadSavedWord,
     embedOverrideText,
   } = props;
   const leftIsGenerating = loading || splitBatchLoading;
@@ -335,7 +356,22 @@ export function DiscoverView(props: DiscoverViewProps) {
     <>
       <div className="discover-top-brand">
         <div className="style-toolbar">
-          <ColorwaySwitcher />
+          <div className="style-toolbar-actions style-toolbar-actions-left">
+            <ColorwaySwitcher />
+            <SavedWordsPanel
+              savedWords={savedWords}
+              savedOpen={savedOpen}
+              setSavedOpen={setSavedOpen}
+              savedMenuRef={savedMenuRef}
+              saveWords={saveWords}
+              loadSavedWord={loadSavedWord}
+            />
+            <SaveHeartButton
+              liked={combinedSplitIsSaved}
+              disabled={!displayedCombinedWord}
+              onToggle={toggleCombinedSaved}
+            />
+          </div>
           <DomainModeControls
             className="top-domain-mode-controls"
             displayMode={nameDisplayMode}
@@ -343,7 +379,12 @@ export function DiscoverView(props: DiscoverViewProps) {
             onDisplayModeChange={setNameDisplayMode}
             onTldChange={setSelectedTld}
           />
-          <TypographyControls />
+          <div className="style-toolbar-actions style-toolbar-actions-right">
+            <TypographyControls />
+            <SoundToggle />
+            <AboutDrawer />
+            <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+          </div>
         </div>
         {nameDisplayMode === "domain" && displayedDomain ? (
           <DomainAvailability className="top-domain-availability" domain={displayedDomain} />

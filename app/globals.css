@@ -3580,7 +3580,7 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .controls {
 }
 
 html:not([data-layout="mobile"]) .page-shell.discover-mode .controls-bar {
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 1rem;
 }
@@ -4223,10 +4223,6 @@ html[data-colorway="light"] .shortcut-row kbd {
     justify-self: end;
   }
 
-  .page-shell.discover-mode .mobile-style-toolbar .colorway-switcher > .colorway-swatch {
-    display: none;
-  }
-
   .page-shell.discover-mode .mobile-style-toolbar .typography-controls {
     grid-column: 2;
     justify-self: center;
@@ -4629,6 +4625,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-meta-row {
 }
 
 .desktop-bottom-left-actions,
+html:not([data-layout="mobile"]) .page-shell.discover-mode .style-toolbar-actions-left,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions {
   display: inline-flex;
   min-width: 0;
@@ -4646,6 +4643,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions
 }
 
 .desktop-bottom-left-actions .saved-toggle,
+html:not([data-layout="mobile"]) .page-shell.discover-mode .style-toolbar-actions-left .saved-toggle,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-toggle,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-toggle {
   width: calc(20px + .7rem);
@@ -4657,6 +4655,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions
 }
 
 .desktop-bottom-left-actions .saved-toggle span,
+html:not([data-layout="mobile"]) .page-shell.discover-mode .style-toolbar-actions-left .saved-toggle span,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-toggle span,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-toggle span {
   min-width: calc(20px + .7rem);
@@ -5676,6 +5675,21 @@ h1,
   pointer-events: auto;
 }
 
+.style-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  white-space: nowrap;
+}
+
+.style-toolbar-actions-left {
+  justify-self: end;
+}
+
+.style-toolbar-actions-right {
+  justify-self: start;
+}
+
 .colorway-switcher {
   display: inline-flex;
   flex-direction: row;
@@ -5683,37 +5697,47 @@ h1,
   align-items: center;
   justify-content: flex-start;
   gap: .45rem;
-  width: fit-content;
-  max-width: fit-content;
-  padding: .35rem .45rem;
-  border-radius: 999px;
+  width: calc(20px + .7rem);
+  max-width: calc(20px + .7rem);
+  height: calc(20px + .7rem);
+  padding: 0;
+  border-radius: 50%;
   background: #ffffff;
   white-space: nowrap;
   pointer-events: auto;
 }
 
-.mobile-colorway-cycle {
-  display: none;
+.theme-cycle-button {
+  display: inline-flex;
+  width: calc(20px + .7rem);
+  height: calc(20px + .7rem);
   align-items: center;
   justify-content: center;
   border: 0;
   border-radius: 999px !important;
   padding: 0;
-  background: transparent;
+  background: #ffffff;
   cursor: pointer;
 }
 
-.mobile-colorway-cycle-swatch {
+.theme-cycle-swatch {
   pointer-events: none;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle {
+html[data-layout="mobile"] .page-shell.discover-mode .theme-cycle-button {
   display: inline-flex;
-  width: calc(20px + .7rem);
-  height: calc(20px + .7rem);
+  width: 44px;
+  height: 44px;
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle-swatch {
+html[data-layout="mobile"] .page-shell.discover-mode .colorway-switcher {
+  width: 44px;
+  max-width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .theme-cycle-swatch {
   width: 24px;
   height: 24px;
 }
@@ -5735,6 +5759,11 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle-swat
   box-shadow: none;
   cursor: pointer;
   transform-origin: center;
+}
+
+.theme-cycle-swatch {
+  width: 20px;
+  height: 20px;
 }
 
 @keyframes control-pop {
@@ -5818,7 +5847,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle-swat
   --swatch-ring: #825941;
 }
 
-.mobile-colorway-cycle-swatch,
+.theme-cycle-swatch,
 .colorway-swatch[aria-pressed="true"],
 .colorway-swatch:focus-visible {
   outline: none;
@@ -5845,10 +5874,10 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle-swat
   pointer-events: auto;
 }
 
-.mobile-typography-cycle {
-  display: none;
+.font-cycle-button {
+  display: inline-flex;
   min-width: 58px;
-  height: 44px;
+  height: calc(20px + .7rem);
   align-items: center;
   justify-content: center;
   border: 0;
@@ -5862,12 +5891,13 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-colorway-cycle-swat
   transform-origin: center;
 }
 
-.mobile-typography-cycle.is-popping {
+.font-cycle-button.is-popping {
   animation: control-pop .28s cubic-bezier(0, 0, .2, 1);
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-typography-cycle {
+html[data-layout="mobile"] .page-shell.discover-mode .font-cycle-button {
   display: inline-flex;
+  height: 44px;
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .typography-segment-toggle {

@@ -10,14 +10,12 @@ import {
   type Colorway,
 } from "../../lib/colorways";
 import { sounds } from "../../lib/sounds";
-import { useControlPop } from "./use-control-pop";
 
 const COLORWAY_EVENT = "spellsurf:colorway";
 
 export function ColorwaySwitcher() {
   const [activeColorway, setActiveColorway] = useState<Colorway>(DEFAULT_COLORWAY);
   const [hydrated, setHydrated] = useState(false);
-  const pop = useControlPop();
 
   /* eslint-disable react-hooks/set-state-in-effect -- URL and DOM theme state hydrate together on mount. */
   useEffect(() => {
@@ -57,35 +55,19 @@ export function ColorwaySwitcher() {
   return (
     <div className="colorway-switcher" role="group" aria-label="Choose a colorway">
       <button
-        className="mobile-colorway-cycle"
+        className="theme-cycle-button"
         type="button"
         aria-label={`Theme: ${colorways.find((colorway) => colorway.id === activeColorway)?.label}. Choose next theme`}
         title="Change color theme"
         onClick={cycleColorway}
       >
         <span
-          className={`colorway-swatch mobile-colorway-cycle-swatch colorway-swatch-${activeColorway} is-popping`}
+          className={`colorway-swatch theme-cycle-swatch colorway-swatch-${activeColorway} is-popping`}
           key={activeColorway}
           aria-hidden="true"
         />
         <span className="sr-only">Choose next color theme</span>
       </button>
-      {colorways.map((colorway) => (
-        <button
-          className={`colorway-swatch colorway-swatch-${colorway.id}`}
-          type="button"
-          key={colorway.id}
-          aria-label={colorway.label}
-          aria-pressed={activeColorway === colorway.id}
-          title={colorway.label}
-          onClick={(event) => {
-            pop(event, { sound: false });
-            selectColorway(colorway.id);
-          }}
-        >
-          <span className="sr-only">{colorway.label}</span>
-        </button>
-      ))}
     </div>
   );
 }
