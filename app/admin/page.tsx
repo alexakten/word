@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Check, Copy, Crop, Eye, EyeOff, Focus, ImagePlus, LoaderCircle, RefreshCw, Type, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, Check, Copy, Crop, Eye, EyeOff, Focus, ImagePlus, LoaderCircle, RefreshCw, Settings2, Type, X, ZoomIn, ZoomOut } from "lucide-react";
 import { domToPng } from "modern-screenshot";
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent, type WheelEvent } from "react";
 import {
@@ -72,6 +72,8 @@ export default function AdminPage() {
   const [fileDragActive, setFileDragActive] = useState(false);
   const [panningImage, setPanningImage] = useState(false);
   const [cropMode, setCropMode] = useState(false);
+  const [mobileSettingsOpen, setMobileSettingsOpen] = useState(false);
+  const [isNarrowLayout, setIsNarrowLayout] = useState(false);
   const backgroundImageInputRef = useRef<HTMLInputElement>(null);
   const panDragRef = useRef<{
     pointerId: number;
@@ -637,9 +639,64 @@ export default function AdminPage() {
   const exportWidth = preset.width * activeExportScale;
   const exportHeight = preset.height * activeExportScale;
 
+  useEffect(() => {
+    if (!mobileSettingsOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileSettingsOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileSettingsOpen]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 900px)");
+    const sync = () => {
+      setIsNarrowLayout(media.matches);
+      if (!media.matches) setMobileSettingsOpen(false);
+    };
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
   return (
-    <div className="admin-studio">
-      <header className="admin-toolbar">
+    <div className={["admin-studio", mobileSettingsOpen ? "settings-open" : ""].filter(Boolean).join(" ")}>
+      <button
+        type="button"
+        className="admin-settings-fab"
+        onClick={() => setMobileSettingsOpen(true)}
+        aria-label="Open settings"
+        title="Settings"
+      >
+        <Settings2 size={18} strokeWidth={1.8} />
+        <span>Settings</span>
+      </button>
+
+      <button
+        type="button"
+        className="admin-settings-backdrop"
+        aria-label="Close settings"
+        tabIndex={mobileSettingsOpen ? 0 : -1}
+        onClick={() => setMobileSettingsOpen(false)}
+      />
+
+      <header
+        className="admin-toolbar"
+        inert={isNarrowLayout && !mobileSettingsOpen ? true : undefined}
+      >
+        <div className="admin-toolbar-sheet-header">
+          <span className="admin-toolbar-title">Settings</span>
+          <button
+            type="button"
+            className="admin-icon-button"
+            onClick={() => setMobileSettingsOpen(false)}
+            aria-label="Close settings"
+            title="Close"
+          >
+            <X size={16} strokeWidth={1.8} />
+          </button>
+        </div>
+
         <div className="admin-toolbar-brand">
           <span className="admin-toolbar-title">Spellsurf Admin</span>
           <span className="admin-toolbar-meta">Screenshot studio</span>
