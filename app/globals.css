@@ -2701,8 +2701,10 @@ html:not([data-font-family="serif"]) .split-combined-word * {
 
 .split-combined-word.mix-combined-word {
   display: inline-flex;
+  align-items: center;
   width: auto;
   max-width: 100%;
+  height: 0.88em;
   gap: 0;
 }
 
@@ -6252,40 +6254,6 @@ html[data-font-family="serif"] .split-source-word,
 html[data-font-family="serif"] .mix-source-word,
 html[data-font-family="serif"] .split-definition {
   font-family: var(--font-serif), Georgia, serif !important;
-}
-
-/* Newsreader / Playfair read smaller — bump for optical match. */
-html[data-display-font="newsreader"] .split-combined-word,
-html[data-display-font="newsreader"] .single-main-word,
-html[data-display-font="newsreader"] .forge-combined-word,
-html[data-display-font="newsreader"] .word-anchor h1,
-html[data-display-font="playfair"] .split-combined-word,
-html[data-display-font="playfair"] .single-main-word,
-html[data-display-font="playfair"] .forge-combined-word,
-html[data-display-font="playfair"] .word-anchor h1,
-html[data-font-family="serif"] .split-combined-word,
-html[data-font-family="serif"] .single-main-word,
-html[data-font-family="serif"] .forge-combined-word,
-html[data-font-family="serif"] .word-anchor h1 {
-  font-size: 68px;
-  line-height: .8;
-}
-
-html[data-display-font="newsreader"] .split-source-word,
-html[data-display-font="newsreader"] .mix-source-word,
-html[data-display-font="playfair"] .split-source-word,
-html[data-display-font="playfair"] .mix-source-word,
-html[data-font-family="serif"] .split-source-word,
-html[data-font-family="serif"] .mix-source-word {
-  font-size: 1.85rem;
-  line-height: .92;
-}
-
-html[data-display-font="newsreader"] .split-definition,
-html[data-display-font="playfair"] .split-definition,
-html[data-font-family="serif"] .split-definition {
-  font-size: 20px;
-  line-height: 1.38;
 }
 
 .page-shell button:not(.colorway-swatch):not(.split-definition):not(.modal-overlay),
