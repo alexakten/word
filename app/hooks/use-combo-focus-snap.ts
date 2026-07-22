@@ -63,7 +63,7 @@ export function useComboFocusSnap(enabled: boolean) {
       event.preventDefault();
       clearWheelTimer();
       const pixelDelta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
-      updateProgress(progressRef.current + pixelDelta / WHEEL_SNAP_DISTANCE, true);
+      updateProgress(progressRef.current - pixelDelta / WHEEL_SNAP_DISTANCE, true);
       wheelEndTimer.current = setTimeout(() => {
         snap();
         wheelEndTimer.current = null;
