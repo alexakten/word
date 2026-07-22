@@ -5625,7 +5625,7 @@ html[data-colorway="light"] {
 }
 
 html[data-colorway="brown"] {
-  --paper: #825941;
+  --paper: #363431;
   --ink: #ffffff;
   --muted: rgba(255, 255, 255, .78);
   --faint: rgba(255, 255, 255, .62);
@@ -5633,7 +5633,7 @@ html[data-colorway="brown"] {
   --surface: #ffffff;
   --soft-surface: rgba(255, 255, 255, .16);
   --accent: #ffffff;
-  --accent-ink: #825941;
+  --accent-ink: #363431;
   --hero-ink: #ffffff;
   --sidebar: #ffffff;
   --sidebar-ink: #3f3f3f;
@@ -5690,7 +5690,7 @@ html[data-colorway="purple"] .split-slice-panel {
 
 html[data-colorway="brown"] .split-settings-panel,
 html[data-colorway="brown"] .split-slice-panel {
-  --accent: #825941;
+  --accent: #363431;
   --accent-ink: #ffffff;
 }
 
@@ -5985,8 +5985,8 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .them
 }
 
 .colorway-swatch-brown {
-  --swatch: #825941;
-  --swatch-ring: #825941;
+  --swatch: #363431;
+  --swatch-ring: #363431;
 }
 
 .theme-cycle-swatch,
