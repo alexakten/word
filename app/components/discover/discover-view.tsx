@@ -20,7 +20,6 @@ import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
-import { SaveHeartButton } from "../ui/save-heart-button";
 import { SoundToggle } from "../ui/sound-toggle";
 import { BrandStyleRandomizeButton, CapitalizationControls, LogoStyleControls, TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
@@ -396,7 +395,7 @@ export function DiscoverView(props: DiscoverViewProps) {
             <DesktopTooltip label="Change theme">
               <ColorwaySwitcher />
             </DesktopTooltip>
-            <DesktopTooltip label="Saved words">
+            <DesktopTooltip label={combinedSplitIsSaved ? "Saved words / unlike" : "Saved words / like"}>
               <SavedWordsPanel
                 savedWords={savedWords}
                 savedOpen={savedOpen}
@@ -404,13 +403,11 @@ export function DiscoverView(props: DiscoverViewProps) {
                 savedMenuRef={savedMenuRef}
                 saveWords={saveWords}
                 loadSavedWord={loadSavedWord}
-              />
-            </DesktopTooltip>
-            <DesktopTooltip label={combinedSplitIsSaved ? "Remove saved word" : "Save this word"}>
-              <SaveHeartButton
-                liked={combinedSplitIsSaved}
-                disabled={!displayedCombinedWord}
-                onToggle={toggleCombinedSaved}
+                like={{
+                  liked: combinedSplitIsSaved,
+                  disabled: !displayedCombinedWord,
+                  onToggle: toggleCombinedSaved,
+                }}
               />
             </DesktopTooltip>
           </div>

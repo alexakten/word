@@ -5,11 +5,18 @@ import { X } from "lucide-react";
 import { createPortal } from "react-dom";
 import type { HomeState } from "../../hooks/use-home";
 import type { WordResult } from "../../lib/types";
+import { SaveHeartButton } from "../ui/save-heart-button";
 
 type SavedWordsPanelProps = Pick<
   HomeState,
   "savedWords" | "savedOpen" | "setSavedOpen" | "savedMenuRef" | "saveWords" | "loadSavedWord"
->;
+> & {
+  like?: {
+    liked: boolean;
+    disabled?: boolean;
+    onToggle: () => void;
+  };
+};
 
 function SavedWordsList({
   savedWords,
@@ -57,6 +64,7 @@ export function SavedWordsPanel({
   savedMenuRef,
   saveWords,
   loadSavedWord,
+  like,
 }: SavedWordsPanelProps) {
   const [mounted, setMounted] = useState(savedOpen);
   const [leaving, setLeaving] = useState(false);
@@ -79,17 +87,42 @@ export function SavedWordsPanel({
     setLeaving(false);
   };
 
+  const savedToggle = (
+    <button
+      className={savedOpen ? "saved-toggle active" : "saved-toggle"}
+      type="button"
+      aria-expanded={savedOpen}
+      aria-controls="saved-words"
+      aria-label={like ? `Saved words, ${savedWords.length}` : undefined}
+      onClick={() => setSavedOpen((open) => !open)}
+    >
+      {like ? null : "Saved "}
+      <span>{savedWords.length}</span>
+    </button>
+  );
+
   return (
     <div className="saved-menu" ref={savedMenuRef}>
-      <button
-        className={savedOpen ? "saved-toggle active" : "saved-toggle"}
-        type="button"
-        aria-expanded={savedOpen}
-        aria-controls="saved-words"
-        onClick={() => setSavedOpen((open) => !open)}
-      >
-        Saved <span>{savedWords.length}</span>
-      </button>
+      {like ? (
+        <div
+          className={[
+            "saved-like-control",
+            savedOpen ? "is-open" : "",
+            like.liked ? "liked" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {savedToggle}
+          <SaveHeartButton
+            liked={like.liked}
+            disabled={like.disabled}
+            onToggle={like.onToggle}
+          />
+        </div>
+      ) : (
+        savedToggle
+      )}
       {mounted
         ? createPortal(
           <>

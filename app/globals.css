@@ -4243,9 +4243,8 @@ html[data-colorway="light"] .shortcut-row kbd {
   }
 
   .page-shell.discover-mode .mobile-style-toolbar {
-    display: grid;
+    display: flex;
     width: 100%;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: .55rem;
     margin-bottom: .85rem;
@@ -4261,25 +4260,24 @@ html[data-colorway="light"] .shortcut-row kbd {
   .page-shell.discover-mode .mobile-style-left-actions,
   .page-shell.discover-mode .mobile-style-right-actions {
     display: inline-flex;
+    flex: 0 0 auto;
     min-width: 0;
     align-items: center;
     gap: .35rem;
   }
 
   .page-shell.discover-mode .mobile-style-left-actions {
-    grid-column: 1;
-    justify-self: start;
+    justify-content: flex-start;
+  }
+
+  .page-shell.discover-mode .mobile-style-toolbar .font-cycle-button {
+    flex: 0 0 auto;
+    margin-left: 0;
   }
 
   .page-shell.discover-mode .mobile-style-right-actions {
-    grid-column: 3;
-    justify-self: end;
-  }
-
-  .page-shell.discover-mode .mobile-style-toolbar .typography-controls {
-    grid-column: 2;
-    justify-self: center;
-    margin-left: 0;
+    margin-left: auto;
+    justify-content: flex-end;
   }
 
   .page-shell.discover-mode .mobile-discover-toolbar-button,
@@ -4558,7 +4556,6 @@ html[data-layout="mobile"] .page-shell .mobile-style-toolbar {
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: flex-start;
   gap: .55rem;
   margin-bottom: .85rem;
   pointer-events: auto;
@@ -4575,9 +4572,26 @@ html[data-layout="mobile"] .page-shell .mobile-style-toolbar .colorway-swatch {
   height: 18px;
 }
 
-html[data-layout="mobile"] .page-shell .mobile-style-toolbar .typography-controls {
+html[data-layout="mobile"] .page-shell .mobile-style-left-actions,
+html[data-layout="mobile"] .page-shell .mobile-style-right-actions {
+  display: inline-flex;
   flex: 0 0 auto;
+  min-width: 0;
+  align-items: center;
+  gap: .35rem;
+}
+
+html[data-layout="mobile"] .page-shell .mobile-style-left-actions {
+  justify-content: flex-start;
+}
+
+html[data-layout="mobile"] .page-shell .mobile-style-toolbar .font-cycle-button {
+  flex: 0 0 auto;
+}
+
+html[data-layout="mobile"] .page-shell .mobile-style-right-actions {
   margin-left: auto;
+  justify-content: flex-end;
 }
 
 html[data-layout="mobile"] .page-shell .mobile-discover-toolbar-button,
@@ -4715,6 +4729,96 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions
   height: calc(20px + .7rem);
   padding: 0 .35rem;
   font-size: 12px;
+}
+
+.saved-like-control {
+  display: inline-flex;
+  align-items: center;
+  height: calc(20px + .7rem);
+  flex: none;
+  overflow: visible;
+  border-radius: 999px;
+  background: #F6F5F4;
+  color: var(--muted);
+}
+
+.saved-like-control .saved-toggle,
+.desktop-bottom-left-actions .saved-like-control .saved-toggle,
+html:not([data-layout="mobile"]) .page-shell.discover-mode .style-toolbar-actions-left .saved-like-control .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-like-control .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-like-control .saved-toggle {
+  display: inline-flex;
+  width: auto;
+  min-width: 1.55rem;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 0 .32rem 0 .55rem;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.saved-like-control .saved-toggle span,
+.desktop-bottom-left-actions .saved-like-control .saved-toggle span,
+html:not([data-layout="mobile"]) .page-shell.discover-mode .style-toolbar-actions-left .saved-like-control .saved-toggle span,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-like-control .saved-toggle span,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-like-control .saved-toggle span {
+  display: inline-flex;
+  min-width: 0;
+  height: auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.saved-like-control .compact-save-word-button {
+  width: calc(20px + .7rem);
+  min-width: calc(20px + .7rem);
+  height: 100%;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.saved-like-control .compact-save-word-button::before {
+  content: "";
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  left: 0;
+  width: 1px;
+  background: currentColor;
+  opacity: .18;
+  pointer-events: none;
+}
+
+.saved-like-control:hover,
+.saved-like-control.is-open {
+  color: var(--ink);
+}
+
+.saved-like-control .saved-toggle:hover,
+.saved-like-control .saved-toggle.active,
+.saved-like-control .compact-save-word-button:hover,
+.saved-like-control.liked .compact-save-word-button {
+  color: var(--ink);
+  background: transparent;
+}
+
+html[data-colorway="light"] .saved-like-control.liked .compact-save-word-button,
+html[data-colorway="light"] .saved-like-control.liked .compact-save-word-button:hover {
+  color: #fd4c1f !important;
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-domain-mode-controls {
@@ -5202,6 +5306,35 @@ html[data-layout="mobile"] .page-shell.discover-mode .settings-panel-header butt
   border-radius: 999px !important;
 }
 
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-like-control,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-like-control {
+  width: auto;
+  min-width: 0;
+  height: var(--mobile-control-size);
+  min-height: var(--mobile-control-size);
+  border-radius: 999px !important;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-like-control .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-like-control .saved-toggle span,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-like-control .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-like-control .saved-toggle span {
+  width: auto;
+  min-width: 1.7rem;
+  height: 100%;
+  min-height: 0;
+  border-radius: 0 !important;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-left-actions .saved-like-control .compact-save-word-button,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-left-actions .saved-like-control .compact-save-word-button {
+  width: var(--mobile-control-size);
+  min-width: var(--mobile-control-size);
+  height: 100%;
+  min-height: 0;
+  border-radius: 0 !important;
+}
+
 /* Second-row style toolbar: a bit more compact than Left / Slice / Right. */
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .compact-save-word-button,
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .saved-toggle,
@@ -5214,7 +5347,43 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .soun
   min-height: var(--mobile-style-control-size);
 }
 
-html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .font-cycle-button,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .saved-like-control {
+  width: auto;
+  min-width: 0;
+  height: var(--mobile-style-control-size);
+  min-height: var(--mobile-style-control-size);
+  border-radius: 999px !important;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .saved-like-control .saved-toggle,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .saved-like-control .saved-toggle span {
+  width: auto;
+  min-width: 1.55rem;
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .saved-like-control .compact-save-word-button {
+  width: var(--mobile-style-control-size);
+  min-width: var(--mobile-style-control-size);
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .font-cycle-button {
+  box-sizing: border-box;
+  width: 3.5rem;
+  min-width: 3.5rem;
+  max-width: 3.5rem;
+  height: var(--mobile-style-control-size);
+  min-height: var(--mobile-style-control-size);
+  padding-inline: .3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-style-toolbar .drops-nav-link {
   width: auto;
   min-width: 0;
@@ -6092,13 +6261,23 @@ html[data-colorway="light"] .brand-style-randomize-button.is-active {
 }
 
 .style-toolbar .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button),
-.mobile-style-toolbar .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button),
 .top-brand-style-bar .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button),
 .mobile-brand-style-row .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button) {
   box-sizing: border-box;
   width: 4.25rem;
   min-width: 4.25rem;
   max-width: 4.25rem;
+  padding-inline: .3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-style-toolbar .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button) {
+  box-sizing: border-box;
+  width: 3.5rem;
+  min-width: 3.5rem;
+  max-width: 3.5rem;
   padding-inline: .3rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -6401,6 +6580,23 @@ html[data-layout="mobile"] .page-shell .mobile-generate-button {
   background: var(--soft-surface) !important;
   box-shadow: none !important;
   color: var(--ink);
+}
+
+.saved-like-control {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--soft-surface) !important;
+  box-shadow: none !important;
+  color: var(--ink);
+}
+
+.saved-like-control .saved-toggle,
+.saved-like-control .saved-toggle span,
+.saved-like-control .compact-save-word-button {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .domain-registrar-links a {

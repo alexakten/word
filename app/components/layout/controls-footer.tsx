@@ -6,7 +6,6 @@ import type { HomeState } from "../../hooks/use-home";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
-import { SaveHeartButton } from "../ui/save-heart-button";
 import { SoundToggle } from "../ui/sound-toggle";
 import { TypographyControls } from "../ui/typography-controls";
 import { sounds } from "../../lib/sounds";
@@ -135,11 +134,11 @@ export function ControlsFooter(props: ControlsFooterProps) {
               savedMenuRef={savedMenuRef}
               saveWords={saveWords}
               loadSavedWord={loadSavedWord}
-            />
-            <SaveHeartButton
-              liked={combinedSplitIsSaved}
-              disabled={!displayedCombinedWord}
-              onToggle={toggleCombinedSaved}
+              like={{
+                liked: combinedSplitIsSaved,
+                disabled: !displayedCombinedWord,
+                onToggle: toggleCombinedSaved,
+              }}
             />
           </div>
           <TypographyControls compact />
