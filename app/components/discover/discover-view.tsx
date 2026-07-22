@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AffixSettings } from "../discover/affix-settings";
+import { BrandMark } from "../discover/brand-mark";
 import { DomainAvailability } from "../discover/domain-availability";
 import { HandleAvailability } from "../discover/handle-availability";
 import { MixSourceWord } from "../discover/mix-source-word";
@@ -21,8 +22,9 @@ import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
 import { SaveHeartButton } from "../ui/save-heart-button";
 import { SoundToggle } from "../ui/sound-toggle";
-import { TypographyControls } from "../ui/typography-controls";
+import { BrandStyleRandomizeButton, BrandTypographyControls, CapitalizationControls, LogoStyleControls, TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
+import { applyWordCapitalization } from "../../lib/constants";
 import type { HomeState } from "../../hooks/use-home";
 import { useHistorySideTap } from "../../hooks/use-history-side-tap";
 import { sounds } from "../../lib/sounds";
@@ -94,6 +96,16 @@ export type DiscoverViewProps = Pick<
   | "setNameDisplayMode"
   | "selectedTld"
   | "setSelectedTld"
+  | "logoEnabled"
+  | "setLogoEnabled"
+  | "brandLogoId"
+  | "randomizeBrandLogo"
+  | "brandStyleRandomizeOnGenerate"
+  | "setBrandStyleRandomizeOnGenerate"
+  | "wordCapitalization"
+  | "setWordCapitalization"
+  | "brandLeftChunk"
+  | "brandRightChunk"
   | "copyDisplayedWord"
   | "mixedWordParts"
   | "loading"
@@ -194,6 +206,16 @@ export function DiscoverView(props: DiscoverViewProps) {
     setNameDisplayMode,
     selectedTld,
     setSelectedTld,
+    logoEnabled,
+    setLogoEnabled,
+    brandLogoId,
+    randomizeBrandLogo,
+    brandStyleRandomizeOnGenerate,
+    setBrandStyleRandomizeOnGenerate,
+    wordCapitalization,
+    setWordCapitalization,
+    brandLeftChunk,
+    brandRightChunk,
     copyDisplayedWord,
     mixedWordParts,
     loading,
@@ -235,9 +257,14 @@ export function DiscoverView(props: DiscoverViewProps) {
   } = props;
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
-  const overrideWord = embedOverrideText?.trim() ?? "";
+  const overrideWordRaw = embedOverrideText?.trim() ?? "";
+  const overrideWord = nameDisplayMode === "brand" && overrideWordRaw
+    ? applyWordCapitalization(overrideWordRaw, wordCapitalization)
+    : overrideWordRaw;
   const hasOverrideWord = overrideWord.length > 0;
   const effectiveDisplayedName = hasOverrideWord ? overrideWord : displayedName;
+  const displayLeftChunk = nameDisplayMode === "brand" ? brandLeftChunk : mixedWordParts.leftChunk;
+  const displayRightChunk = nameDisplayMode === "brand" ? brandRightChunk : mixedWordParts.rightChunk;
 
   useHistorySideTap({
     enabled: isMobileLayout && !mobileDiscoverPanel,
@@ -397,9 +424,11 @@ export function DiscoverView(props: DiscoverViewProps) {
             />
           </DesktopTooltip>
           <div className="style-toolbar-actions style-toolbar-actions-right">
-            <DesktopTooltip label="Switch font">
-              <TypographyControls />
-            </DesktopTooltip>
+            {nameDisplayMode !== "brand" ? (
+              <DesktopTooltip label="Switch font">
+                <TypographyControls />
+              </DesktopTooltip>
+            ) : null}
             <DesktopTooltip label="Toggle sound">
               <SoundToggle />
             </DesktopTooltip>
@@ -416,6 +445,23 @@ export function DiscoverView(props: DiscoverViewProps) {
         ) : null}
         {nameDisplayMode === "handle" && displayedHandleBase ? (
           <HandleAvailability className="top-domain-availability" handle={displayedHandleBase} />
+        ) : null}
+        {nameDisplayMode === "brand" ? (
+          <div className="top-brand-style-bar desktop-layout-only" aria-label="Brand style">
+            <LogoStyleControls
+              logoId={brandLogoId}
+              onCycle={randomizeBrandLogo}
+            />
+            <BrandTypographyControls />
+            <CapitalizationControls
+              value={wordCapitalization}
+              onChange={setWordCapitalization}
+            />
+            <BrandStyleRandomizeButton
+              enabled={brandStyleRandomizeOnGenerate}
+              onEnabledChange={setBrandStyleRandomizeOnGenerate}
+            />
+          </div>
         ) : null}
         <ApiHealthStatus health={apiHealth} />
       </div>
@@ -444,7 +490,10 @@ export function DiscoverView(props: DiscoverViewProps) {
           <div className="copyable-word-wrap split-copyable-word-wrap">
                 <WordCopyHint status={wordCopyStatus} />
                 <button
-                  className="split-combined-word copyable-word mix-combined-word"
+                  className={[
+                    "split-combined-word copyable-word mix-combined-word",
+                    nameDisplayMode === "brand" && logoEnabled ? "has-brand-mark" : "",
+                  ].filter(Boolean).join(" ")}
                   type="button"
                   disabled={
                     hasOverrideWord
@@ -458,30 +507,42 @@ export function DiscoverView(props: DiscoverViewProps) {
                   }}
                 >
                   {hasOverrideWord ? (
-                    <span className="mix-word-part" key={`override-${overrideWord}`}>
-                      {overrideWord}
-                    </span>
+                    <>
+                      {nameDisplayMode === "brand" && logoEnabled ? (
+                        <BrandMark logoId={brandLogoId} />
+                      ) : null}
+                      <span className="mix-combined-text">
+                        <span className="mix-word-part" key={`override-${overrideWord}`}>
+                          {overrideWord}
+                        </span>
+                      </span>
+                    </>
                   ) : (
                     <>
-                      {nameDisplayMode === "handle" && displayedCombinedWord ? (
-                        <span className="handle-at" aria-hidden="true">@</span>
+                      {nameDisplayMode === "brand" && logoEnabled ? (
+                        <BrandMark logoId={brandLogoId} />
                       ) : null}
-                      <span
-                        className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
-                        key={`mix-left-${mixedWordParts.leftChunk}`}
-                      >
-                        {mixedWordParts.leftChunk || "——"}
+                      <span className="mix-combined-text">
+                        {nameDisplayMode === "handle" && displayedCombinedWord ? (
+                          <span className="handle-at" aria-hidden="true">@</span>
+                        ) : null}
+                        <span
+                          className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
+                          key={`mix-left-${mixedWordParts.leftChunk}`}
+                        >
+                          {displayLeftChunk || "——"}
+                        </span>
+                        <span
+                          className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
+                          data-view-transition-word
+                          key={`mix-right-${mixedWordParts.rightChunk}`}
+                        >
+                          {displayRightChunk || "——"}
+                        </span>
+                        {nameDisplayMode === "domain" && displayedCombinedWord ? (
+                          <span className="domain-tld">{selectedTld}</span>
+                        ) : null}
                       </span>
-                      <span
-                        className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
-                        data-view-transition-word
-                        key={`mix-right-${mixedWordParts.rightChunk}`}
-                      >
-                        {mixedWordParts.rightChunk || "——"}
-                      </span>
-                      {nameDisplayMode === "domain" && displayedCombinedWord ? (
-                        <span className="domain-tld">{selectedTld}</span>
-                      ) : null}
                     </>
                   )}
                 </button>
@@ -583,6 +644,23 @@ export function DiscoverView(props: DiscoverViewProps) {
         {nameDisplayMode === "handle" && displayedHandleBase ? (
           <div className="mobile-domain-availability-row">
             <HandleAvailability className="mobile-domain-availability" handle={displayedHandleBase} />
+          </div>
+        ) : null}
+        {nameDisplayMode === "brand" ? (
+          <div className="mobile-brand-style-row">
+            <LogoStyleControls
+              logoId={brandLogoId}
+              onCycle={randomizeBrandLogo}
+            />
+            <BrandTypographyControls compact />
+            <CapitalizationControls
+              value={wordCapitalization}
+              onChange={setWordCapitalization}
+            />
+            <BrandStyleRandomizeButton
+              enabled={brandStyleRandomizeOnGenerate}
+              onEnabledChange={setBrandStyleRandomizeOnGenerate}
+            />
           </div>
         ) : null}
         <div className="mobile-bottom-meta-row">

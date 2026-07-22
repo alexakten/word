@@ -107,10 +107,10 @@ export type EmbedFontFamily = (typeof EMBED_FONT_FAMILIES)[number];
 export const DEFAULT_EMBED_FONT: EmbedFontFamily = "openRunde";
 
 export const EMBED_FONT_OPTIONS: { value: EmbedFontFamily; label: string }[] = [
-  { value: "openRunde", label: "Open Runde" },
+  { value: "openRunde", label: "Runde" },
   { value: "inter", label: "Inter" },
   { value: "newsreader", label: "Newsreader" },
-  { value: "playfair", label: "Playfair Display" },
+  { value: "playfair", label: "Playfair" },
   { value: "caveat", label: "Caveat" },
   { value: "parabolica", label: "Parabolica" },
   { value: "aboreto", label: "Aboreto" },
@@ -187,7 +187,7 @@ export function parseEmbedFontFamily(value: unknown): EmbedFontFamily | null {
     : null;
 }
 
-/** Default matches `.split-combined-word { letter-spacing: -.062em }`. */
+/** Default matches Brand Open Runde tracking (`-6` → `-0.06em`). */
 export const DEFAULT_EMBED_LETTER_SPACING = -6;
 export const MIN_EMBED_LETTER_SPACING = -20;
 export const MAX_EMBED_LETTER_SPACING = 40;

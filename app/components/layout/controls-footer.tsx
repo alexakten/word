@@ -42,6 +42,7 @@ export type ControlsFooterProps = Pick<
   | "savedMenuRef"
   | "saveWords"
   | "loadSavedWord"
+  | "nameDisplayMode"
 >;
 
 export function ControlsFooter(props: ControlsFooterProps) {
@@ -75,6 +76,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
     savedMenuRef,
     saveWords,
     loadSavedWord,
+    nameDisplayMode,
   } = props;
 
   return (
@@ -140,7 +142,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
               onToggle={toggleCombinedSaved}
             />
           </div>
-          <TypographyControls />
+          {nameDisplayMode !== "brand" ? <TypographyControls /> : null}
           <div className="mobile-style-right-actions">
             <SoundToggle />
             <AboutDrawer />

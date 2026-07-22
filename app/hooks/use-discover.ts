@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { relations } from "../lib/constants";
+import { relations, applyChunkCapitalization, pickRandomWordCapitalization } from "../lib/constants";
+import { isBrandLogoId, nextBrandLogo, pickRandomBrandLogo, DEFAULT_BRAND_LOGO_ID, type BrandLogoId } from "../lib/brand-logos";
+import { DISPLAY_FONT_EVENT, pickRandomDisplayFont } from "../lib/display-fonts";
+import { parseEmbedFontFamily } from "../lib/embed-bridge";
 import { normalizeLengthSelection, normalizeSyllableSelection, resolveLengthFilter, resolveSyllableFilter } from "../lib/filters";
 import {
   type ApiHealth,
@@ -9,6 +12,7 @@ import {
   type NameDisplayMode,
   type PartOfSpeech,
   type SplitHistoryEntry,
+  type WordCapitalization,
   type WordCopyStatus,
   type WordResult,
 } from "../lib/types";
@@ -61,6 +65,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
   const [nameDisplayMode, setNameDisplayModeState] = useState<NameDisplayMode>("word");
   const [selectedTld, setSelectedTld] = useState(".com");
+  const [logoEnabled, setLogoEnabled] = useState(false);
+  const [brandLogoId, setBrandLogoId] = useState<BrandLogoId>(DEFAULT_BRAND_LOGO_ID);
+  const [wordCapitalization, setWordCapitalization] = useState<WordCapitalization>("lower");
+  const [brandStyleRandomizeOnGenerate, setBrandStyleRandomizeOnGenerate] = useState(false);
   const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
   const [rightSliceMode, setRightSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
   const [mixLeftSettings, setMixLeftSettings] = useState<MixSideSettings>(defaultCustomMixLeftSettings);
@@ -102,10 +110,30 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
   const setNameDisplayMode = useCallback((mode: NameDisplayMode) => {
     setNameDisplayModeState(mode);
+    if (mode === "brand") setLogoEnabled(true);
     setWordSyllables(DEFAULT_SYLLABLES);
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordSyllables(DEFAULT_SYLLABLES);
     setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
+  }, []);
+
+  const randomizeBrandLogo = useCallback(() => {
+    setBrandLogoId((current) => nextBrandLogo(current));
+    setLogoEnabled(true);
+  }, []);
+
+  const randomizeBrandStyle = useCallback(() => {
+    setBrandLogoId((current) => pickRandomBrandLogo(current));
+    setLogoEnabled(true);
+    setWordCapitalization((current) => pickRandomWordCapitalization(current));
+    const currentFont = parseEmbedFontFamily(document.documentElement.getAttribute("data-display-font"));
+    const fontFamily = pickRandomDisplayFont(currentFont);
+    window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily } }));
+  }, []);
+
+  const setBrandLogo = useCallback((id: BrandLogoId) => {
+    if (!isBrandLogoId(id)) return;
+    setBrandLogoId(id);
   }, []);
 
   const resetPrimaryFilters = useCallback(() => {
@@ -228,6 +256,18 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     [effectiveMixLeftSettings, effectiveMixRightSettings, leftWordValue, rightWordValue, result.syllables, secondaryResult.syllables],
   );
   const displayedCombinedWord = mixedWordParts.mixed;
+  const brandLeftChunk = nameDisplayMode === "brand"
+    ? applyChunkCapitalization(mixedWordParts.leftChunk, wordCapitalization)
+    : mixedWordParts.leftChunk;
+  const brandRightChunk = nameDisplayMode === "brand"
+    ? applyChunkCapitalization(
+      mixedWordParts.rightChunk,
+      wordCapitalization === "title" ? "lower" : wordCapitalization,
+    )
+    : mixedWordParts.rightChunk;
+  const brandCombinedWord = nameDisplayMode === "brand"
+    ? `${brandLeftChunk}${brandRightChunk}`
+    : displayedCombinedWord;
   const displayedHandleBase = displayedCombinedWord
     ? displayedCombinedWord.replace(/\s+/g, "").toLowerCase()
     : "";
@@ -239,7 +279,9 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     ? displayedDomain
     : nameDisplayMode === "handle"
       ? displayedHandle
-      : displayedCombinedWord;
+      : nameDisplayMode === "brand"
+        ? brandCombinedWord
+        : displayedCombinedWord;
   const combinedSplitIsSaved = Boolean(displayedCombinedWord)
     && savedWords.some((item) => item.word.toLowerCase() === displayedCombinedWord);
 
@@ -479,6 +521,9 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, [resetSecondaryFilters]);
 
   const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
+    if (nameDisplayMode === "brand" && brandStyleRandomizeOnGenerate) {
+      randomizeBrandStyle();
+    }
     const batchRequest = splitBatchRequestRef.current + 1;
     splitBatchRequestRef.current = batchRequest;
     setSplitBatchLoading(true);
@@ -523,12 +568,15 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       }
     })();
   }, [
+    brandStyleRandomizeOnGenerate,
     commitWord,
     findSecondaryWord,
     findWord,
     leftSliceMode,
     mixLeftSettings,
     mixRightSettings,
+    nameDisplayMode,
+    randomizeBrandStyle,
     rightSliceMode,
     secondaryWordType,
     setMessage,
@@ -728,6 +776,16 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setNameDisplayMode,
     selectedTld,
     setSelectedTld,
+    logoEnabled,
+    setLogoEnabled,
+    brandLogoId,
+    setBrandLogo,
+    randomizeBrandLogo,
+    randomizeBrandStyle,
+    brandStyleRandomizeOnGenerate,
+    setBrandStyleRandomizeOnGenerate,
+    wordCapitalization,
+    setWordCapitalization,
     leftSliceMode,
     rightSliceMode,
     mixLeftSettings,
@@ -781,6 +839,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     effectiveMixRightSettings,
     mixedWordParts,
     displayedCombinedWord,
+    brandLeftChunk,
+    brandRightChunk,
     displayedDomain,
     displayedHandle,
     displayedHandleBase,

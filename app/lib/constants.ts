@@ -1,6 +1,6 @@
 import type { SliceMode } from "../syllables";
 import { PUBLIC_TLDS } from "./public-tlds";
-import type { AdvancedMode, LengthMode, NameDisplayMode, PartOfSpeech } from "./types";
+import type { AdvancedMode, LengthMode, NameDisplayMode, PartOfSpeech, WordCapitalization } from "./types";
 
 export const POS_VALUES = new Set<PartOfSpeech>(["any", "n", "v", "adj", "adv"]);
 export const LENGTH_MODES = new Set<LengthMode>(["less", "exact", "more"]);
@@ -9,10 +9,41 @@ export const MAX_SYLLABLE_FILTER = 8;
 export const MAX_LENGTH_FILTER = 22;
 
 export const NAME_DISPLAY_MODE_OPTIONS: { value: NameDisplayMode; label: string }[] = [
-  { value: "word", label: "Word" },
+  { value: "word", label: "Name" },
   { value: "domain", label: "Domain" },
   { value: "handle", label: "Handle" },
+  { value: "brand", label: "Brand" },
 ];
+
+export const WORD_CAPITALIZATION_OPTIONS: { value: WordCapitalization; label: string }[] = [
+  { value: "lower", label: "aa" },
+  { value: "title", label: "Aa" },
+];
+
+export function pickRandomWordCapitalization(exclude?: WordCapitalization | null): WordCapitalization {
+  const options = WORD_CAPITALIZATION_OPTIONS.map((entry) => entry.value);
+  let next = options[Math.floor(Math.random() * options.length)]!;
+  if (exclude) {
+    let guard = 0;
+    while (next === exclude && guard < 8) {
+      next = options[Math.floor(Math.random() * options.length)]!;
+      guard += 1;
+    }
+  }
+  return next;
+}
+
+export function applyWordCapitalization(text: string, mode: WordCapitalization) {
+  if (!text) return text;
+  if (mode === "lower") return text.toLowerCase();
+  const lower = text.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
+/** Apply capitalization to a combo chunk. Title (`Aa`) only capitalizes the first chunk. */
+export function applyChunkCapitalization(chunk: string, mode: WordCapitalization) {
+  return applyWordCapitalization(chunk, mode);
+}
 
 /** Shown first in the TLD picker (fixed order). */
 export const POPULAR_TLDS = [
