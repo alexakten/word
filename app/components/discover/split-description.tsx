@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowDown } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 
 function fits(element: HTMLElement) {
@@ -32,6 +33,7 @@ function truncateToFit(element: HTMLElement, full: string) {
 
 export function SplitDescription({ children }: { children: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [expandable, setExpandable] = useState(false);
   const [display, setDisplay] = useState(children);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -43,6 +45,7 @@ export function SplitDescription({ children }: { children: string }) {
 
     const measure = () => {
       const next = truncateToFit(element, children);
+      setExpandable(next !== children);
       setDisplay((current) => (current === next ? current : next));
     };
 
@@ -53,15 +56,21 @@ export function SplitDescription({ children }: { children: string }) {
   }, [children, expanded]);
 
   return (
-    <button
-      ref={buttonRef}
-      className={["split-definition", expanded ? "expanded" : ""].filter(Boolean).join(" ")}
-      type="button"
-      aria-expanded={expanded}
-      title={expanded ? "Collapse description" : "Show full description"}
-      onClick={() => setExpanded((current) => !current)}
-    >
-      {expanded ? children : display}
-    </button>
+    <div className={["split-description-control", expanded ? "is-expanded" : ""].filter(Boolean).join(" ")}>
+      <button
+        ref={buttonRef}
+        className={["split-definition", expanded ? "expanded" : ""].filter(Boolean).join(" ")}
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((current) => !current)}
+      >
+        {expanded ? children : display}
+      </button>
+      {!expanded && expandable ? (
+        <span className="split-description-hover-arrow" aria-hidden="true">
+          <ArrowDown size={14} strokeWidth={1.6} />
+        </span>
+      ) : null}
+    </div>
   );
 }

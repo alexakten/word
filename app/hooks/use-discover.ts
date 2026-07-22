@@ -1,9 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { relations, applyChunkCapitalization, pickRandomWordCapitalization } from "../lib/constants";
 import { isBrandLogoId, nextBrandLogo, pickRandomBrandLogo, DEFAULT_BRAND_LOGO_ID, type BrandLogoId } from "../lib/brand-logos";
-import { DISPLAY_FONT_EVENT, BRAND_DISPLAY_FONT_FAMILY, DEFAULT_DISPLAY_FONT_FAMILY, pickRandomDisplayFont } from "../lib/display-fonts";
+import {
+  DISPLAY_FONT_EVENT,
+  BRAND_DISPLAY_FONT_FAMILY,
+  DEFAULT_DISPLAY_FONT_FAMILY,
+  applyDisplayFontToDocument,
+  displayFontPreset,
+  pickRandomDisplayFont,
+} from "../lib/display-fonts";
 import { parseEmbedFontFamily } from "../lib/embed-bridge";
 import { normalizeLengthSelection, normalizeSyllableSelection, resolveLengthFilter, resolveSyllableFilter } from "../lib/filters";
 import {
@@ -128,13 +136,17 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, []);
 
   const randomizeBrandStyle = useCallback(() => {
-    setBrandLogoId((current) => pickRandomBrandLogo(current));
-    setLogoEnabled(true);
-    setWordCapitalization((current) => pickRandomWordCapitalization(current));
+    const logoId = pickRandomBrandLogo(brandLogoId);
+    const capitalization = pickRandomWordCapitalization(wordCapitalization);
     const currentFont = parseEmbedFontFamily(document.documentElement.getAttribute("data-display-font"));
     const fontFamily = pickRandomDisplayFont(currentFont);
+
+    setBrandLogoId(logoId);
+    setLogoEnabled(true);
+    setWordCapitalization(capitalization);
+    applyDisplayFontToDocument(displayFontPreset(fontFamily));
     window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily } }));
-  }, []);
+  }, [brandLogoId, wordCapitalization]);
 
   const setBrandLogo = useCallback((id: BrandLogoId) => {
     if (!isBrandLogoId(id)) return;
@@ -526,9 +538,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, [resetSecondaryFilters]);
 
   const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
-    if (nameDisplayMode === "brand" && brandStyleRandomizeOnGenerate) {
-      randomizeBrandStyle();
-    }
     const batchRequest = splitBatchRequestRef.current + 1;
     splitBatchRequestRef.current = batchRequest;
     setSplitBatchLoading(true);
@@ -559,11 +568,21 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
           right = undefined;
         }
         if (splitBatchRequestRef.current !== batchRequest) return;
-        if (left) {
-          commitWord(left);
-          setMessage("");
+        const commitBatch = () => {
+          if (left) {
+            commitWord(left);
+            setMessage("");
+          }
+          if (right) setSecondaryResult(right);
+        };
+        if ((left || right) && nameDisplayMode === "brand" && brandStyleRandomizeOnGenerate) {
+          flushSync(() => {
+            randomizeBrandStyle();
+            commitBatch();
+          });
+        } else {
+          commitBatch();
         }
-        if (right) setSecondaryResult(right);
       } finally {
         if (splitBatchRequestRef.current === batchRequest) setSplitBatchLoading(false);
         splitHistoryBatchDepthRef.current = Math.max(0, splitHistoryBatchDepthRef.current - 1);
