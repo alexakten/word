@@ -142,7 +142,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
               onToggle={toggleCombinedSaved}
             />
           </div>
-          {nameDisplayMode !== "brand" ? <TypographyControls /> : null}
+          <TypographyControls compact />
           <div className="mobile-style-right-actions">
             <SoundToggle />
             <AboutDrawer />

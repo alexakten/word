@@ -22,7 +22,7 @@ import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
 import { SaveHeartButton } from "../ui/save-heart-button";
 import { SoundToggle } from "../ui/sound-toggle";
-import { BrandStyleRandomizeButton, BrandTypographyControls, CapitalizationControls, LogoStyleControls, TypographyControls } from "../ui/typography-controls";
+import { BrandStyleRandomizeButton, CapitalizationControls, LogoStyleControls, TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { applyWordCapitalization } from "../../lib/constants";
 import type { HomeState } from "../../hooks/use-home";
@@ -424,11 +424,9 @@ export function DiscoverView(props: DiscoverViewProps) {
             />
           </DesktopTooltip>
           <div className="style-toolbar-actions style-toolbar-actions-right">
-            {nameDisplayMode !== "brand" ? (
-              <DesktopTooltip label="Switch font">
-                <TypographyControls />
-              </DesktopTooltip>
-            ) : null}
+            <DesktopTooltip label="Switch font">
+              <TypographyControls />
+            </DesktopTooltip>
             <DesktopTooltip label="Toggle sound">
               <SoundToggle />
             </DesktopTooltip>
@@ -452,7 +450,6 @@ export function DiscoverView(props: DiscoverViewProps) {
               logoId={brandLogoId}
               onCycle={randomizeBrandLogo}
             />
-            <BrandTypographyControls />
             <CapitalizationControls
               value={wordCapitalization}
               onChange={setWordCapitalization}
@@ -652,7 +649,6 @@ export function DiscoverView(props: DiscoverViewProps) {
               logoId={brandLogoId}
               onCycle={randomizeBrandLogo}
             />
-            <BrandTypographyControls compact />
             <CapitalizationControls
               value={wordCapitalization}
               onChange={setWordCapitalization}

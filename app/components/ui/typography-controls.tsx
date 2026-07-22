@@ -18,68 +18,8 @@ import type { WordCapitalization } from "../../lib/types";
 import { sounds } from "../../lib/sounds";
 import { useControlPop } from "./use-control-pop";
 
-type BasicFontFamily = "sans" | "serif";
-
-const FONT_FAMILY_EVENT = "spellsurf:font-family";
-
-function parseBasicFontFamily(value: string | null | undefined): BasicFontFamily | null {
-  return value === "sans" || value === "serif" ? value : null;
-}
-
-/** Simple Sans / Serif cycle used outside Brand mode. */
-export function TypographyControls({ className = "" }: { className?: string }) {
-  const [fontFamily, setFontFamily] = useState<BasicFontFamily>("sans");
-  const pop = useControlPop();
-
-  /* eslint-disable react-hooks/set-state-in-effect -- DOM font state hydrates the client control on mount. */
-  useEffect(() => {
-    clearDisplayFontFromDocument();
-    const fromDom = parseBasicFontFamily(document.documentElement.getAttribute("data-font-family"));
-    if (fromDom) setFontFamily(fromDom);
-
-    const onFontFamilyChange = (event: Event) => {
-      const next = parseBasicFontFamily((event as CustomEvent<string>).detail);
-      if (!next) return;
-      setFontFamily((current) => (current === next ? current : next));
-    };
-    window.addEventListener(FONT_FAMILY_EVENT, onFontFamilyChange);
-    return () => window.removeEventListener(FONT_FAMILY_EVENT, onFontFamilyChange);
-  }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  useEffect(() => {
-    const root = document.documentElement;
-    clearDisplayFontFromDocument();
-    root.setAttribute("data-font-family", fontFamily);
-    root.removeAttribute("data-font-caps");
-    root.removeAttribute("data-font-bold");
-    root.removeAttribute("data-font-italic");
-  }, [fontFamily]);
-
-  const selectFontFamily = (next: BasicFontFamily) => {
-    setFontFamily(next);
-    window.dispatchEvent(new CustomEvent(FONT_FAMILY_EVENT, { detail: next }));
-  };
-
-  return (
-    <div className={["typography-controls", className].filter(Boolean).join(" ")} aria-label="Typography settings">
-      <button
-        className="font-cycle-button"
-        type="button"
-        aria-label={`Font: ${fontFamily}. Switch to ${fontFamily === "sans" ? "serif" : "sans"}`}
-        onClick={(event) => {
-          pop(event);
-          selectFontFamily(fontFamily === "sans" ? "serif" : "sans");
-        }}
-      >
-        <span key={fontFamily}>{fontFamily === "sans" ? "Sans" : "Serif"}</span>
-      </button>
-    </div>
-  );
-}
-
-/** Brand-mode font cycle. Weight and tracking come from fixed per-font presets. */
-export function BrandTypographyControls({
+/** Display font cycle for all name modes. Weight and tracking come from fixed per-font presets. */
+export function TypographyControls({
   className = "",
   compact = false,
 }: {
@@ -142,6 +82,9 @@ export function BrandTypographyControls({
     </button>
   );
 }
+
+/** @deprecated Prefer TypographyControls — same display-font cycle. */
+export const BrandTypographyControls = TypographyControls;
 
 export function LogoStyleControls({
   logoId,

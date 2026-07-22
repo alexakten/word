@@ -6089,13 +6089,15 @@ html[data-colorway="light"] .brand-style-randomize-button.is-active {
   white-space: nowrap;
 }
 
+.style-toolbar .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button),
+.mobile-style-toolbar .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button),
 .top-brand-style-bar .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button),
 .mobile-brand-style-row .font-cycle-button:not(.capitalization-cycle-button):not(.logo-cycle-button) {
   box-sizing: border-box;
-  width: 5.1rem;
-  min-width: 5.1rem;
-  max-width: 5.1rem;
-  padding-inline: .4rem;
+  width: 4.25rem;
+  min-width: 4.25rem;
+  max-width: 4.25rem;
+  padding-inline: .3rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6252,7 +6254,15 @@ html[data-font-family="serif"] .split-definition {
   font-family: var(--font-serif), Georgia, serif !important;
 }
 
-/* Newsreader reads smaller than Inter at the same size — bump for optical match. */
+/* Newsreader / Playfair read smaller — bump for optical match. */
+html[data-display-font="newsreader"] .split-combined-word,
+html[data-display-font="newsreader"] .single-main-word,
+html[data-display-font="newsreader"] .forge-combined-word,
+html[data-display-font="newsreader"] .word-anchor h1,
+html[data-display-font="playfair"] .split-combined-word,
+html[data-display-font="playfair"] .single-main-word,
+html[data-display-font="playfair"] .forge-combined-word,
+html[data-display-font="playfair"] .word-anchor h1,
 html[data-font-family="serif"] .split-combined-word,
 html[data-font-family="serif"] .single-main-word,
 html[data-font-family="serif"] .forge-combined-word,
@@ -6261,12 +6271,18 @@ html[data-font-family="serif"] .word-anchor h1 {
   line-height: .8;
 }
 
+html[data-display-font="newsreader"] .split-source-word,
+html[data-display-font="newsreader"] .mix-source-word,
+html[data-display-font="playfair"] .split-source-word,
+html[data-display-font="playfair"] .mix-source-word,
 html[data-font-family="serif"] .split-source-word,
 html[data-font-family="serif"] .mix-source-word {
   font-size: 1.85rem;
   line-height: .92;
 }
 
+html[data-display-font="newsreader"] .split-definition,
+html[data-display-font="playfair"] .split-definition,
 html[data-font-family="serif"] .split-definition {
   font-size: 20px;
   line-height: 1.38;

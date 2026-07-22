@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { relations, applyChunkCapitalization, pickRandomWordCapitalization } from "../lib/constants";
 import { isBrandLogoId, nextBrandLogo, pickRandomBrandLogo, DEFAULT_BRAND_LOGO_ID, type BrandLogoId } from "../lib/brand-logos";
-import { DISPLAY_FONT_EVENT, pickRandomDisplayFont } from "../lib/display-fonts";
+import { DISPLAY_FONT_EVENT, BRAND_DISPLAY_FONT_FAMILY, DEFAULT_DISPLAY_FONT_FAMILY, pickRandomDisplayFont } from "../lib/display-fonts";
 import { parseEmbedFontFamily } from "../lib/embed-bridge";
 import { normalizeLengthSelection, normalizeSyllableSelection, resolveLengthFilter, resolveSyllableFilter } from "../lib/filters";
 import {
@@ -110,7 +110,12 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
   const setNameDisplayMode = useCallback((mode: NameDisplayMode) => {
     setNameDisplayModeState(mode);
-    if (mode === "brand") setLogoEnabled(true);
+    if (mode === "brand") {
+      setLogoEnabled(true);
+      window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily: BRAND_DISPLAY_FONT_FAMILY } }));
+    } else {
+      window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily: DEFAULT_DISPLAY_FONT_FAMILY } }));
+    }
     setWordSyllables(DEFAULT_SYLLABLES);
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordSyllables(DEFAULT_SYLLABLES);

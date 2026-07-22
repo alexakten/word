@@ -59,7 +59,9 @@ export const DISPLAY_FONT_FAMILIES = [
 
 export type DisplayFontFamily = (typeof DISPLAY_FONT_FAMILIES)[number];
 
-export const DEFAULT_DISPLAY_FONT_FAMILY: DisplayFontFamily = "parabolica";
+export const DEFAULT_DISPLAY_FONT_FAMILY: DisplayFontFamily = "openRunde";
+
+export const BRAND_DISPLAY_FONT_FAMILY: DisplayFontFamily = "parabolica";
 
 export const DISPLAY_FONT_OPTIONS: { value: DisplayFontFamily; label: string }[] = [
   { value: "openRunde", label: "Soft" },
