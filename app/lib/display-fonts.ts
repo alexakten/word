@@ -1,5 +1,4 @@
 import {
-  EMBED_FONT_OPTIONS,
   clampFontWeight,
   clampLetterSpacing,
   parseEmbedFontFamily,
@@ -62,11 +61,15 @@ export type DisplayFontFamily = (typeof DISPLAY_FONT_FAMILIES)[number];
 
 export const DEFAULT_DISPLAY_FONT_FAMILY: DisplayFontFamily = "parabolica";
 
-export const DISPLAY_FONT_OPTIONS: { value: DisplayFontFamily; label: string }[] =
-  DISPLAY_FONT_FAMILIES.map((value) => {
-    const label = EMBED_FONT_OPTIONS.find((entry) => entry.value === value)?.label ?? value;
-    return { value, label };
-  });
+export const DISPLAY_FONT_OPTIONS: { value: DisplayFontFamily; label: string }[] = [
+  { value: "openRunde", label: "Soft" },
+  { value: "newsreader", label: "Serif" },
+  { value: "aboreto", label: "Fancy" },
+  { value: "parabolica", label: "Tech" },
+  { value: "caveat", label: "Fun" },
+  { value: "inter", label: "Clean" },
+  { value: "playfair", label: "Classy" },
+];
 
 export const DISPLAY_FONT_EVENT = "spellsurf:display-font";
 
