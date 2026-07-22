@@ -6499,13 +6499,15 @@ html[data-font-family="serif"] .split-definition {
   font-family: var(--font-serif), Georgia, serif !important;
 }
 
-/* Optical sizing without changing the line box, baseline, or surrounding layout. */
-html[data-display-font="newsreader"] .page-shell.discover-mode .mix-combined-text {
-  scale: 1.1333;
+/* Optical sizing with a fixed line box so larger faces cannot shift the definitions. */
+html[data-display-font="newsreader"] .page-shell.discover-mode .split-combined-word {
+  font-size: calc(var(--combo-word-size) * 1.1333);
+  line-height: calc(var(--combo-word-size) * .88);
 }
 
-html[data-display-font="caveat"] .page-shell.discover-mode .mix-combined-text {
-  scale: 1.3;
+html[data-display-font="caveat"] .page-shell.discover-mode .split-combined-word {
+  font-size: calc(var(--combo-word-size) * 1.3);
+  line-height: calc(var(--combo-word-size) * .88);
 }
 
 .page-shell button:not(.colorway-swatch):not(.split-definition):not(.modal-overlay),
@@ -8024,14 +8026,16 @@ html[data-embed="1"][data-layout="mobile"] .page-shell.discover-mode .split-comb
   letter-spacing: var(--embed-letter-spacing, -0.06em) !important;
 }
 
-html[data-embed="1"][data-embed-font="newsreader"] .page-shell.discover-mode .mix-combined-text,
-html[data-embed="1"][data-embed-font="newsreader"][data-layout="mobile"] .page-shell.discover-mode .mix-combined-text {
-  scale: 1.1333;
+html[data-embed="1"][data-embed-font="newsreader"] .page-shell.discover-mode .split-combined-word,
+html[data-embed="1"][data-embed-font="newsreader"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
+  font-size: calc(68px * var(--embed-content-zoom, 1)) !important;
+  line-height: calc(52.8px * var(--embed-content-zoom, 1)) !important;
 }
 
-html[data-embed="1"][data-embed-font="caveat"] .page-shell.discover-mode .mix-combined-text,
-html[data-embed="1"][data-embed-font="caveat"][data-layout="mobile"] .page-shell.discover-mode .mix-combined-text {
-  scale: 1.3;
+html[data-embed="1"][data-embed-font="caveat"] .page-shell.discover-mode .split-combined-word,
+html[data-embed="1"][data-embed-font="caveat"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
+  font-size: calc(78px * var(--embed-content-zoom, 1)) !important;
+  line-height: calc(52.8px * var(--embed-content-zoom, 1)) !important;
 }
 
 /* Keep the join between left/right chunks in step with letter spacing. */
