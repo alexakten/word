@@ -9,7 +9,6 @@ export const BRAND_LOGO_IDS = [
   "Know",
   "Piece",
   "Portal",
-  "Pose",
   "Shift",
   "Split",
   "Stable",
