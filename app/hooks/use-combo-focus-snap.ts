@@ -83,7 +83,7 @@ export function useComboFocusSnap(enabled: boolean) {
 
     const onTouchMove = (event: TouchEvent) => {
       if (!touchTracking.current || event.touches.length !== 1) return;
-      const delta = touchStart.current.y - event.touches[0]!.clientY;
+      const delta = event.touches[0]!.clientY - touchStart.current.y;
       if (Math.abs(delta) > 4) event.preventDefault();
       updateProgress(touchStart.current.progress + delta / TOUCH_SNAP_DISTANCE, true);
     };
