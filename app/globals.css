@@ -2593,8 +2593,25 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
 }
 
 .split-word-anchor {
+  --combo-focus-progress: 0;
   width: var(--content-width);
   height: 16.25rem;
+  pointer-events: auto;
+  touch-action: pan-x;
+  overscroll-behavior: contain;
+  outline: none;
+}
+
+.split-word-anchor:focus-visible {
+  border-radius: 1rem;
+  outline: 1px solid color-mix(in srgb, var(--hero-ink) 45%, transparent);
+  outline-offset: 1rem;
+}
+
+.split-copyable-word-wrap {
+  transform: translateY(calc(var(--combo-focus-progress) * 6.5rem));
+  transition: transform .44s cubic-bezier(.22, 1, .36, 1);
+  will-change: transform;
 }
 
 .split-word-anchor:has(.discover-start-prompt),
@@ -2743,6 +2760,22 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   gap: 0;
   margin-top: 3rem;
   pointer-events: auto;
+  opacity: calc(1 - var(--combo-focus-progress));
+  filter: blur(calc(var(--combo-focus-progress) * 5px));
+  transform: translateY(calc(var(--combo-focus-progress) * 1.25rem));
+  transition:
+    opacity .32s ease,
+    filter .36s ease,
+    transform .44s cubic-bezier(.22, 1, .36, 1);
+  will-change: opacity, filter, transform;
+}
+
+.split-word-anchor[data-combo-focus="collapsed"] .split-definitions {
+  pointer-events: none;
+}
+
+.split-word-anchor.is-combo-focus-interacting .split-copyable-word-wrap,
+.split-word-anchor.is-combo-focus-interacting .split-definitions {
   transition: none;
 }
 
@@ -3241,8 +3274,9 @@ html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
 
 .split-definition {
   position: relative;
-  display: -webkit-box;
+  display: block;
   width: 100%;
+  max-height: 4.5em;
   border: 0;
   margin: 0;
   padding: 0;
@@ -3255,15 +3289,11 @@ html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
   text-align: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
 }
 
 .split-definition.expanded {
   display: block;
-  line-clamp: unset;
-  -webkit-line-clamp: unset;
+  max-height: none;
   text-overflow: unset;
   animation: description-reveal .24s ease both;
 }
@@ -4246,6 +4276,7 @@ html[data-colorway="light"] .shortcut-row kbd {
     display: flex;
     width: 100%;
     align-items: center;
+    justify-content: space-between;
     gap: .55rem;
     margin-bottom: .85rem;
     pointer-events: auto;
@@ -4276,7 +4307,6 @@ html[data-colorway="light"] .shortcut-row kbd {
   }
 
   .page-shell.discover-mode .mobile-style-right-actions {
-    margin-left: auto;
     justify-content: flex-end;
   }
 
@@ -4436,20 +4466,17 @@ html[data-colorway="light"] .shortcut-row kbd {
   }
 
   .page-shell.discover-mode .split-definition {
-    display: -webkit-box;
+    display: block;
+    max-height: 4.35em;
     font-size: 14px;
     line-height: 1.45;
     overflow: hidden;
     text-overflow: ellipsis;
-    -webkit-box-orient: vertical;
-    line-clamp: 3;
-    -webkit-line-clamp: 3;
   }
 
   .page-shell.discover-mode .split-definition.expanded {
     display: block;
-    line-clamp: unset;
-    -webkit-line-clamp: unset;
+    max-height: none;
     text-overflow: unset;
   }
 
@@ -4556,6 +4583,7 @@ html[data-layout="mobile"] .page-shell .mobile-style-toolbar {
   display: flex;
   width: 100%;
   align-items: center;
+  justify-content: space-between;
   gap: .55rem;
   margin-bottom: .85rem;
   pointer-events: auto;
@@ -4590,7 +4618,6 @@ html[data-layout="mobile"] .page-shell .mobile-style-toolbar .font-cycle-button 
 }
 
 html[data-layout="mobile"] .page-shell .mobile-style-right-actions {
-  margin-left: auto;
   justify-content: flex-end;
 }
 
@@ -5105,6 +5132,10 @@ html[data-layout="mobile"] .page-shell.discover-mode .split-word-anchor {
   width: var(--mobile-column-width);
 }
 
+html[data-layout="mobile"] .page-shell.discover-mode .split-copyable-word-wrap {
+  transform: translateY(calc(var(--combo-focus-progress) * 7rem));
+}
+
 html[data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
   font-size: clamp(2rem, 9.5vw, 2.75rem);
 }
@@ -5144,20 +5175,17 @@ html[data-layout="mobile"] .page-shell.discover-mode .split-definitions article:
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .split-definition {
-  display: -webkit-box;
+  display: block;
+  max-height: 4.35em;
   font-size: 14px;
   line-height: 1.45;
   overflow: hidden;
   text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
 }
 
 html[data-layout="mobile"] .page-shell.discover-mode .split-definition.expanded {
   display: block;
-  line-clamp: unset;
-  -webkit-line-clamp: unset;
+  max-height: none;
   text-overflow: unset;
 }
 

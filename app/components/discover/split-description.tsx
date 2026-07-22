@@ -39,10 +39,7 @@ export function SplitDescription({ children }: { children: string }) {
     const element = buttonRef.current;
     if (!element) return;
 
-    if (expanded) {
-      setDisplay(children);
-      return;
-    }
+    if (expanded) return;
 
     const measure = () => {
       const next = truncateToFit(element, children);
@@ -64,7 +61,7 @@ export function SplitDescription({ children }: { children: string }) {
       title={expanded ? "Collapse description" : "Show full description"}
       onClick={() => setExpanded((current) => !current)}
     >
-      {display}
+      {expanded ? children : display}
     </button>
   );
 }

@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { AffixSettings } from "../discover/affix-settings";
 import { BrandMark } from "../discover/brand-mark";
 import { DomainAvailability } from "../discover/domain-availability";
@@ -26,6 +26,7 @@ import { WordTypeTabs } from "../ui/word-type-tabs";
 import { applyWordCapitalization } from "../../lib/constants";
 import type { HomeState } from "../../hooks/use-home";
 import { useHistorySideTap } from "../../hooks/use-history-side-tap";
+import { useComboFocusSnap } from "../../hooks/use-combo-focus-snap";
 import { sounds } from "../../lib/sounds";
 import { parseTags } from "../../lib/tags";
 
@@ -264,6 +265,10 @@ export function DiscoverView(props: DiscoverViewProps) {
   const effectiveDisplayedName = hasOverrideWord ? overrideWord : displayedName;
   const displayLeftChunk = nameDisplayMode === "brand" ? brandLeftChunk : mixedWordParts.leftChunk;
   const displayRightChunk = nameDisplayMode === "brand" ? brandRightChunk : mixedWordParts.rightChunk;
+  const comboFocus = useComboFocusSnap(Boolean(effectiveDisplayedName) && !mobileDiscoverPanel);
+  const comboFocusStyle = {
+    "--combo-focus-progress": comboFocus.progress,
+  } as CSSProperties;
 
   useHistorySideTap({
     enabled: isMobileLayout && !mobileDiscoverPanel,
@@ -480,7 +485,15 @@ export function DiscoverView(props: DiscoverViewProps) {
           />
         </div>
 
-        <div className="split-word-anchor">
+        <div
+          className={["split-word-anchor", comboFocus.isInteracting ? "is-combo-focus-interacting" : ""].filter(Boolean).join(" ")}
+          style={comboFocusStyle}
+          data-combo-focus={comboFocus.isCollapsed ? "collapsed" : "expanded"}
+          role="region"
+          aria-label="Word details. Scroll or swipe down to focus the combined word, and up to show details."
+          tabIndex={0}
+          {...comboFocus.keyboardProps}
+        >
           <div className="copyable-word-wrap split-copyable-word-wrap">
                 <WordCopyHint status={wordCopyStatus} />
                 <button
@@ -541,7 +554,11 @@ export function DiscoverView(props: DiscoverViewProps) {
                   )}
                 </button>
           </div>
-          <div className="split-definitions">
+          <div
+            className="split-definitions"
+            aria-hidden={comboFocus.isCollapsed || undefined}
+            inert={comboFocus.isCollapsed || undefined}
+          >
             {[{ word: result, pronunciation: displayedPronunciation }, { word: secondaryResult, pronunciation: secondaryPronunciation }].map((item, index) => (
               <article
                 data-view-transition-card={index === 1 ? "" : undefined}
