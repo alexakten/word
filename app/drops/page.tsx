@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 };
 
 const perks = [
-  "5 new premium domains every week",
-  "Included social handles (X, IG, TikTok)",
+  "5 exclusive curated names every week.",
+  "Domains and matching social handles",
   "Be the first to claim premium names",
 ];
 
