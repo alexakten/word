@@ -45,6 +45,7 @@ const BLOCKED_EXACT = new Set([
   "damn",
   "damned",
   "dick",
+  "dickhole",
   "dicks",
   "dildo",
   "dildos",
