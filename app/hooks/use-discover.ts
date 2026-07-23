@@ -265,15 +265,22 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     () => effectiveMixSettings(rightSliceMode, mixRightSettings),
     [mixRightSettings, rightSliceMode],
   );
-  const mixedWordParts = useMemo(
-    () => mixWordParts(
+  const mixedWordParts = useMemo(() => {
+    const parts = mixWordParts(
       leftWordValue,
       rightWordValue,
       effectiveMixLeftSettings,
       effectiveMixRightSettings,
       result.syllables,
       secondaryResult.syllables,
-    ),
+    );
+    const overlap = Math.min(result.joinOverlap ?? 0, parts.leftChunk.length, parts.rightChunk.length);
+    if (!overlap || parts.leftChunk.slice(-overlap).toLowerCase() !== parts.rightChunk.slice(0, overlap).toLowerCase()) {
+      return parts;
+    }
+    const leftChunk = parts.leftChunk.slice(0, -overlap);
+    return { leftChunk, rightChunk: parts.rightChunk, mixed: `${leftChunk}${parts.rightChunk}`.toLowerCase() };
+  },
     [effectiveMixLeftSettings, effectiveMixRightSettings, leftWordValue, rightWordValue, result.syllables, secondaryResult.syllables],
   );
   const displayedCombinedWord = mixedWordParts.mixed;
@@ -378,17 +385,44 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       ).sort((a, b) => Math.abs(a - midpoint) - Math.abs(b - midpoint));
 
       let resolvedParts: [WordResult, WordResult] | null = null;
+      let resolvedOverlap = 0;
+      let bestPartialParts: [WordResult, WordResult] | null = null;
+      let bestRecognizedLength = 0;
+      let bestPartialOverlap = 0;
+      const customWord = (word: string): WordResult => ({
+        word,
+        definition: "A custom word.",
+        partOfSpeech: "word",
+      });
+
       for (let index = 0; index < splitPoints.length && !resolvedParts; index += 4) {
         const batch = splitPoints.slice(index, index + 4);
-        const matches = await Promise.all(batch.map(async (splitAt) => {
-          const [left, right] = await Promise.all([
-            lookupWord(enteredWord.slice(0, splitAt)),
-            lookupWord(enteredWord.slice(splitAt)),
-          ]);
-          return left && right ? [left, right] as [WordResult, WordResult] : null;
-        }));
+        const matches = await Promise.all(batch.flatMap((splitAt) => [0, 1].map(async (overlap) => {
+          const leftText = enteredWord.slice(0, splitAt);
+          const rightText = enteredWord.slice(splitAt - overlap);
+          const [left, right] = await Promise.all([lookupWord(leftText), lookupWord(rightText)]);
+          return { left, right, leftText, rightText, overlap };
+        })));
         if (controller.signal.aborted || combinedEditRequestRef.current !== controller) return;
-        resolvedParts = matches.find((match): match is [WordResult, WordResult] => Boolean(match)) ?? null;
+        const completeMatch = matches.find((match) => match.left && match.right);
+        if (completeMatch?.left && completeMatch.right) {
+          resolvedParts = [completeMatch.left, completeMatch.right];
+          resolvedOverlap = completeMatch.overlap;
+          continue;
+        }
+
+        for (const match of matches) {
+          if (Boolean(match.left) === Boolean(match.right)) continue;
+          const recognizedLength = match.left ? match.leftText.length : match.rightText.length;
+          if (recognizedLength < bestRecognizedLength) continue;
+          if (recognizedLength === bestRecognizedLength && match.overlap <= bestPartialOverlap) continue;
+          bestRecognizedLength = recognizedLength;
+          bestPartialOverlap = match.overlap;
+          bestPartialParts = [
+            match.left ?? customWord(match.leftText),
+            match.right ?? customWord(match.rightText),
+          ];
+        }
       }
 
       let leftResult: WordResult;
@@ -398,12 +432,16 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       } else {
         const recognizedWord = await lookupWord(enteredWord);
         if (controller.signal.aborted || combinedEditRequestRef.current !== controller) return;
-        leftResult = recognizedWord ?? {
-          word: enteredWord,
-          definition: "A custom word.",
-          partOfSpeech: "word",
-        };
-        rightResult = emptyWordResult;
+        if (recognizedWord) {
+          leftResult = recognizedWord;
+          rightResult = emptyWordResult;
+        } else if (bestPartialParts) {
+          [leftResult, rightResult] = bestPartialParts;
+          resolvedOverlap = bestPartialOverlap;
+        } else {
+          leftResult = customWord(enteredWord);
+          rightResult = emptyWordResult;
+        }
       }
 
       setLeftWordDraft("");
@@ -412,7 +450,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       setRightSliceMode("none");
       setMixLeftSettings({ ...defaultMixLeftSettings });
       setMixRightSettings({ ...defaultMixRightSettings });
-      commitWord(leftResult);
+      commitWord(resolvedOverlap ? { ...leftResult, joinOverlap: resolvedOverlap } : leftResult);
       setSecondaryResult(rightResult);
     } finally {
       if (combinedEditRequestRef.current === controller) {
