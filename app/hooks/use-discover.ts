@@ -280,8 +280,15 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     }
     const leftChunk = parts.leftChunk.slice(0, -overlap);
     return { leftChunk, rightChunk: parts.rightChunk, mixed: `${leftChunk}${parts.rightChunk}`.toLowerCase() };
-  },
-    [effectiveMixLeftSettings, effectiveMixRightSettings, leftWordValue, rightWordValue, result.syllables, secondaryResult.syllables],
+  }, [
+    effectiveMixLeftSettings,
+    effectiveMixRightSettings,
+    leftWordValue,
+    result.joinOverlap,
+    result.syllables,
+    rightWordValue,
+    secondaryResult.syllables,
+  ],
   );
   const displayedCombinedWord = mixedWordParts.mixed;
   const brandLeftChunk = nameDisplayMode === "brand"

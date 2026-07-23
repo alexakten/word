@@ -268,6 +268,7 @@ export function DiscoverView(props: DiscoverViewProps) {
   const [combinedWordDraft, setCombinedWordDraft] = useState("");
   const combinedEditSubmittingRef = useRef(false);
   const combinedWordEditorRef = useRef<HTMLSpanElement>(null);
+  const combinedWordTouchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!editingCombinedWord) return;
@@ -585,6 +586,22 @@ export function DiscoverView(props: DiscoverViewProps) {
                   disabled={!effectiveDisplayedName || loading || secondaryLoading || splitBatchLoading}
                   aria-label={`Edit ${effectiveDisplayedName}`}
                   onClick={beginCombinedWordEdit}
+                  onTouchStart={(event) => {
+                    const touch = event.touches[0];
+                    combinedWordTouchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+                  }}
+                  onTouchEnd={(event) => {
+                    const start = combinedWordTouchStartRef.current;
+                    const touch = event.changedTouches[0];
+                    combinedWordTouchStartRef.current = null;
+                    if (!start || !touch) return;
+                    if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 10) return;
+                    event.preventDefault();
+                    beginCombinedWordEdit();
+                  }}
+                  onTouchCancel={() => {
+                    combinedWordTouchStartRef.current = null;
+                  }}
                 >
                   {hasOverrideWord ? (
                     <>

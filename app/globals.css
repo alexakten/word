@@ -3232,6 +3232,12 @@ html[data-colorway="light"] .domain-alt-tld.is-unknown .domain-alt-tld-check {
   animation: copy-hint-icon-swap .24s cubic-bezier(.22, 1, .36, 1) both;
 }
 
+@media (hover: none), (pointer: coarse) {
+  .split-copyable-word-wrap .word-copy-hint {
+    display: none;
+  }
+}
+
 @keyframes copy-hint-swap {
   from {
     opacity: .2;
