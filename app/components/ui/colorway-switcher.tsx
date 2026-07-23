@@ -10,6 +10,7 @@ import {
   type Colorway,
 } from "../../lib/colorways";
 import { sounds } from "../../lib/sounds";
+import { isAdminMode } from "../../lib/admin-mode";
 
 const COLORWAY_EVENT = "spellsurf:colorway";
 const CUSTOM_COLORS_EVENT = "spellsurf:custom-colors";
@@ -20,13 +21,6 @@ type CustomColors = {
   background: string;
   text: string;
 };
-
-function isAdminMode() {
-  const host = window.location.hostname.toLowerCase();
-  return host === "admin.spellsurf.com"
-    || host === "admin.localhost"
-    || window.location.pathname === "/admin";
-}
 
 function readThemeColors(): CustomColors {
   const styles = getComputedStyle(document.documentElement);

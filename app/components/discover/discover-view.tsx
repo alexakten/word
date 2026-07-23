@@ -28,6 +28,7 @@ import { useHistorySideTap } from "../../hooks/use-history-side-tap";
 import { useComboFocusSnap } from "../../hooks/use-combo-focus-snap";
 import { sounds } from "../../lib/sounds";
 import { parseTags } from "../../lib/tags";
+import { isAdminMode } from "../../lib/admin-mode";
 
 const SHOW_DESKTOP_TOOLTIPS = false;
 
@@ -254,6 +255,7 @@ export function DiscoverView(props: DiscoverViewProps) {
     loadSavedWord,
     embedOverrideText,
   } = props;
+  const [adminMode, setAdminMode] = useState(false);
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
   const overrideWordRaw = embedOverrideText?.trim() ?? "";
@@ -273,6 +275,12 @@ export function DiscoverView(props: DiscoverViewProps) {
   const combinedEditSubmittingRef = useRef(false);
   const combinedWordEditorRef = useRef<HTMLSpanElement>(null);
   const combinedWordTouchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- Admin availability is determined from the client URL after hydration. */
+  useEffect(() => {
+    setAdminMode(isAdminMode());
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!editingCombinedWord) return;
@@ -507,7 +515,9 @@ export function DiscoverView(props: DiscoverViewProps) {
                 enabled={brandStyleRandomizeOnGenerate}
                 onEnabledChange={setBrandStyleRandomizeOnGenerate}
               />
-              <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
+              {adminMode ? (
+                <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
+              ) : null}
             </div>
           </div>
         ) : null}
@@ -789,7 +799,9 @@ export function DiscoverView(props: DiscoverViewProps) {
                 enabled={brandStyleRandomizeOnGenerate}
                 onEnabledChange={setBrandStyleRandomizeOnGenerate}
               />
-              <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
+              {adminMode ? (
+                <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
+              ) : null}
             </div>
           </div>
         ) : null}

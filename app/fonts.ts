@@ -52,6 +52,8 @@ export const calSans = Cal_Sans({
   subsets: ["latin"],
   weight: "400",
   display: "swap",
+  fallback: ["Arial", "sans-serif"],
+  adjustFontFallback: false,
   variable: "--font-cal-sans",
 });
 
