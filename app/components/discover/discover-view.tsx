@@ -506,7 +506,6 @@ export function DiscoverView(props: DiscoverViewProps) {
               <BrandStyleRandomizeButton
                 enabled={brandStyleRandomizeOnGenerate}
                 onEnabledChange={setBrandStyleRandomizeOnGenerate}
-                disabled={!logoEnabled}
               />
               <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
             </div>
@@ -789,7 +788,6 @@ export function DiscoverView(props: DiscoverViewProps) {
               <BrandStyleRandomizeButton
                 enabled={brandStyleRandomizeOnGenerate}
                 onEnabledChange={setBrandStyleRandomizeOnGenerate}
-                disabled={!logoEnabled}
               />
               <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
             </div>

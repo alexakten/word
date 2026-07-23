@@ -143,9 +143,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     const capitalization = pickRandomWordCapitalization(wordCapitalization);
     const currentFont = parseEmbedFontFamily(document.documentElement.getAttribute("data-display-font"));
     const fontFamily = pickRandomDisplayFont(currentFont);
+    const showLogo = Math.random() >= .5;
 
     setBrandLogoId(logoId);
-    setLogoEnabled(true);
+    setLogoEnabled(showLogo);
     setWordCapitalization(capitalization);
     applyDisplayFontToDocument(displayFontPreset(fontFamily));
     window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily } }));
