@@ -1,8 +1,8 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, RefreshCw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, PenLine, RefreshCw, X } from "lucide-react";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { AffixSettings } from "../discover/affix-settings";
 import { BrandMark } from "../discover/brand-mark";
 import { DomainAvailability } from "../discover/domain-availability";
@@ -13,7 +13,6 @@ import { SliceSettingsPanel, SliceSidePanel } from "../discover/slice-settings-p
 import { SettingsPanelScroll } from "../discover/settings-panel-scroll";
 import { SplitDescription } from "../discover/split-description";
 import { SyllableCountSetting } from "../discover/syllable-count-setting";
-import { WordCopyHint } from "../discover/word-copy-hint";
 import { WordLengthSetting } from "../discover/word-length-setting";
 import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
@@ -84,8 +83,6 @@ export type DiscoverViewProps = Pick<
   | "setSecondaryWordLetters"
   | "secondaryWordLengthMode"
   | "setSecondaryWordLengthMode"
-  | "wordCopyStatus"
-  | "setWordCopyStatus"
   | "leftWordValue"
   | "rightWordValue"
   | "displayedCombinedWord"
@@ -106,7 +103,7 @@ export type DiscoverViewProps = Pick<
   | "setWordCapitalization"
   | "brandLeftChunk"
   | "brandRightChunk"
-  | "copyDisplayedWord"
+  | "editCombinedWord"
   | "mixedWordParts"
   | "loading"
   | "secondaryLoading"
@@ -194,8 +191,6 @@ export function DiscoverView(props: DiscoverViewProps) {
     setSecondaryWordLetters,
     secondaryWordLengthMode,
     setSecondaryWordLengthMode,
-    wordCopyStatus,
-    setWordCopyStatus,
     leftWordValue,
     rightWordValue,
     displayedCombinedWord,
@@ -216,7 +211,7 @@ export function DiscoverView(props: DiscoverViewProps) {
     setWordCapitalization,
     brandLeftChunk,
     brandRightChunk,
-    copyDisplayedWord,
+    editCombinedWord,
     mixedWordParts,
     loading,
     secondaryLoading,
@@ -269,6 +264,45 @@ export function DiscoverView(props: DiscoverViewProps) {
   const comboFocusStyle = {
     "--combo-focus-progress": comboFocus.progress,
   } as CSSProperties;
+  const [editingCombinedWord, setEditingCombinedWord] = useState(false);
+  const [combinedWordDraft, setCombinedWordDraft] = useState("");
+  const combinedEditSubmittingRef = useRef(false);
+  const combinedWordEditorRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!editingCombinedWord) return;
+    const editor = combinedWordEditorRef.current;
+    if (!editor) return;
+    editor.focus();
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }, [editingCombinedWord]);
+
+  const beginCombinedWordEdit = () => {
+    setCombinedWordDraft(nameDisplayMode === "brand" ? `${brandLeftChunk}${brandRightChunk}` : displayedCombinedWord);
+    setEditingCombinedWord(true);
+  };
+
+  const submitCombinedWordEdit = async (event?: FormEvent) => {
+    event?.preventDefault();
+    if (combinedEditSubmittingRef.current) return;
+    const nextWord = (combinedWordEditorRef.current?.textContent ?? combinedWordDraft).trim();
+    if (!nextWord) {
+      setEditingCombinedWord(false);
+      return;
+    }
+    combinedEditSubmittingRef.current = true;
+    try {
+      await editCombinedWord(nextWord);
+      setEditingCombinedWord(false);
+    } finally {
+      combinedEditSubmittingRef.current = false;
+    }
+  };
 
   useHistorySideTap({
     enabled: isMobileLayout && !mobileDiscoverPanel,
@@ -495,23 +529,62 @@ export function DiscoverView(props: DiscoverViewProps) {
           {...comboFocus.keyboardProps}
         >
           <div className="copyable-word-wrap split-copyable-word-wrap">
-                <WordCopyHint status={wordCopyStatus} />
+            <span className={`word-copy-hint${editingCombinedWord ? " hidden" : ""}`} aria-hidden="true">
+              <span className="word-copy-hint-icon">
+                <PenLine size={12} strokeWidth={1.5} />
+              </span>
+              <span className="word-copy-hint-label">Click to edit</span>
+            </span>
+            {editingCombinedWord ? (
+              <form
+                className={[
+                  "split-combined-word mix-combined-word split-combined-edit-form",
+                  nameDisplayMode === "brand" && logoEnabled ? "has-brand-mark" : "",
+                ].filter(Boolean).join(" ")}
+                onSubmit={(event) => void submitCombinedWordEdit(event)}
+              >
+                {nameDisplayMode === "brand" && logoEnabled ? (
+                  <BrandMark logoId={brandLogoId} />
+                ) : null}
+                <span
+                  ref={combinedWordEditorRef}
+                  className="split-combined-edit-input"
+                  role="textbox"
+                  aria-label="Edit combined word"
+                  aria-disabled={loading || secondaryLoading || splitBatchLoading}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  contentEditable={loading || secondaryLoading || splitBatchLoading ? false : "plaintext-only"}
+                  suppressContentEditableWarning
+                  onBlur={() => void submitCombinedWordEdit()}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      void submitCombinedWordEdit();
+                      return;
+                    }
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      setEditingCombinedWord(false);
+                    }
+                  }}
+                >
+                  {combinedWordDraft}
+                </span>
+              </form>
+            ) : (
                 <button
                   className={[
                     "split-combined-word copyable-word mix-combined-word",
                     nameDisplayMode === "brand" && logoEnabled ? "has-brand-mark" : "",
                   ].filter(Boolean).join(" ")}
                   type="button"
-                  disabled={
-                    hasOverrideWord
-                      ? false
-                      : !leftWordValue || !rightWordValue || loading || secondaryLoading || splitBatchLoading
-                  }
-                  aria-label={`Copy ${effectiveDisplayedName}`}
-                  onClick={() => void copyDisplayedWord(effectiveDisplayedName)}
-                  onPointerEnter={() => {
-                    if (wordCopyStatus === "hidden") setWordCopyStatus("idle");
-                  }}
+                  disabled={!effectiveDisplayedName || loading || secondaryLoading || splitBatchLoading}
+                  aria-label={`Edit ${effectiveDisplayedName}`}
+                  onClick={beginCombinedWordEdit}
                 >
                   {hasOverrideWord ? (
                     <>
@@ -537,14 +610,14 @@ export function DiscoverView(props: DiscoverViewProps) {
                           className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
                           key={`mix-left-${mixedWordParts.leftChunk}`}
                         >
-                          {displayLeftChunk || "——"}
+                          {displayLeftChunk || (!effectiveDisplayedName ? "——" : "")}
                         </span>
                         <span
                           className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
                           data-view-transition-word
                           key={`mix-right-${mixedWordParts.rightChunk}`}
                         >
-                          {displayRightChunk || "——"}
+                          {displayRightChunk || (!effectiveDisplayedName ? "——" : "")}
                         </span>
                         {nameDisplayMode === "domain" && displayedCombinedWord ? (
                           <span className="domain-tld">{selectedTld}</span>
@@ -553,6 +626,7 @@ export function DiscoverView(props: DiscoverViewProps) {
                     </>
                   )}
                 </button>
+            )}
           </div>
           <div
             className="split-definitions"

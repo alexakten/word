@@ -24,6 +24,7 @@ const GESTURE_EXCLUSION_SELECTOR = [
 
 function isAvailableGestureArea(target: EventTarget | null) {
   if (!(target instanceof Element)) return true;
+  if (target.closest(".split-combined-edit-input")) return false;
   if (target.closest(".split-word-anchor")) return true;
   return !target.closest(GESTURE_EXCLUSION_SELECTOR);
 }

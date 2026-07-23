@@ -71,6 +71,7 @@ const BLOCKED_EXACT = new Set([
   "goddamn",
   "hell",
   "homo",
+  "incest",
   "jerkoff",
   "jizz",
   "labia",

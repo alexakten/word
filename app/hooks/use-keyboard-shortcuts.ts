@@ -56,6 +56,9 @@ export function useKeyboardShortcuts({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.isContentEditable || target.closest("[contenteditable], .split-combined-edit-input")) return;
+
       if (focusMode) {
         event.preventDefault();
         if (event.code === "Space" || event.key === "Enter") {
@@ -92,7 +95,6 @@ export function useKeyboardShortcuts({
         return;
       }
       if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target as HTMLElement;
       if (target.matches("button, input, select, textarea")) return;
 
       if (event.key.toLowerCase() === "f" && appMode === "discover") {

@@ -23,6 +23,7 @@ import {
   type WordCapitalization,
   type WordCopyStatus,
   type WordResult,
+  emptyWordResult,
 } from "../lib/types";
 import { parseMixSideSettings, parseSideSettings, syncDiscoverUrlParams } from "../lib/url-params";
 import { sounds } from "../lib/sounds";
@@ -108,6 +109,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const requestRef = useRef<AbortController | null>(null);
   const secondaryRequestRef = useRef<AbortController | null>(null);
   const splitBatchRequestRef = useRef(0);
+  const combinedEditRequestRef = useRef<AbortController | null>(null);
   const wordCopyTimerRef = useRef(0);
   const wordHistoryRef = useRef<WordResult[]>([RESET_LEFT_WORD]);
   const historyIndexRef = useRef(0);
@@ -224,6 +226,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     secondaryRequestRef.current?.abort();
     secondaryRequestRef.current = null;
     splitBatchRequestRef.current += 1;
+    combinedEditRequestRef.current?.abort();
+    combinedEditRequestRef.current = null;
     setLoading(false);
     setSecondaryLoading(false);
     setSplitBatchLoading(false);
@@ -332,7 +336,97 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     }
   }, []);
 
-  useEffect(() => () => window.clearTimeout(wordCopyTimerRef.current), []);
+  const editCombinedWord = useCallback(async (value: string) => {
+    const enteredWord = value.replace(/[^a-z]/gi, "").toLowerCase().slice(0, 40);
+    if (!enteredWord) return;
+
+    combinedEditRequestRef.current?.abort();
+    const controller = new AbortController();
+    combinedEditRequestRef.current = controller;
+    setLoading(true);
+    setSecondaryLoading(true);
+    setMessage("");
+
+    const lookupCache = new Map<string, Promise<WordResult | null>>();
+    const lookupWord = (word: string) => {
+      const cached = lookupCache.get(word);
+      if (cached) return cached;
+      const request = (async () => {
+        try {
+          const response = await fetch(`/api/word?lookup=${encodeURIComponent(word)}`, {
+            signal: controller.signal,
+          });
+          applyApiHealth(response, setApiHealth);
+          if (!response.ok) return null;
+          return await response.json() as WordResult;
+        } catch (error) {
+          if ((error as Error).name !== "AbortError" && isFetchFailure(error)) {
+            applyApiHealth(null, setApiHealth);
+          }
+          return null;
+        }
+      })();
+      lookupCache.set(word, request);
+      return request;
+    };
+
+    try {
+      const midpoint = enteredWord.length / 2;
+      const splitPoints = Array.from(
+        { length: Math.max(0, enteredWord.length - 3) },
+        (_, index) => index + 2,
+      ).sort((a, b) => Math.abs(a - midpoint) - Math.abs(b - midpoint));
+
+      let resolvedParts: [WordResult, WordResult] | null = null;
+      for (let index = 0; index < splitPoints.length && !resolvedParts; index += 4) {
+        const batch = splitPoints.slice(index, index + 4);
+        const matches = await Promise.all(batch.map(async (splitAt) => {
+          const [left, right] = await Promise.all([
+            lookupWord(enteredWord.slice(0, splitAt)),
+            lookupWord(enteredWord.slice(splitAt)),
+          ]);
+          return left && right ? [left, right] as [WordResult, WordResult] : null;
+        }));
+        if (controller.signal.aborted || combinedEditRequestRef.current !== controller) return;
+        resolvedParts = matches.find((match): match is [WordResult, WordResult] => Boolean(match)) ?? null;
+      }
+
+      let leftResult: WordResult;
+      let rightResult: WordResult;
+      if (resolvedParts) {
+        [leftResult, rightResult] = resolvedParts;
+      } else {
+        const recognizedWord = await lookupWord(enteredWord);
+        if (controller.signal.aborted || combinedEditRequestRef.current !== controller) return;
+        leftResult = recognizedWord ?? {
+          word: enteredWord,
+          definition: "A custom word.",
+          partOfSpeech: "word",
+        };
+        rightResult = emptyWordResult;
+      }
+
+      setLeftWordDraft("");
+      setRightWordDraft("");
+      setLeftSliceMode("none");
+      setRightSliceMode("none");
+      setMixLeftSettings({ ...defaultMixLeftSettings });
+      setMixRightSettings({ ...defaultMixRightSettings });
+      commitWord(leftResult);
+      setSecondaryResult(rightResult);
+    } finally {
+      if (combinedEditRequestRef.current === controller) {
+        combinedEditRequestRef.current = null;
+        setLoading(false);
+        setSecondaryLoading(false);
+      }
+    }
+  }, [commitWord, setApiHealth, setMessage]);
+
+  useEffect(() => () => {
+    window.clearTimeout(wordCopyTimerRef.current);
+    combinedEditRequestRef.current?.abort();
+  }, []);
   const findWord = useCallback(
     async (
       relation?: (typeof relations)[number],
@@ -538,6 +632,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, [resetSecondaryFilters]);
 
   const generateVisibleWords = useCallback((requestedType: PartOfSpeech = wordType) => {
+    combinedEditRequestRef.current?.abort();
+    combinedEditRequestRef.current = null;
     const batchRequest = splitBatchRequestRef.current + 1;
     splitBatchRequestRef.current = batchRequest;
     setSplitBatchLoading(true);
@@ -872,6 +968,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     combinedSplitIsSaved,
     toggleCombinedSaved,
     copyDisplayedWord,
+    editCombinedWord,
     findWord,
     findSecondaryWord,
     handleLeftWordDraftChange,
