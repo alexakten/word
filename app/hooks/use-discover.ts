@@ -16,6 +16,7 @@ import { parseEmbedFontFamily } from "../lib/embed-bridge";
 import { normalizeLengthSelection, normalizeSyllableSelection, resolveLengthFilter, resolveSyllableFilter } from "../lib/filters";
 import {
   type ApiHealth,
+  type BrandSuffixMark,
   type LengthMode,
   type NameDisplayMode,
   type PartOfSpeech,
@@ -77,6 +78,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [logoEnabled, setLogoEnabled] = useState(false);
   const [brandLogoId, setBrandLogoId] = useState<BrandLogoId>(DEFAULT_BRAND_LOGO_ID);
   const [wordCapitalization, setWordCapitalization] = useState<WordCapitalization>("lower");
+  const [brandSuffixMark, setBrandSuffixMark] = useState<BrandSuffixMark>("");
   const [brandStyleRandomizeOnGenerate, setBrandStyleRandomizeOnGenerate] = useState(false);
   const [leftSliceMode, setLeftSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
   const [rightSliceMode, setRightSliceMode] = useState<SliceMode>(DEFAULT_SLICE_MODE);
@@ -244,6 +246,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setBrandLogoId(DEFAULT_BRAND_LOGO_ID);
     setLogoEnabled(false);
     setWordCapitalization("lower");
+    setBrandSuffixMark("");
     setBrandStyleRandomizeOnGenerate(false);
     const defaultFont = displayFontPreset(DEFAULT_DISPLAY_FONT_FAMILY);
     applyDisplayFontToDocument(defaultFont);
@@ -957,6 +960,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setBrandStyleRandomizeOnGenerate,
     wordCapitalization,
     setWordCapitalization,
+    brandSuffixMark,
+    setBrandSuffixMark,
     leftSliceMode,
     rightSliceMode,
     mixLeftSettings,

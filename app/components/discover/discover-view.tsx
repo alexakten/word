@@ -20,7 +20,7 @@ import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
 import { SoundToggle } from "../ui/sound-toggle";
-import { BrandStyleRandomizeButton, CapitalizationControls, LogoStyleControls, LogoVisibilityToggle, TypographyControls } from "../ui/typography-controls";
+import { BrandStyleRandomizeButton, BrandSuffixControls, CapitalizationControls, LogoStyleControls, LogoVisibilityToggle, TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { applyWordCapitalization } from "../../lib/constants";
 import type { HomeState } from "../../hooks/use-home";
@@ -101,6 +101,8 @@ export type DiscoverViewProps = Pick<
   | "setBrandStyleRandomizeOnGenerate"
   | "wordCapitalization"
   | "setWordCapitalization"
+  | "brandSuffixMark"
+  | "setBrandSuffixMark"
   | "brandLeftChunk"
   | "brandRightChunk"
   | "editCombinedWord"
@@ -209,6 +211,8 @@ export function DiscoverView(props: DiscoverViewProps) {
     setBrandStyleRandomizeOnGenerate,
     wordCapitalization,
     setWordCapitalization,
+    brandSuffixMark,
+    setBrandSuffixMark,
     brandLeftChunk,
     brandRightChunk,
     editCombinedWord,
@@ -504,6 +508,7 @@ export function DiscoverView(props: DiscoverViewProps) {
                 onEnabledChange={setBrandStyleRandomizeOnGenerate}
                 disabled={!logoEnabled}
               />
+              <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
             </div>
           </div>
         ) : null}
@@ -622,6 +627,9 @@ export function DiscoverView(props: DiscoverViewProps) {
                         <span className="mix-word-part" key={`override-${overrideWord}`}>
                           {overrideWord}
                         </span>
+                        {nameDisplayMode === "brand" && brandSuffixMark ? (
+                          <sup className="brand-suffix-mark">{brandSuffixMark}</sup>
+                        ) : null}
                       </span>
                     </>
                   ) : (
@@ -646,6 +654,9 @@ export function DiscoverView(props: DiscoverViewProps) {
                         >
                           {displayRightChunk || (!effectiveDisplayedName ? "——" : "")}
                         </span>
+                        {nameDisplayMode === "brand" && brandSuffixMark ? (
+                          <sup className="brand-suffix-mark">{brandSuffixMark}</sup>
+                        ) : null}
                         {nameDisplayMode === "domain" && displayedCombinedWord ? (
                           <span className="domain-tld">{selectedTld}</span>
                         ) : null}
@@ -780,6 +791,7 @@ export function DiscoverView(props: DiscoverViewProps) {
                 onEnabledChange={setBrandStyleRandomizeOnGenerate}
                 disabled={!logoEnabled}
               />
+              <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
             </div>
           </div>
         ) : null}

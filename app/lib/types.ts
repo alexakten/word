@@ -5,6 +5,7 @@ export type LengthMode = "less" | "exact" | "more";
 export type AppMode = "discover" | "combine" | "find";
 export type NameDisplayMode = "word" | "domain" | "handle" | "brand";
 export type WordCapitalization = "lower" | "title" | "upper";
+export type BrandSuffixMark = "" | "™" | "®";
 export type WordCopyStatus = "idle" | "copied" | "hidden";
 
 export type WordResult = {

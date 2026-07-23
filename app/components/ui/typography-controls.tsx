@@ -14,7 +14,7 @@ import {
 import { WORD_CAPITALIZATION_OPTIONS } from "../../lib/constants";
 import type { BrandLogoId } from "../../lib/brand-logos";
 import type { EmbedFontFamily } from "../../lib/embed-bridge";
-import type { WordCapitalization } from "../../lib/types";
+import type { BrandSuffixMark, WordCapitalization } from "../../lib/types";
 import { sounds } from "../../lib/sounds";
 import { useControlPop } from "./use-control-pop";
 
@@ -203,6 +203,39 @@ export function BrandStyleRandomizeButton({
       }}
     >
       <Dices size={14} strokeWidth={1.8} aria-hidden="true" />
+    </button>
+  );
+}
+
+const BRAND_SUFFIX_OPTIONS: { value: BrandSuffixMark; label: string; name: string }[] = [
+  { value: "™", label: "™", name: "trademark" },
+  { value: "®", label: "®", name: "registered" },
+  { value: "", label: "—", name: "none" },
+];
+
+export function BrandSuffixControls({
+  value,
+  onChange,
+}: {
+  value: BrandSuffixMark;
+  onChange: (value: BrandSuffixMark) => void;
+}) {
+  const pop = useControlPop();
+  const index = BRAND_SUFFIX_OPTIONS.findIndex((option) => option.value === value);
+  const current = BRAND_SUFFIX_OPTIONS[Math.max(index, 0)]!;
+
+  return (
+    <button
+      className="font-cycle-button capitalization-cycle-button brand-suffix-cycle-button"
+      type="button"
+      aria-label={`Brand suffix: ${current.name}. Choose next suffix`}
+      onClick={(event) => {
+        pop(event);
+        sounds.click();
+        onChange(BRAND_SUFFIX_OPTIONS[(Math.max(index, 0) + 1) % BRAND_SUFFIX_OPTIONS.length]!.value);
+      }}
+    >
+      <span key={current.name}>{current.label}</span>
     </button>
   );
 }
