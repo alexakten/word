@@ -57,21 +57,21 @@ export function Countdown() {
 
   const parts = remaining
     ? [
-        { label: "days", value: pad(remaining.days) },
-        { label: "hrs", value: pad(remaining.hours) },
-        { label: "min", value: pad(remaining.minutes) },
-        { label: "sec", value: pad(remaining.seconds) },
-      ]
+      { label: "days", value: pad(remaining.days) },
+      { label: "hrs", value: pad(remaining.hours) },
+      { label: "min", value: pad(remaining.minutes) },
+      { label: "sec", value: pad(remaining.seconds) },
+    ]
     : [
-        { label: "days", value: "––" },
-        { label: "hrs", value: "––" },
-        { label: "min", value: "––" },
-        { label: "sec", value: "––" },
-      ];
+      { label: "days", value: "––" },
+      { label: "hrs", value: "––" },
+      { label: "min", value: "––" },
+      { label: "sec", value: "––" },
+    ];
 
   return (
     <div className={styles.countdown} aria-live="polite">
-      <p className={styles.countdownLabel}>Next drop in</p>
+      <p className={styles.countdownLabel}>Sign up to get the next drop</p>
       <div className={styles.countdownGrid}>
         {parts.map((part) => (
           <div key={part.label} className={styles.countdownUnit}>

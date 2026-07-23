@@ -21,9 +21,9 @@ export const metadata: Metadata = {
 };
 
 const perks = [
-  "5 exclusive curated names every week.",
-  "Domains and matching social handles",
-  "Be the first to claim premium names",
+  "5 exclusive domains every week.",
+  "Matching premium social handles",
+  "Be the first to claim the best names",
 ];
 
 export default function DropsPage() {
