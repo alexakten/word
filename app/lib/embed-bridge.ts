@@ -95,13 +95,10 @@ export const EMBED_FONT_FAMILIES = [
   "afacad",
   "calSans",
   "instrumentSerif",
-  "redaction",
-  "redaction10",
-  "redaction20",
-  "redaction35",
-  "redaction50",
-  "redaction70",
-  "redaction100",
+  "argestaDisplay",
+  "rawest",
+  "safiro",
+  "swiza",
 ] as const;
 export type EmbedFontFamily = (typeof EMBED_FONT_FAMILIES)[number];
 export const DEFAULT_EMBED_FONT: EmbedFontFamily = "openRunde";
@@ -117,13 +114,10 @@ export const EMBED_FONT_OPTIONS: { value: EmbedFontFamily; label: string }[] = [
   { value: "afacad", label: "Afacad" },
   { value: "calSans", label: "Cal Sans" },
   { value: "instrumentSerif", label: "Instrument Serif" },
-  { value: "redaction", label: "Redaction" },
-  { value: "redaction10", label: "Redaction 10" },
-  { value: "redaction20", label: "Redaction 20" },
-  { value: "redaction35", label: "Redaction 35" },
-  { value: "redaction50", label: "Redaction 50" },
-  { value: "redaction70", label: "Redaction 70" },
-  { value: "redaction100", label: "Redaction 100" },
+  { value: "argestaDisplay", label: "Argesta Display" },
+  { value: "rawest", label: "Rawest" },
+  { value: "safiro", label: "Safiro" },
+  { value: "swiza", label: "Swiza" },
 ];
 
 /** Available CSS font-weights per face (what we actually load). */
@@ -138,13 +132,10 @@ export const EMBED_FONT_WEIGHTS: Record<EmbedFontFamily, readonly number[]> = {
   afacad: [400, 500, 600, 700],
   calSans: [400],
   instrumentSerif: [400],
-  redaction: [400, 700],
-  redaction10: [400, 700],
-  redaction20: [400, 700],
-  redaction35: [400, 700],
-  redaction50: [400, 700],
-  redaction70: [400, 700],
-  redaction100: [400, 700],
+  argestaDisplay: [400],
+  rawest: [500],
+  safiro: [500],
+  swiza: [500],
 };
 
 const FONT_WEIGHT_LABELS: Record<number, string> = {
@@ -210,4 +201,3 @@ export function isImageFile(file: File) {
 export function isBackgroundImageUrl(value: unknown): value is string {
   return typeof value === "string" && (value.startsWith("data:image/") || value.startsWith("blob:"));
 }
-

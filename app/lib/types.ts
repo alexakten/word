@@ -4,7 +4,7 @@ export type PartOfSpeech = "any" | "n" | "v" | "adj" | "adv";
 export type LengthMode = "less" | "exact" | "more";
 export type AppMode = "discover" | "combine" | "find";
 export type NameDisplayMode = "word" | "domain" | "handle" | "brand";
-export type WordCapitalization = "lower" | "title";
+export type WordCapitalization = "lower" | "title" | "upper";
 export type WordCopyStatus = "idle" | "copied" | "hidden";
 
 export type WordResult = {

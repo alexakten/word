@@ -7,7 +7,6 @@ import { AboutDrawer } from "../layout/about-drawer";
 import { SavedWordsPanel } from "../layout/saved-words-panel";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { SoundToggle } from "../ui/sound-toggle";
-import { TypographyControls } from "../ui/typography-controls";
 import { sounds } from "../../lib/sounds";
 
 export type ControlsFooterProps = Pick<
@@ -41,7 +40,6 @@ export type ControlsFooterProps = Pick<
   | "savedMenuRef"
   | "saveWords"
   | "loadSavedWord"
-  | "nameDisplayMode"
 >;
 
 export function ControlsFooter(props: ControlsFooterProps) {
@@ -75,7 +73,6 @@ export function ControlsFooter(props: ControlsFooterProps) {
     savedMenuRef,
     saveWords,
     loadSavedWord,
-    nameDisplayMode,
   } = props;
 
   return (
@@ -127,6 +124,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
         <div className="mobile-style-toolbar">
           <div className="mobile-style-left-actions">
             <ColorwaySwitcher />
+            <SoundToggle />
             <SavedWordsPanel
               savedWords={savedWords}
               savedOpen={savedOpen}
@@ -141,9 +139,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
               }}
             />
           </div>
-          <TypographyControls compact />
           <div className="mobile-style-right-actions">
-            <SoundToggle />
             <AboutDrawer />
             <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
           </div>

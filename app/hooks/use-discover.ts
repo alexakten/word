@@ -72,7 +72,7 @@ const RESET_RIGHT_WORD: WordResult = {
 
 export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
-  const [nameDisplayMode, setNameDisplayModeState] = useState<NameDisplayMode>("word");
+  const [nameDisplayMode, setNameDisplayModeState] = useState<NameDisplayMode>("brand");
   const [selectedTld, setSelectedTld] = useState(".com");
   const [logoEnabled, setLogoEnabled] = useState(false);
   const [brandLogoId, setBrandLogoId] = useState<BrandLogoId>(DEFAULT_BRAND_LOGO_ID);
@@ -121,7 +121,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const setNameDisplayMode = useCallback((mode: NameDisplayMode) => {
     setNameDisplayModeState(mode);
     if (mode === "brand") {
-      setLogoEnabled(true);
       window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily: BRAND_DISPLAY_FONT_FAMILY } }));
     } else {
       window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily: DEFAULT_DISPLAY_FONT_FAMILY } }));
@@ -242,6 +241,13 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setRightWordDraft("");
     setResult(RESET_LEFT_WORD);
     setSecondaryResult(RESET_RIGHT_WORD);
+    setBrandLogoId(DEFAULT_BRAND_LOGO_ID);
+    setLogoEnabled(false);
+    setWordCapitalization("lower");
+    setBrandStyleRandomizeOnGenerate(false);
+    const defaultFont = displayFontPreset(DEFAULT_DISPLAY_FONT_FAMILY);
+    applyDisplayFontToDocument(defaultFont);
+    window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: defaultFont }));
     setMessage("");
   }, [resetPrimaryFilters, resetSecondaryFilters, resetSliceSettings, setMessage]);
 

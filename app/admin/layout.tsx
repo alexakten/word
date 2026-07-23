@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Spellsurf Admin",
-  description: "Screenshot studio for Spellsurf social posts.",
+  description: "Spellsurf with custom theme colors.",
   robots: {
     index: false,
     follow: false,

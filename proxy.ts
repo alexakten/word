@@ -17,7 +17,7 @@ export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const isEmbed = searchParams.has("embed");
 
-  // Studio lives at /admin; apex of the admin host rewrites there unless embedding the app.
+  // Admin mode shares the regular app UI at /admin unless embedding the app.
   if (pathname === "/" && !isEmbed) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";

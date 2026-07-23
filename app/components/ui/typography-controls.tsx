@@ -1,6 +1,6 @@
 "use client";
 
-import { Dices } from "lucide-react";
+import { Dices, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   DISPLAY_FONT_EVENT,
@@ -90,10 +90,12 @@ export function LogoStyleControls({
   logoId,
   onCycle,
   className = "",
+  disabled = false,
 }: {
   logoId: BrandLogoId;
   onCycle: () => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const pop = useControlPop();
 
@@ -101,6 +103,7 @@ export function LogoStyleControls({
     <button
       className={["font-cycle-button logo-cycle-button", className].filter(Boolean).join(" ")}
       type="button"
+      disabled={disabled}
       aria-label={`Logo: ${logoId}. Next logo`}
       onClick={(event) => {
         pop(event);
@@ -113,14 +116,41 @@ export function LogoStyleControls({
   );
 }
 
+export function LogoVisibilityToggle({
+  enabled,
+  onChange,
+}: {
+  enabled: boolean;
+  onChange: (enabled: boolean) => void;
+}) {
+  const pop = useControlPop();
+
+  return (
+    <button
+      className="brand-icon-button logo-visibility-toggle"
+      type="button"
+      aria-pressed={enabled}
+      aria-label={enabled ? "Hide logo" : "Show logo"}
+      onClick={(event) => {
+        pop(event);
+        onChange(!enabled);
+      }}
+    >
+      {enabled ? <Eye size={14} strokeWidth={1.8} aria-hidden="true" /> : <EyeOff size={14} strokeWidth={1.8} aria-hidden="true" />}
+    </button>
+  );
+}
+
 export function CapitalizationControls({
   value,
   onChange,
   className = "",
+  disabled = false,
 }: {
   value: WordCapitalization;
   onChange: (value: WordCapitalization) => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const pop = useControlPop();
   const index = WORD_CAPITALIZATION_OPTIONS.findIndex((entry) => entry.value === value);
@@ -131,6 +161,7 @@ export function CapitalizationControls({
     <button
       className={["font-cycle-button capitalization-cycle-button", className].filter(Boolean).join(" ")}
       type="button"
+      disabled={disabled}
       aria-label={`Capitalization: ${current.label}. Switch to ${next.label}`}
       title={current.label}
       onClick={(event) => {
@@ -148,10 +179,12 @@ export function BrandStyleRandomizeButton({
   enabled,
   onEnabledChange,
   className = "",
+  disabled = false,
 }: {
   enabled: boolean;
   onEnabledChange: (enabled: boolean) => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const pop = useControlPop();
 
@@ -159,6 +192,7 @@ export function BrandStyleRandomizeButton({
     <button
       className={["brand-icon-button brand-style-randomize-button", enabled ? "is-active" : "", className].filter(Boolean).join(" ")}
       type="button"
+      disabled={disabled}
       aria-pressed={enabled}
       aria-label={enabled ? "Randomize style on generate: on" : "Randomize style on generate: off"}
       title={enabled ? "Randomize on generate" : "Randomize on generate off"}

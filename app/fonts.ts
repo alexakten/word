@@ -107,123 +107,32 @@ export const parabolica = localFont({
   variable: "--font-parabolica",
 });
 
-export const redaction = localFont({
-  src: [
-    {
-      path: "../public/fonts/Redaction-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Redaction-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
+export const argestaDisplay = localFont({
+  src: "../public/fonts/argestadisplay-regular-webfont.woff2",
+  weight: "400",
   display: "swap",
-  variable: "--font-redaction",
+  variable: "--font-argesta-display",
 });
 
-export const redaction10 = localFont({
-  src: [
-    {
-      path: "../public/fonts/Redaction10-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Redaction10-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
+export const rawest = localFont({
+  src: "../public/fonts/rawest-medium-webfont.woff2",
+  weight: "500",
   display: "swap",
-  variable: "--font-redaction-10",
+  variable: "--font-rawest",
 });
 
-export const redaction20 = localFont({
-  src: [
-    {
-      path: "../public/fonts/Redaction20-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Redaction20-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
+export const safiro = localFont({
+  src: "../public/fonts/safiro-medium-webfont.woff2",
+  weight: "500",
   display: "swap",
-  variable: "--font-redaction-20",
+  variable: "--font-safiro",
 });
 
-export const redaction35 = localFont({
-  src: [
-    {
-      path: "../public/fonts/Redaction35-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Redaction35-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
+export const swiza = localFont({
+  src: "../public/fonts/swiza-medium-webfont.woff2",
+  weight: "500",
   display: "swap",
-  variable: "--font-redaction-35",
-});
-
-export const redaction50 = localFont({
-  src: [
-    {
-      path: "../public/fonts/Redaction50-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Redaction50-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  display: "swap",
-  variable: "--font-redaction-50",
-});
-
-export const redaction70 = localFont({
-  src: [
-    {
-      path: "../public/fonts/Redaction70-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Redaction70-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  display: "swap",
-  variable: "--font-redaction-70",
-});
-
-export const redaction100 = localFont({
-  src: [
-    {
-      path: "../public/fonts/Redaction100-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Redaction100-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  display: "swap",
-  variable: "--font-redaction-100",
+  variable: "--font-swiza",
 });
 
 /** Toggle sans face between Inter and Open Runde. */

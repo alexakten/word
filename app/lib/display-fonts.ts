@@ -16,13 +16,10 @@ export const DISPLAY_FONT_FAMILY_CSS: Record<EmbedFontFamily, string> = {
   afacad: "var(--font-afacad), system-ui, sans-serif",
   calSans: "var(--font-cal-sans), system-ui, sans-serif",
   instrumentSerif: "var(--font-instrument-serif), Georgia, serif",
-  redaction: "var(--font-redaction), Georgia, serif",
-  redaction10: "var(--font-redaction-10), Georgia, serif",
-  redaction20: "var(--font-redaction-20), Georgia, serif",
-  redaction35: "var(--font-redaction-35), Georgia, serif",
-  redaction50: "var(--font-redaction-50), Georgia, serif",
-  redaction70: "var(--font-redaction-70), Georgia, serif",
-  redaction100: "var(--font-redaction-100), Georgia, serif",
+  argestaDisplay: "var(--font-argesta-display), Georgia, serif",
+  rawest: "var(--font-rawest), system-ui, sans-serif",
+  safiro: "var(--font-safiro), system-ui, sans-serif",
+  swiza: "var(--font-swiza), system-ui, sans-serif",
 };
 
 /** Fixed weight + tracking per face — not user-adjustable. */
@@ -37,13 +34,10 @@ export const DISPLAY_FONT_PRESETS: Record<EmbedFontFamily, { fontWeight: number;
   afacad: { fontWeight: 500, letterSpacing: -6 },
   calSans: { fontWeight: 400, letterSpacing: -2 },
   instrumentSerif: { fontWeight: 400, letterSpacing: -4 },
-  redaction: { fontWeight: 400, letterSpacing: -6 },
-  redaction10: { fontWeight: 400, letterSpacing: -6 },
-  redaction20: { fontWeight: 400, letterSpacing: -6 },
-  redaction35: { fontWeight: 400, letterSpacing: -6 },
-  redaction50: { fontWeight: 400, letterSpacing: -6 },
-  redaction70: { fontWeight: 400, letterSpacing: -6 },
-  redaction100: { fontWeight: 400, letterSpacing: -6 },
+  argestaDisplay: { fontWeight: 400, letterSpacing: -4 },
+  rawest: { fontWeight: 500, letterSpacing: -6 },
+  safiro: { fontWeight: 500, letterSpacing: -6 },
+  swiza: { fontWeight: 500, letterSpacing: -6 },
 };
 
 /** Brand-mode cycle — curated subset of embed faces. */
@@ -54,7 +48,10 @@ export const DISPLAY_FONT_FAMILIES = [
   "parabolica",
   "caveat",
   "inter",
-  "playfair",
+  "argestaDisplay",
+  "rawest",
+  "safiro",
+  "swiza",
 ] as const satisfies readonly EmbedFontFamily[];
 
 export type DisplayFontFamily = (typeof DISPLAY_FONT_FAMILIES)[number];
@@ -69,8 +66,11 @@ export const DISPLAY_FONT_OPTIONS: { value: DisplayFontFamily; label: string }[]
   { value: "aboreto", label: "Fancy" },
   { value: "parabolica", label: "Tech" },
   { value: "caveat", label: "Fun" },
-  { value: "inter", label: "Clean" },
-  { value: "playfair", label: "Classy" },
+  { value: "inter", label: "Simple" },
+  { value: "argestaDisplay", label: "Classy" },
+  { value: "rawest", label: "Angular" },
+  { value: "safiro", label: "Trendy" },
+  { value: "swiza", label: "Modern" },
 ];
 
 export const DISPLAY_FONT_EVENT = "spellsurf:display-font";

@@ -9,15 +9,15 @@ export const MAX_SYLLABLE_FILTER = 8;
 export const MAX_LENGTH_FILTER = 22;
 
 export const NAME_DISPLAY_MODE_OPTIONS: { value: NameDisplayMode; label: string }[] = [
-  { value: "word", label: "Name" },
+  { value: "brand", label: "Brand" },
   { value: "domain", label: "Domain" },
   { value: "handle", label: "Handle" },
-  { value: "brand", label: "Brand" },
 ];
 
 export const WORD_CAPITALIZATION_OPTIONS: { value: WordCapitalization; label: string }[] = [
   { value: "lower", label: "aa" },
   { value: "title", label: "Aa" },
+  { value: "upper", label: "AA" },
 ];
 
 export function pickRandomWordCapitalization(exclude?: WordCapitalization | null): WordCapitalization {
@@ -36,6 +36,7 @@ export function pickRandomWordCapitalization(exclude?: WordCapitalization | null
 export function applyWordCapitalization(text: string, mode: WordCapitalization) {
   if (!text) return text;
   if (mode === "lower") return text.toLowerCase();
+  if (mode === "upper") return text.toUpperCase();
   const lower = text.toLowerCase();
   return lower.charAt(0).toUpperCase() + lower.slice(1);
 }

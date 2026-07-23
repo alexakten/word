@@ -20,7 +20,7 @@ import { ApiHealthStatus } from "../ui/api-health-status";
 import { ColorwaySwitcher } from "../ui/colorway-switcher";
 import { DomainModeControls, TldDropdown } from "../ui/domain-mode-controls";
 import { SoundToggle } from "../ui/sound-toggle";
-import { BrandStyleRandomizeButton, CapitalizationControls, LogoStyleControls, TypographyControls } from "../ui/typography-controls";
+import { BrandStyleRandomizeButton, CapitalizationControls, LogoStyleControls, LogoVisibilityToggle, TypographyControls } from "../ui/typography-controls";
 import { WordTypeTabs } from "../ui/word-type-tabs";
 import { applyWordCapitalization } from "../../lib/constants";
 import type { HomeState } from "../../hooks/use-home";
@@ -435,6 +435,9 @@ export function DiscoverView(props: DiscoverViewProps) {
             <DesktopTooltip label="Change theme">
               <ColorwaySwitcher />
             </DesktopTooltip>
+            <DesktopTooltip label="Toggle sound">
+              <SoundToggle />
+            </DesktopTooltip>
             <DesktopTooltip label={combinedSplitIsSaved ? "Saved words / unlike" : "Saved words / like"}>
               <SavedWordsPanel
                 savedWords={savedWords}
@@ -456,17 +459,12 @@ export function DiscoverView(props: DiscoverViewProps) {
               className="top-domain-mode-controls"
               displayMode={nameDisplayMode}
               selectedTld={selectedTld}
+              hideTld
               onDisplayModeChange={setNameDisplayMode}
               onTldChange={setSelectedTld}
             />
           </DesktopTooltip>
           <div className="style-toolbar-actions style-toolbar-actions-right">
-            <DesktopTooltip label="Switch font">
-              <TypographyControls />
-            </DesktopTooltip>
-            <DesktopTooltip label="Toggle sound">
-              <SoundToggle />
-            </DesktopTooltip>
             <DesktopTooltip label="About Spellsurf">
               <AboutDrawer />
             </DesktopTooltip>
@@ -476,25 +474,37 @@ export function DiscoverView(props: DiscoverViewProps) {
           </div>
         </div>
         {nameDisplayMode === "domain" && displayedDomain ? (
-          <DomainAvailability className="top-domain-availability" domain={displayedDomain} />
+          <div className="top-domain-availability-row">
+            <DomainAvailability className="top-domain-availability" domain={displayedDomain} />
+            <TldDropdown value={selectedTld} onChange={setSelectedTld} />
+          </div>
         ) : null}
         {nameDisplayMode === "handle" && displayedHandleBase ? (
           <HandleAvailability className="top-domain-availability" handle={displayedHandleBase} />
         ) : null}
         {nameDisplayMode === "brand" ? (
           <div className="top-brand-style-bar desktop-layout-only" aria-label="Brand style">
-            <LogoStyleControls
-              logoId={brandLogoId}
-              onCycle={randomizeBrandLogo}
-            />
-            <CapitalizationControls
-              value={wordCapitalization}
-              onChange={setWordCapitalization}
-            />
-            <BrandStyleRandomizeButton
-              enabled={brandStyleRandomizeOnGenerate}
-              onEnabledChange={setBrandStyleRandomizeOnGenerate}
-            />
+            <div className="logo-controls" role="group" aria-label="Logo">
+              <div className="logo-compound-control" role="group" aria-label="Logo and visibility">
+                <LogoStyleControls
+                  logoId={brandLogoId}
+                  onCycle={randomizeBrandLogo}
+                  disabled={!logoEnabled}
+                />
+                <LogoVisibilityToggle enabled={logoEnabled} onChange={setLogoEnabled} />
+              </div>
+              <TypographyControls className="brand-font-control" />
+              <CapitalizationControls
+                className="brand-capitalization-control"
+                value={wordCapitalization}
+                onChange={setWordCapitalization}
+              />
+              <BrandStyleRandomizeButton
+                enabled={brandStyleRandomizeOnGenerate}
+                onEnabledChange={setBrandStyleRandomizeOnGenerate}
+                disabled={!logoEnabled}
+              />
+            </div>
           </div>
         ) : null}
         <ApiHealthStatus health={apiHealth} />
@@ -750,18 +760,27 @@ export function DiscoverView(props: DiscoverViewProps) {
         ) : null}
         {nameDisplayMode === "brand" ? (
           <div className="mobile-brand-style-row">
-            <LogoStyleControls
-              logoId={brandLogoId}
-              onCycle={randomizeBrandLogo}
-            />
-            <CapitalizationControls
-              value={wordCapitalization}
-              onChange={setWordCapitalization}
-            />
-            <BrandStyleRandomizeButton
-              enabled={brandStyleRandomizeOnGenerate}
-              onEnabledChange={setBrandStyleRandomizeOnGenerate}
-            />
+            <div className="logo-controls" role="group" aria-label="Logo">
+              <div className="logo-compound-control" role="group" aria-label="Logo and visibility">
+                <LogoStyleControls
+                  logoId={brandLogoId}
+                  onCycle={randomizeBrandLogo}
+                  disabled={!logoEnabled}
+                />
+                <LogoVisibilityToggle enabled={logoEnabled} onChange={setLogoEnabled} />
+              </div>
+              <TypographyControls className="brand-font-control" compact />
+              <CapitalizationControls
+                className="brand-capitalization-control"
+                value={wordCapitalization}
+                onChange={setWordCapitalization}
+              />
+              <BrandStyleRandomizeButton
+                enabled={brandStyleRandomizeOnGenerate}
+                onEnabledChange={setBrandStyleRandomizeOnGenerate}
+                disabled={!logoEnabled}
+              />
+            </div>
           </div>
         ) : null}
         <div className="mobile-bottom-meta-row">
