@@ -6796,8 +6796,8 @@ html[data-display-font="newsreader"] .page-shell.discover-mode .split-combined-w
 html[data-display-font="caveat"] .page-shell.discover-mode .split-combined-word,
 html[data-embed="1"][data-embed-font="caveat"] .page-shell.discover-mode .split-combined-word {
   position: relative;
-  top: calc(var(--combo-word-size) * -.12);
-  font-size: calc(var(--combo-word-size) * 1.3);
+  top: calc(var(--combo-word-size) * -.08);
+  font-size: calc(var(--combo-word-size) * 1.1);
   line-height: calc(var(--combo-word-size) * .88);
 }
 
@@ -8241,7 +8241,7 @@ html[data-embed="1"][data-embed-font="newsreader"][data-layout="mobile"] .page-s
 
 html[data-embed="1"][data-embed-font="caveat"] .page-shell.discover-mode .split-combined-word,
 html[data-embed="1"][data-embed-font="caveat"][data-layout="mobile"] .page-shell.discover-mode .split-combined-word {
-  font-size: calc(78px * var(--embed-content-zoom, 1)) !important;
+  font-size: calc(66px * var(--embed-content-zoom, 1)) !important;
   line-height: calc(52.8px * var(--embed-content-zoom, 1)) !important;
 }
 
