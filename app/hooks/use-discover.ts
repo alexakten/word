@@ -786,6 +786,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     splitHistoryIndexRef.current = nextIndex;
     setLeftWordDraft("");
     setRightWordDraft("");
+    setLeftSliceMode(entry.leftSliceMode);
+    setRightSliceMode(entry.rightSliceMode);
+    setMixLeftSettings(entry.mixLeftSettings);
+    setMixRightSettings(entry.mixRightSettings);
     setResult(entry.left);
     setSecondaryResult(entry.right);
     setMessage("");
@@ -915,15 +919,30 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   useEffect(() => {
     if (splitHistoryBatchDepthRef.current > 0 || !result.word || !secondaryResult.word) return;
     const current = splitHistoryRef.current[splitHistoryIndexRef.current];
-    const entry = { left: result, right: secondaryResult };
-    if (current?.left.word === result.word && current?.right.word === secondaryResult.word) {
+    const entry: SplitHistoryEntry = {
+      left: result,
+      right: secondaryResult,
+      leftSliceMode,
+      rightSliceMode,
+      mixLeftSettings,
+      mixRightSettings,
+    };
+    const isCurrentEntry = current?.left.word === result.word
+      && current?.right.word === secondaryResult.word
+      && current.leftSliceMode === leftSliceMode
+      && current.rightSliceMode === rightSliceMode
+      && current.mixLeftSettings.syllablePick === mixLeftSettings.syllablePick
+      && current.mixLeftSettings.syllableTake === mixLeftSettings.syllableTake
+      && current.mixRightSettings.syllablePick === mixRightSettings.syllablePick
+      && current.mixRightSettings.syllableTake === mixRightSettings.syllableTake;
+    if (isCurrentEntry) {
       splitHistoryRef.current[splitHistoryIndexRef.current] = entry;
       return;
     }
     const branch = splitHistoryRef.current.slice(0, splitHistoryIndexRef.current + 1);
     splitHistoryRef.current = [...branch, entry].slice(-100);
     splitHistoryIndexRef.current = splitHistoryRef.current.length - 1;
-  }, [result, secondaryResult, splitHistoryRevision]);
+  }, [leftSliceMode, mixLeftSettings, mixRightSettings, result, rightSliceMode, secondaryResult, splitHistoryRevision]);
 
   const leftSyllablesApplied = wordSyllables !== DEFAULT_SYLLABLES
     || wordSyllableMode !== DEFAULT_WORD_SYLLABLE_MODE;

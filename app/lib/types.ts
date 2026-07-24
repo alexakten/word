@@ -1,4 +1,4 @@
-import type { MixSideSettings } from "../syllables";
+import type { MixSideSettings, SliceMode } from "../syllables";
 
 export type PartOfSpeech = "any" | "n" | "v" | "adj" | "adv";
 export type LengthMode = "less" | "exact" | "more";
@@ -47,6 +47,10 @@ export type ForgeHistoryEntry = {
 export type SplitHistoryEntry = {
   left: WordResult;
   right: WordResult;
+  leftSliceMode: SliceMode;
+  rightSliceMode: SliceMode;
+  mixLeftSettings: MixSideSettings;
+  mixRightSettings: MixSideSettings;
 };
 
 export type SideSettings = {
