@@ -17,8 +17,10 @@ type UseKeyboardShortcutsOptions = {
   focusMode: boolean;
   setFocusMode: (value: boolean | ((current: boolean) => boolean)) => void;
   mobileDiscoverPanel: DiscoverMobilePanel | null;
+  isMobileLayout: boolean;
   setMobileDiscoverPanel: (panel: DiscoverMobilePanel | null) => void;
   generateVisibleWords: () => void;
+  randomizeSlices: () => void;
   findWord: (
     relation?: (typeof relations)[number],
     requestedType?: PartOfSpeech,
@@ -39,8 +41,10 @@ export function useKeyboardShortcuts({
   focusMode,
   setFocusMode,
   mobileDiscoverPanel,
+  isMobileLayout,
   setMobileDiscoverPanel,
   generateVisibleWords,
+  randomizeSlices,
   findWord,
   findSecondaryWord,
   moveThroughSplitHistory,
@@ -58,6 +62,23 @@ export function useKeyboardShortcuts({
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
       if (target.isContentEditable || target.closest("[contenteditable], .split-combined-edit-input")) return;
+
+      if (
+        !isMobileLayout
+        && appMode === "discover"
+        && event.shiftKey
+        && !event.metaKey
+        && !event.ctrlKey
+        && !event.altKey
+        && event.code === "Space"
+        && !event.repeat
+        && !target.matches("input, select, textarea")
+      ) {
+        event.preventDefault();
+        sounds.tick();
+        randomizeSlices();
+        return;
+      }
 
       if (focusMode) {
         event.preventDefault();
@@ -173,8 +194,10 @@ export function useKeyboardShortcuts({
     findWord,
     focusMode,
     generateVisibleWords,
+    isMobileLayout,
     mobileDiscoverPanel,
     moveThroughSplitHistory,
+    randomizeSlices,
     resetAllDiscoverSettings,
     setFocusMode,
     setMobileDiscoverPanel,

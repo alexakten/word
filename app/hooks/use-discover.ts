@@ -45,6 +45,7 @@ import {
   mixWordParts,
   normalizeCustomMixSettings,
   parseSliceMode,
+  pickRandomMixSettings,
 } from "../syllables";
 
 type UseDiscoverOptions = {
@@ -297,6 +298,29 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     secondaryResult.syllables,
   ],
   );
+  const randomizeSlices = useCallback(() => {
+    let nextLeft = pickRandomMixSettings(leftWordValue, result.syllables);
+    let nextRight = pickRandomMixSettings(rightWordValue, secondaryResult.syllables);
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const nextParts = mixWordParts(
+        leftWordValue,
+        rightWordValue,
+        nextLeft,
+        nextRight,
+        result.syllables,
+        secondaryResult.syllables,
+      );
+      if (nextParts.mixed !== mixedWordParts.mixed) break;
+      nextLeft = pickRandomMixSettings(leftWordValue, result.syllables);
+      nextRight = pickRandomMixSettings(rightWordValue, secondaryResult.syllables);
+    }
+
+    setLeftSliceMode(nextLeft.syllablePick === "full" ? "none" : "custom");
+    setRightSliceMode(nextRight.syllablePick === "full" ? "none" : "custom");
+    setMixLeftSettings(nextLeft);
+    setMixRightSettings(nextRight);
+  }, [leftWordValue, mixedWordParts.mixed, result.syllables, rightWordValue, secondaryResult.syllables]);
   const displayedCombinedWord = mixedWordParts.mixed;
   const brandLeftChunk = nameDisplayMode === "brand"
     ? applyChunkCapitalization(mixedWordParts.leftChunk, wordCapitalization)
@@ -1028,6 +1052,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     handleLeftWordDraftChange,
     handleRightWordDraftChange,
     generateVisibleWords,
+    randomizeSlices,
     resetPrimarySettings,
     resetSecondarySettings,
     resetAllDiscoverSettings,

@@ -509,6 +509,30 @@ export const defaultMixRightSettings: MixSideSettings = { syllablePick: "full", 
 export const defaultCustomMixLeftSettings: MixSideSettings = { syllablePick: "start", syllableTake: 1 };
 export const defaultCustomMixRightSettings: MixSideSettings = { syllablePick: "start", syllableTake: 1 };
 
+export function pickRandomMixSettings(
+  word: string,
+  knownSyllableCount?: number,
+): MixSideSettings {
+  const normalized = word.toLowerCase().replace(/[^a-z]/g, "");
+  const syllables = resolveSyllables(word, knownSyllableCount);
+  const total = syllables.length;
+  if (!normalized || total <= 1) return { syllablePick: "full", syllableTake: 1 };
+
+  const picks = allowedPicksForCount(total).filter(
+    (pick): pick is Exclude<SyllablePick, "full" | "random"> => pick !== "full" && pick !== "random",
+  );
+  const candidates = picks.flatMap((syllablePick) => {
+    const maxTake = maxTakeFromPick(syllablePick, total);
+    return Array.from({ length: maxTake }, (_, index) => ({
+      syllablePick,
+      syllableTake: (index + 1) as SyllableTake,
+    })).filter((settings) => selectSyllableIndices(total, settings, normalized).length < total);
+  });
+
+  return candidates[Math.floor(Math.random() * candidates.length)]
+    ?? { syllablePick: "start", syllableTake: 1 };
+}
+
 function indexToDisplayPick(startIndex: number, total: number): SyllablePick {
   if (total <= 1) return "full";
 
