@@ -72,6 +72,17 @@ const RESET_RIGHT_WORD: WordResult = {
   syllables: 1,
 };
 
+function isSameSplitHistoryEntry(left: SplitHistoryEntry, right: SplitHistoryEntry) {
+  return left.left.word === right.left.word
+    && left.right.word === right.right.word
+    && left.leftSliceMode === right.leftSliceMode
+    && left.rightSliceMode === right.rightSliceMode
+    && left.mixLeftSettings.syllablePick === right.mixLeftSettings.syllablePick
+    && left.mixLeftSettings.syllableTake === right.mixLeftSettings.syllableTake
+    && left.mixRightSettings.syllablePick === right.mixRightSettings.syllablePick
+    && left.mixRightSettings.syllableTake === right.mixRightSettings.syllableTake;
+}
+
 export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }: UseDiscoverOptions) {
   const [wordType, setWordType] = useState<PartOfSpeech>("any");
   const [nameDisplayMode, setNameDisplayModeState] = useState<NameDisplayMode>("brand");
@@ -118,6 +129,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const historyIndexRef = useRef(0);
   const splitHistoryRef = useRef<SplitHistoryEntry[]>([]);
   const splitHistoryIndexRef = useRef(-1);
+  const splitHistoryRestoreRef = useRef<SplitHistoryEntry | null>(null);
   const splitHistoryBatchDepthRef = useRef(0);
   const settingsUrlSyncedRef = useRef(false);
 
@@ -238,6 +250,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     historyIndexRef.current = 0;
     splitHistoryRef.current = [];
     splitHistoryIndexRef.current = -1;
+    splitHistoryRestoreRef.current = null;
     setLeftWordDraft("");
     setRightWordDraft("");
     setResult(RESET_LEFT_WORD);
@@ -780,10 +793,19 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   ]);
 
   const moveThroughSplitHistory = useCallback((direction: -1 | 1) => {
-    const nextIndex = splitHistoryIndexRef.current + direction;
-    const entry = splitHistoryRef.current[nextIndex];
-    if (!entry) return;
+    const history = splitHistoryRef.current;
+    if (!history.length) return;
+    const currentIndex = Math.min(
+      Math.max(splitHistoryIndexRef.current, 0),
+      history.length - 1,
+    );
+    splitHistoryIndexRef.current = currentIndex;
+
+    const nextIndex = Math.min(Math.max(currentIndex + direction, 0), history.length - 1);
+    if (nextIndex === currentIndex) return;
+    const entry = history[nextIndex]!;
     splitHistoryIndexRef.current = nextIndex;
+    splitHistoryRestoreRef.current = entry;
     setLeftWordDraft("");
     setRightWordDraft("");
     setLeftSliceMode(entry.leftSliceMode);
@@ -927,16 +949,21 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       mixLeftSettings,
       mixRightSettings,
     };
-    const isCurrentEntry = current?.left.word === result.word
-      && current?.right.word === secondaryResult.word
-      && current.leftSliceMode === leftSliceMode
-      && current.rightSliceMode === rightSliceMode
-      && current.mixLeftSettings.syllablePick === mixLeftSettings.syllablePick
-      && current.mixLeftSettings.syllableTake === mixLeftSettings.syllableTake
-      && current.mixRightSettings.syllablePick === mixRightSettings.syllablePick
-      && current.mixRightSettings.syllableTake === mixRightSettings.syllableTake;
-    if (isCurrentEntry) {
+    const restoringEntry = splitHistoryRestoreRef.current;
+    if (restoringEntry) {
+      if (isSameSplitHistoryEntry(restoringEntry, entry)) splitHistoryRestoreRef.current = null;
+      return;
+    }
+    if (current && isSameSplitHistoryEntry(current, entry)) {
       splitHistoryRef.current[splitHistoryIndexRef.current] = entry;
+      return;
+    }
+    const existingIndex = splitHistoryRef.current.findIndex((historyEntry) => (
+      isSameSplitHistoryEntry(historyEntry, entry)
+    ));
+    if (existingIndex >= 0) {
+      splitHistoryRef.current[existingIndex] = entry;
+      splitHistoryIndexRef.current = existingIndex;
       return;
     }
     const branch = splitHistoryRef.current.slice(0, splitHistoryIndexRef.current + 1);
