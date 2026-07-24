@@ -139,18 +139,15 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   }, []);
 
   const randomizeBrandStyle = useCallback(() => {
-    const logoId = pickRandomBrandLogo(brandLogoId);
     const capitalization = pickRandomWordCapitalization(wordCapitalization);
     const currentFont = parseEmbedFontFamily(document.documentElement.getAttribute("data-display-font"));
     const fontFamily = pickRandomDisplayFont(currentFont);
-    const showLogo = Math.random() >= .5;
 
-    setBrandLogoId(logoId);
-    setLogoEnabled(showLogo);
+    if (logoEnabled) setBrandLogoId(pickRandomBrandLogo(brandLogoId));
     setWordCapitalization(capitalization);
     applyDisplayFontToDocument(displayFontPreset(fontFamily));
     window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily } }));
-  }, [brandLogoId, wordCapitalization]);
+  }, [brandLogoId, logoEnabled, wordCapitalization]);
 
   const setBrandLogo = useCallback((id: BrandLogoId) => {
     if (!isBrandLogoId(id)) return;
