@@ -1795,6 +1795,10 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
   width: auto;
   filter: blur(0);
   opacity: 1;
+  transition: none;
+}
+
+.mix-combined-word .mix-word-part.is-generating {
   transition: opacity .2s ease, filter .28s ease;
 }
 
@@ -2699,7 +2703,7 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   filter: blur(0);
   opacity: 1;
   pointer-events: none;
-  transition: opacity .2s ease, filter .28s ease;
+  transition: none;
   will-change: filter, opacity;
 }
 
@@ -2721,6 +2725,7 @@ html:not([data-font-family="serif"]) .split-combined-word * {
 .brand-mark.is-generating {
   filter: blur(8px);
   opacity: .3;
+  transition: opacity .2s ease, filter .28s ease;
 }
 
 .mix-combined-text {
