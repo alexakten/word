@@ -2705,7 +2705,15 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   mask-size: contain;
   -webkit-mask-mode: alpha;
   mask-mode: alpha;
+  filter: blur(0);
+  opacity: 1;
   pointer-events: none;
+  transition: opacity .2s ease, filter .28s ease;
+}
+
+.brand-mark.is-generating {
+  filter: blur(8px);
+  opacity: .3;
 }
 
 .mix-combined-text {

@@ -258,6 +258,7 @@ export function DiscoverView(props: DiscoverViewProps) {
   const [adminMode, setAdminMode] = useState(false);
   const leftIsGenerating = loading || splitBatchLoading;
   const rightIsGenerating = secondaryLoading || splitBatchLoading;
+  const wordIsGenerating = leftIsGenerating || rightIsGenerating;
   const overrideWordRaw = embedOverrideText?.trim() ?? "";
   const overrideWord = nameDisplayMode === "brand" && overrideWordRaw
     ? applyWordCapitalization(overrideWordRaw, wordCapitalization)
@@ -630,7 +631,7 @@ export function DiscoverView(props: DiscoverViewProps) {
                   {hasOverrideWord ? (
                     <>
                       {nameDisplayMode === "brand" && logoEnabled ? (
-                        <BrandMark logoId={brandLogoId} />
+                        <BrandMark logoId={brandLogoId} className={wordIsGenerating ? "is-generating" : ""} />
                       ) : null}
                       <span className="mix-combined-text">
                         <span className="mix-word-part" key={`override-${overrideWord}`}>
@@ -644,7 +645,7 @@ export function DiscoverView(props: DiscoverViewProps) {
                   ) : (
                     <>
                       {nameDisplayMode === "brand" && logoEnabled ? (
-                        <BrandMark logoId={brandLogoId} />
+                        <BrandMark logoId={brandLogoId} className={wordIsGenerating ? "is-generating" : ""} />
                       ) : null}
                       <span className="mix-combined-text">
                         {nameDisplayMode === "handle" && displayedCombinedWord ? (
