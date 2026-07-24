@@ -7328,6 +7328,20 @@ html[data-embed="1"][data-embed-font="calSans"] .split-definition {
   font-family: var(--font-cal-sans), system-ui, sans-serif !important;
 }
 
+html[data-embed="1"][data-embed-font="bebasNeue"] body {
+  font-family: var(--font-bebas-neue), Arial, sans-serif !important;
+}
+
+html[data-embed="1"][data-embed-font="bebasNeue"] .split-combined-word,
+html[data-embed="1"][data-embed-font="bebasNeue"] .single-main-word,
+html[data-embed="1"][data-embed-font="bebasNeue"] .forge-combined-word,
+html[data-embed="1"][data-embed-font="bebasNeue"] .word-anchor h1,
+html[data-embed="1"][data-embed-font="bebasNeue"] .split-source-word,
+html[data-embed="1"][data-embed-font="bebasNeue"] .mix-source-word,
+html[data-embed="1"][data-embed-font="bebasNeue"] .split-definition {
+  font-family: var(--font-bebas-neue), Arial, sans-serif !important;
+}
+
 html[data-embed="1"][data-embed-font="instrumentSerif"] body {
   font-family: var(--font-instrument-serif), Georgia, serif !important;
 }

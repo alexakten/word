@@ -1,4 +1,4 @@
-import { Aboreto, Afacad, Cal_Sans, Caveat, Instrument_Serif, Inter, Newsreader, Playfair_Display } from "next/font/google";
+import { Aboreto, Afacad, Bebas_Neue, Cal_Sans, Caveat, Instrument_Serif, Inter, Newsreader, Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 
 /*
@@ -55,6 +55,14 @@ export const calSans = Cal_Sans({
   fallback: ["Arial", "sans-serif"],
   adjustFontFallback: false,
   variable: "--font-cal-sans",
+});
+
+export const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  fallback: ["Arial", "sans-serif"],
+  variable: "--font-bebas-neue",
 });
 
 export const instrumentSerif = Instrument_Serif({

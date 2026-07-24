@@ -19,6 +19,7 @@ import {
   aboreto,
   afacad,
   calSans,
+  bebasNeue,
   instrumentSerif,
 } from "./fonts";
 import "./globals.css";
@@ -91,6 +92,7 @@ export default function RootLayout({
           aboreto.variable,
           afacad.variable,
           calSans.variable,
+          bebasNeue.variable,
           instrumentSerif.variable,
           "min-h-full flex flex-col",
         ].join(" ")}
