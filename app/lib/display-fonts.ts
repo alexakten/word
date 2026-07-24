@@ -66,7 +66,7 @@ export const DISPLAY_FONT_OPTIONS: { value: DisplayFontFamily; label: string }[]
   { value: "aboreto", label: "Fancy" },
   { value: "parabolica", label: "Tech" },
   { value: "caveat", label: "Fun" },
-  { value: "calSans", label: "Cal Sans" },
+  { value: "calSans", label: "Bold" },
   { value: "argestaDisplay", label: "Classy" },
   { value: "rawest", label: "Angular" },
   { value: "safiro", label: "Trendy" },

@@ -6178,10 +6178,14 @@ h1,
 }
 
 .admin-color-picker-swatch {
+  box-sizing: border-box;
   width: 20px;
   height: 20px;
   display: block;
   border-radius: 50%;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3.5px var(--swatch-ring);
 }
 
 .admin-color-popover {
@@ -6285,22 +6289,6 @@ h1,
   color: #3f3f3f;
   font: 600 .78rem/1 var(--font-open-runde), system-ui, sans-serif;
   text-transform: lowercase;
-}
-
-.admin-color-popover button {
-  height: 2rem;
-  border: 0;
-  border-radius: .42rem;
-  padding: 0 .55rem;
-  background: #3f3f3f;
-  color: #ffffff;
-  font-size: .72rem;
-  cursor: pointer;
-}
-
-.admin-color-popover button:disabled {
-  opacity: .35;
-  cursor: default;
 }
 
 .theme-cycle-button {

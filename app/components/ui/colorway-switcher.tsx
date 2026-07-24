@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type PointerEvent } from "react";
+import { useEffect, useState, type CSSProperties, type PointerEvent } from "react";
 import {
   colorways,
   DEFAULT_COLORWAY,
@@ -124,15 +124,6 @@ function HexColorPicker({ label, value, onChange }: HexColorPickerProps) {
     updateHsv({ ...hsv, saturation, value: nextValue });
   };
 
-  const commit = () => {
-    if (!validHex) {
-      setDraft(value);
-      return;
-    }
-    setDraft(validHex);
-    onChange(validHex);
-  };
-
   return (
     <details
       className="admin-color-picker"
@@ -147,7 +138,14 @@ function HexColorPicker({ label, value, onChange }: HexColorPickerProps) {
       }}
     >
       <summary aria-label={label} title={label}>
-        <span className="admin-color-picker-swatch" style={{ backgroundColor: value }} aria-hidden="true" />
+        <span
+          className="admin-color-picker-swatch"
+          style={{
+            backgroundColor: value,
+            "--swatch-ring": value.toLowerCase() === "#ffffff" ? "#cfd3dc" : value,
+          } as CSSProperties}
+          aria-hidden="true"
+        />
       </summary>
       <div className="admin-color-popover">
         <div
@@ -227,23 +225,15 @@ function HexColorPicker({ label, value, onChange }: HexColorPickerProps) {
               }}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
-                  commit();
-                  if (validHex) event.currentTarget.closest("details")?.removeAttribute("open");
+                  if (validHex) {
+                    setDraft(validHex);
+                    event.currentTarget.closest("details")?.removeAttribute("open");
+                  }
                 }
                 if (event.key === "Escape") event.currentTarget.closest("details")?.removeAttribute("open");
               }}
             />
           </label>
-          <button
-            type="button"
-            disabled={!validHex}
-            onClick={(event) => {
-              commit();
-              event.currentTarget.closest("details")?.removeAttribute("open");
-            }}
-          >
-            Apply
-          </button>
         </div>
       </div>
     </details>
