@@ -13,11 +13,15 @@ export function BrandMark({
   return (
     <span
       className={["brand-mark", className].filter(Boolean).join(" ")}
-      style={{
-        WebkitMaskImage: `url("${src}")`,
-        maskImage: `url("${src}")`,
-      }}
       aria-hidden="true"
-    />
+    >
+      <span
+        className="brand-mark-shape"
+        style={{
+          WebkitMaskImage: `url("${src}")`,
+          maskImage: `url("${src}")`,
+        }}
+      />
+    </span>
   );
 }

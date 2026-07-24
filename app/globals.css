@@ -2695,8 +2695,19 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   width: calc(var(--combo-word-size) * 1.85);
   height: calc(var(--combo-word-size) * 1.85);
   translate: 0 -50%;
-  background-color: currentColor;
   color: inherit;
+  filter: blur(0);
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity .2s ease, filter .28s ease;
+  will-change: filter, opacity;
+}
+
+.brand-mark-shape {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: currentColor;
   -webkit-mask-position: center;
   mask-position: center;
   -webkit-mask-repeat: no-repeat;
@@ -2705,10 +2716,6 @@ html:not([data-font-family="serif"]) .split-combined-word * {
   mask-size: contain;
   -webkit-mask-mode: alpha;
   mask-mode: alpha;
-  filter: blur(0);
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity .2s ease, filter .28s ease;
 }
 
 .brand-mark.is-generating {
