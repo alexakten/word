@@ -46,6 +46,8 @@ type Drop = {
   domains: DropDomain[];
 };
 
+const SHOW_PREVIOUS_DROPS = false;
+
 /* Edit past drops here. Every visual property can be set per domain. */
 const previousDrops: Drop[] = [
   {
@@ -200,7 +202,8 @@ export default function DropsPage() {
           <Countdown />
         </div>
 
-        <section className={styles.archive} aria-labelledby="previous-drops-title">
+        {SHOW_PREVIOUS_DROPS ? (
+          <section className={styles.archive} aria-labelledby="previous-drops-title">
           <div className={styles.archiveHeading}>
             <p className={styles.eyebrow}>The archive</p>
             <h2 id="previous-drops-title">Previous drops</h2>
@@ -273,7 +276,8 @@ export default function DropsPage() {
               </article>
             ))}
           </div>
-        </section>
+          </section>
+        ) : null}
       </div>
     </main>
   );
