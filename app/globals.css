@@ -7059,6 +7059,61 @@ html[data-layout="mobile"] .page-shell .mobile-generate-button,
   color: var(--accent-ink) !important;
 }
 
+.page-shell.discover-mode .mobile-generate-row .mobile-generate-compound {
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  flex: 1 1 0;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.page-shell.discover-mode .mobile-generate-compound .mobile-generate-button {
+  min-height: 54px;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.page-shell.discover-mode .mobile-generate-compound .mobile-generate-primary {
+  width: auto;
+  min-width: 0;
+  flex: 1 1 0 !important;
+}
+
+.page-shell.discover-mode .mobile-generate-compound .mobile-generate-shuffle {
+  position: relative;
+  width: 54px;
+  min-width: 54px;
+  flex: 0 0 54px !important;
+  padding: 0;
+}
+
+.page-shell.discover-mode .mobile-generate-compound .mobile-generate-shuffle::before {
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  left: 0;
+  width: 1px;
+  background: currentColor;
+  content: "";
+  opacity: 0.28;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-generate-row .mobile-generate-compound,
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-generate-compound .mobile-generate-button {
+  min-height: 58px;
+}
+
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-generate-compound .mobile-generate-shuffle {
+  width: 58px;
+  min-width: 58px;
+  flex-basis: 58px !important;
+}
+
 .mobile-discover-toolbar-count {
   border-radius: 999px !important;
   background: var(--paper) !important;

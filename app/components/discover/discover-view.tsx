@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, PenLine, RefreshCw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, PenLine, RefreshCw, Shuffle, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { AffixSettings } from "../discover/affix-settings";
@@ -132,6 +132,7 @@ export type DiscoverViewProps = Pick<
   | "leftSliceSettingsApplied"
   | "rightSliceSettingsApplied"
   | "generateVisibleWords"
+  | "randomizeSlices"
   | "findWord"
   | "findSecondaryWord"
   | "apiHealth"
@@ -242,6 +243,7 @@ export function DiscoverView(props: DiscoverViewProps) {
     leftSliceSettingsApplied,
     rightSliceSettingsApplied,
     generateVisibleWords,
+    randomizeSlices,
     findWord,
     findSecondaryWord,
     apiHealth,
@@ -830,16 +832,33 @@ export function DiscoverView(props: DiscoverViewProps) {
             >
               <ArrowLeft size={20} strokeWidth={2} aria-hidden="true" />
             </button>
-            <button
-              className="mobile-generate-button"
-              type="button"
-              onClick={() => {
-                sounds.tick();
-                generateVisibleWords();
-              }}
+            <div
+              className="mobile-generate-compound"
+              role="group"
+              aria-label="Generate controls"
             >
-              Generate
-            </button>
+              <button
+                className="mobile-generate-button mobile-generate-primary"
+                type="button"
+                onClick={() => {
+                  sounds.tick();
+                  generateVisibleWords();
+                }}
+              >
+                Generate
+              </button>
+              <button
+                className="mobile-generate-button mobile-generate-shuffle"
+                type="button"
+                aria-label="Randomize slicing"
+                onClick={() => {
+                  sounds.tick();
+                  randomizeSlices();
+                }}
+              >
+                <Shuffle size={17} strokeWidth={1.8} aria-hidden="true" />
+              </button>
+            </div>
             <button
               className="mobile-generate-button mobile-side-generate-button"
               type="button"
