@@ -7096,7 +7096,7 @@ html[data-layout="mobile"] .page-shell .mobile-generate-button,
   position: absolute;
   top: 22%;
   bottom: 22%;
-  left: 0;
+  right: 0;
   width: 1px;
   background: currentColor;
   content: "";

@@ -838,16 +838,6 @@ export function DiscoverView(props: DiscoverViewProps) {
               aria-label="Generate controls"
             >
               <button
-                className="mobile-generate-button mobile-generate-primary"
-                type="button"
-                onClick={() => {
-                  sounds.tick();
-                  generateVisibleWords();
-                }}
-              >
-                Generate
-              </button>
-              <button
                 className="mobile-generate-button mobile-generate-shuffle"
                 type="button"
                 aria-label="Randomize slicing"
@@ -857,6 +847,16 @@ export function DiscoverView(props: DiscoverViewProps) {
                 }}
               >
                 <Shuffle size={17} strokeWidth={1.8} aria-hidden="true" />
+              </button>
+              <button
+                className="mobile-generate-button mobile-generate-primary"
+                type="button"
+                onClick={() => {
+                  sounds.tick();
+                  generateVisibleWords();
+                }}
+              >
+                Generate
               </button>
             </div>
             <button
