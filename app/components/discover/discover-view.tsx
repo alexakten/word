@@ -793,15 +793,6 @@ export function DiscoverView(props: DiscoverViewProps) {
                 <LogoVisibilityToggle enabled={logoEnabled} onChange={setLogoEnabled} />
               </div>
               <TypographyControls className="brand-font-control" compact />
-              <CapitalizationControls
-                className="brand-capitalization-control"
-                value={wordCapitalization}
-                onChange={setWordCapitalization}
-              />
-              <BrandStyleRandomizeButton
-                enabled={brandStyleRandomizeOnGenerate}
-                onEnabledChange={setBrandStyleRandomizeOnGenerate}
-              />
               {adminMode ? (
                 <BrandSuffixControls value={brandSuffixMark} onChange={setBrandSuffixMark} />
               ) : null}

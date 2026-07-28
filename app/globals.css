@@ -6821,6 +6821,22 @@ html[data-embed="1"][data-embed-font="caveat"] .page-shell.discover-mode .split-
   line-height: calc(var(--combo-word-size) * .88);
 }
 
+/* Caveat flourishes overhang at the ends — widen the line box, keep the same height. */
+html[data-layout="mobile"][data-display-font="caveat"] .page-shell.discover-mode .split-word-stage,
+html[data-layout="mobile"][data-display-font="caveat"] .page-shell.discover-mode .split-word-anchor,
+html[data-layout="mobile"][data-display-font="caveat"] .page-shell.discover-mode .split-copyable-word-wrap,
+html[data-layout="mobile"][data-display-font="caveat"] .page-shell.discover-mode .split-combined-word,
+html[data-layout="mobile"][data-display-font="caveat"] .page-shell.discover-mode .split-combined-word.mix-combined-word {
+  overflow-x: visible;
+}
+
+html[data-layout="mobile"][data-display-font="caveat"] .page-shell.discover-mode .split-combined-word,
+html[data-layout="mobile"][data-display-font="caveat"] .page-shell.discover-mode .split-combined-word.mix-combined-word {
+  box-sizing: content-box;
+  max-width: none;
+  padding-inline: 0.22em;
+}
+
 .page-shell button:not(.colorway-swatch):not(.split-definition):not(.modal-overlay),
 .page-shell input,
 .saved-modal,

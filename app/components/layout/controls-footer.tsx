@@ -124,7 +124,6 @@ export function ControlsFooter(props: ControlsFooterProps) {
         <div className="mobile-style-toolbar">
           <div className="mobile-style-left-actions">
             <ColorwaySwitcher />
-            <SoundToggle />
             <SavedWordsPanel
               savedWords={savedWords}
               savedOpen={savedOpen}

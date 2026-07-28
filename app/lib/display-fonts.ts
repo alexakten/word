@@ -46,8 +46,8 @@ export const DISPLAY_FONT_PRESETS: Record<EmbedFontFamily, { fontWeight: number;
 export const DISPLAY_FONT_FAMILIES = [
   "openRunde",
   "newsreader",
-  "aboreto",
   "parabolica",
+  "aboreto",
   "caveat",
   "calSans",
   "bebasNeue",
@@ -66,8 +66,8 @@ export const BRAND_DISPLAY_FONT_FAMILY: DisplayFontFamily = "parabolica";
 export const DISPLAY_FONT_OPTIONS: { value: DisplayFontFamily; label: string }[] = [
   { value: "openRunde", label: "Soft" },
   { value: "newsreader", label: "Serif" },
-  { value: "aboreto", label: "Fancy" },
   { value: "parabolica", label: "Tech" },
+  { value: "aboreto", label: "Fancy" },
   { value: "caveat", label: "Fun" },
   { value: "calSans", label: "Bold" },
   { value: "bebasNeue", label: "Compact" },
