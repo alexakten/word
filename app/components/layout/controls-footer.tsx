@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import type { HomeState } from "../../hooks/use-home";
 import { AboutDrawer } from "../layout/about-drawer";
@@ -140,7 +140,10 @@ export function ControlsFooter(props: ControlsFooterProps) {
           </div>
           <div className="mobile-style-right-actions">
             <AboutDrawer />
-            <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+            <Link className="drops-nav-link" href="/drops">
+              Drops
+              <ArrowUpRight size={12} strokeWidth={1.75} aria-hidden="true" />
+            </Link>
           </div>
         </div>
       ) : null}
@@ -230,7 +233,10 @@ export function ControlsFooter(props: ControlsFooterProps) {
               loadSavedWord={loadSavedWord}
             />
             <div className="sound-about-actions desktop-layout-only">
-              <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+              <Link className="drops-nav-link" href="/drops">
+                Drops
+                <ArrowUpRight size={12} strokeWidth={1.75} aria-hidden="true" />
+              </Link>
               <SoundToggle />
               <AboutDrawer />
             </div>

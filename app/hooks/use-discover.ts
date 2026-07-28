@@ -312,6 +312,19 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   ],
   );
   const randomizeSlices = useCallback(() => {
+    const bothWordsAreSingleSyllable = result.syllables === 1 && secondaryResult.syllables === 1;
+    const canReverseWords = leftWordValue.toLowerCase() !== rightWordValue.toLowerCase();
+
+    if (canReverseWords && (bothWordsAreSingleSyllable || Math.random() < 0.5)) {
+      setResult(secondaryResult);
+      setSecondaryResult(result);
+      setLeftSliceMode(rightSliceMode);
+      setRightSliceMode(leftSliceMode);
+      setMixLeftSettings(mixRightSettings);
+      setMixRightSettings(mixLeftSettings);
+      return;
+    }
+
     let nextLeft = pickRandomMixSettings(leftWordValue, result.syllables);
     let nextRight = pickRandomMixSettings(rightWordValue, secondaryResult.syllables);
 
@@ -333,7 +346,17 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setRightSliceMode(nextRight.syllablePick === "full" ? "none" : "custom");
     setMixLeftSettings(nextLeft);
     setMixRightSettings(nextRight);
-  }, [leftWordValue, mixedWordParts.mixed, result.syllables, rightWordValue, secondaryResult.syllables]);
+  }, [
+    leftSliceMode,
+    leftWordValue,
+    mixLeftSettings,
+    mixedWordParts.mixed,
+    mixRightSettings,
+    result,
+    rightSliceMode,
+    rightWordValue,
+    secondaryResult,
+  ]);
   const displayedCombinedWord = mixedWordParts.mixed;
   const brandLeftChunk = nameDisplayMode === "brand"
     ? applyChunkCapitalization(mixedWordParts.leftChunk, wordCapitalization)

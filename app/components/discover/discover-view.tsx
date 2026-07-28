@@ -484,7 +484,7 @@ export function DiscoverView(props: DiscoverViewProps) {
               <AboutDrawer />
             </DesktopTooltip>
             <DesktopTooltip label="Spellsurf Drops newsletter">
-              <Link className="drops-nav-link" href="/drops">Get Drops <span aria-hidden="true">↗</span></Link>
+              <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
             </DesktopTooltip>
           </div>
         </div>
@@ -831,7 +831,7 @@ export function DiscoverView(props: DiscoverViewProps) {
               <button
                 className="mobile-generate-button mobile-generate-shuffle"
                 type="button"
-                aria-label="Randomize slicing"
+                aria-label="Shuffle word order or slicing"
                 onClick={() => {
                   sounds.tick();
                   randomizeSlices();
