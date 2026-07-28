@@ -11,16 +11,21 @@ const TOUR_STEPS = [
     title: "About Spellsurf",
     description:
       "Spellsurf combines two words to create a unique new combination for a brand, side project, product, or anything else that needs a name.",
-    details: ["spell + surf → spellsurf"],
+    details: [
+      "spell + surf → spellsurf",
+      "Use Generate to find new words",
+      "Use Shuffle to mix up the current combination",
+      "Use ← and → to generate one side",
+    ],
   },
   {
     title: "Adjust each side.",
     description:
-      "Open Left or Right to set rules for each side independently, then let Spellsurf create combinations that fit the shape you want.",
+      "Open Left or Right to set rules for each side independently, giving you more control over the source words Spellsurf uses to create each new combination.",
     details: [
       "Set syllables or length",
       "Add related words to define themes",
-      "Use ← and → to generate one side",
+      "Add a prefix or suffix—either a single letter or longer word part",
     ],
   },
   {

@@ -5741,7 +5741,7 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-generate-row .mobil
 
 .about-tour-details li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: .8rem;
   color: #a0a0a0;
   font-size: .9rem;
