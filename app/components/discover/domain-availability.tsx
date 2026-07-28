@@ -21,6 +21,13 @@ type AvailabilityResult = {
   alternatives?: AlternativeAvailability[];
 };
 
+const NAMECHEAP_AFFILIATE_URL = "https://www.dpbolvw.net/click-101831427-12892698";
+
+function getNamecheapAffiliateUrl(domain: string) {
+  const destination = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(domain)}`;
+  return `${NAMECHEAP_AFFILIATE_URL}?url=${encodeURIComponent(destination)}`;
+}
+
 const registrarLinks = [
   {
     name: "GoDaddy",
@@ -28,7 +35,7 @@ const registrarLinks = [
   },
   {
     name: "Namecheap",
-    href: (domain: string) => `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(domain)}`,
+    href: getNamecheapAffiliateUrl,
   },
   {
     name: "Porkbun",
@@ -175,7 +182,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
             <a
               href={registrar.href(domain)}
               target="_blank"
-              rel="noopener noreferrer"
+              rel={registrar.name === "Namecheap" ? "sponsored noopener noreferrer" : "noopener noreferrer"}
               aria-label={`Search for ${domain} on ${registrar.name}`}
               key={registrar.name}
               onClick={() => track(`${registrar.name} Clicked`, { domain })}
