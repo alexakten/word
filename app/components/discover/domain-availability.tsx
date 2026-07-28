@@ -4,7 +4,7 @@ import { track } from "@vercel/analytics";
 import { Check, LoaderCircle, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { sounds } from "../../lib/sounds";
-import { GoDaddyLogo, NamecheapLogo, PorkbunLogo } from "./registrar-logos";
+import { GoDaddyLogo, NamecheapLogo } from "./registrar-logos";
 
 type AlternativeAvailability = {
   domain: string;
@@ -30,16 +30,12 @@ function getNamecheapAffiliateUrl(domain: string) {
 
 const registrarLinks = [
   {
-    name: "GoDaddy",
-    href: (domain: string) => `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`,
-  },
-  {
     name: "Namecheap",
     href: getNamecheapAffiliateUrl,
   },
   {
-    name: "Porkbun",
-    href: (domain: string) => `https://porkbun.com/checkout/search?q=${encodeURIComponent(domain)}`,
+    name: "GoDaddy",
+    href: (domain: string) => `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`,
   },
 ] as const;
 
@@ -187,12 +183,10 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
               key={registrar.name}
               onClick={() => track(`${registrar.name} Clicked`, { domain })}
             >
-              {registrar.name === "GoDaddy" ? (
-                <GoDaddyLogo />
-              ) : registrar.name === "Namecheap" ? (
+              {registrar.name === "Namecheap" ? (
                 <NamecheapLogo />
               ) : (
-                <PorkbunLogo />
+                <GoDaddyLogo />
               )}
             </a>
           ))}
