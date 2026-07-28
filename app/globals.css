@@ -2380,15 +2380,6 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
   opacity: .55;
 }
 
-.split-settings-panel:has(.length-mode-dropdown.open) {
-  z-index: 50;
-  overflow: visible;
-}
-
-.split-settings-panel:has(.length-mode-dropdown.open) .settings-panel-scroll {
-  overflow: visible;
-}
-
 .length-mode-dropdown {
   position: relative;
   width: 100%;
@@ -2419,7 +2410,8 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
   margin-bottom: .05rem;
 }
 
-.length-mode-dropdown-inline .length-mode-dropdown-menu {
+.length-mode-dropdown-inline .length-mode-dropdown-menu,
+.length-mode-dropdown-menu-inline {
   right: auto;
   left: 0;
   min-width: 9.5rem;
@@ -2466,7 +2458,6 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
 }
 
 .length-mode-dropdown-menu {
-  position: absolute;
   top: calc(100% + .35rem);
   right: 0;
   left: 0;

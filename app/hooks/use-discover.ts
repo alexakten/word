@@ -12,7 +12,7 @@ import {
   displayFontPreset,
   pickRandomDisplayFont,
 } from "../lib/display-fonts";
-import { parseEmbedFontFamily } from "../lib/embed-bridge";
+import { parseEmbedFontFamily, type EmbedFontFamily } from "../lib/embed-bridge";
 import { normalizeLengthSelection, normalizeSyllableSelection, resolveLengthFilter, resolveSyllableFilter } from "../lib/filters";
 import {
   type ApiHealth,
@@ -132,19 +132,27 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const splitHistoryRestoreRef = useRef<SplitHistoryEntry | null>(null);
   const splitHistoryBatchDepthRef = useRef(0);
   const settingsUrlSyncedRef = useRef(false);
+  const brandFontFamilyRef = useRef<EmbedFontFamily>(BRAND_DISPLAY_FONT_FAMILY);
 
   const setNameDisplayMode = useCallback((mode: NameDisplayMode) => {
-    setNameDisplayModeState(mode);
-    if (mode === "brand") {
-      window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily: BRAND_DISPLAY_FONT_FAMILY } }));
-    } else {
-      window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: { fontFamily: DEFAULT_DISPLAY_FONT_FAMILY } }));
+    if (nameDisplayMode === "brand" && mode !== "brand") {
+      const selectedBrandFont = parseEmbedFontFamily(
+        document.documentElement.getAttribute("data-display-font"),
+      );
+      if (selectedBrandFont) brandFontFamilyRef.current = selectedBrandFont;
     }
+
+    setNameDisplayModeState(mode);
+    const nextFont = displayFontPreset(
+      mode === "brand" ? brandFontFamilyRef.current : DEFAULT_DISPLAY_FONT_FAMILY,
+    );
+    applyDisplayFontToDocument(nextFont);
+    window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: nextFont }));
     setWordSyllables(DEFAULT_SYLLABLES);
     setWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
     setSecondaryWordSyllables(DEFAULT_SYLLABLES);
     setSecondaryWordSyllableMode(DEFAULT_WORD_SYLLABLE_MODE);
-  }, []);
+  }, [nameDisplayMode]);
 
   const randomizeBrandLogo = useCallback(() => {
     setBrandLogoId((current) => nextBrandLogo(current));
@@ -261,6 +269,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setBrandSuffixMark("");
     setBrandStyleRandomizeOnGenerate(false);
     const defaultFont = displayFontPreset(DEFAULT_DISPLAY_FONT_FAMILY);
+    brandFontFamilyRef.current = defaultFont.fontFamily;
     applyDisplayFontToDocument(defaultFont);
     window.dispatchEvent(new CustomEvent(DISPLAY_FONT_EVENT, { detail: defaultFont }));
     setMessage("");

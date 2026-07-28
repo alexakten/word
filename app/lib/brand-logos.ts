@@ -1,14 +1,14 @@
 export const BRAND_LOGO_IDS = [
-  "Apart",
+  // "Apart",
   "Awake",
   "Burst",
   "Core",
-  "Curve",
+  // "Curve",
   "Direct",
   "Flow",
-  "Fly",
+  // "Fly",
   "Cube",
-  "Grow",
+  // "Grow",
   "Know",
   "Link",
   "Loop",
@@ -17,16 +17,23 @@ export const BRAND_LOGO_IDS = [
   "Shift",
   "Split",
   "Stable",
-  "Sun",
+  // "Sun",
   "Twice",
-  "Unfold",
+  // "Unfold",
   "Union",
   "Wave",
   "Wing",
   "Zag",
 ] as const;
 
-export type BrandLogoId = (typeof BRAND_LOGO_IDS)[number];
+export type BrandLogoId =
+  | (typeof BRAND_LOGO_IDS)[number]
+  | "Apart"
+  | "Curve"
+  | "Fly"
+  | "Grow"
+  | "Sun"
+  | "Unfold";
 
 export const DEFAULT_BRAND_LOGO_ID: BrandLogoId = "Portal";
 

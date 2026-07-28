@@ -7,7 +7,6 @@ import {
   DISPLAY_FONT_OPTIONS,
   DEFAULT_DISPLAY_FONT,
   applyDisplayFontToDocument,
-  clearDisplayFontFromDocument,
   normalizeDisplayFont,
   type DisplayFontState,
 } from "../../lib/display-fonts";
@@ -26,7 +25,7 @@ export function TypographyControls({
   className?: string;
   compact?: boolean;
 }) {
-  const [state, setState] = useState<DisplayFontState>(DEFAULT_DISPLAY_FONT);
+  const [state, setState] = useState<DisplayFontState | null>(null);
   const pop = useControlPop();
 
   /* eslint-disable react-hooks/set-state-in-effect -- DOM font state hydrates the client control on mount. */
@@ -35,7 +34,6 @@ export function TypographyControls({
       fontFamily: document.documentElement.getAttribute("data-display-font") ?? undefined,
     });
     setState(fromDom);
-    applyDisplayFontToDocument(fromDom);
 
     const onFontChange = (event: Event) => {
       const detail = (event as CustomEvent<Partial<DisplayFontState>>).detail;
@@ -44,13 +42,12 @@ export function TypographyControls({
     window.addEventListener(DISPLAY_FONT_EVENT, onFontChange);
     return () => {
       window.removeEventListener(DISPLAY_FONT_EVENT, onFontChange);
-      clearDisplayFontFromDocument();
     };
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
-    applyDisplayFontToDocument(state);
+    if (state) applyDisplayFontToDocument(state);
   }, [state]);
 
   const publish = (fontFamily: EmbedFontFamily) => {
@@ -60,12 +57,14 @@ export function TypographyControls({
   };
 
   const cycleFont = () => {
-    const index = DISPLAY_FONT_OPTIONS.findIndex((entry) => entry.value === state.fontFamily);
+    const current = state ?? DEFAULT_DISPLAY_FONT;
+    const index = DISPLAY_FONT_OPTIONS.findIndex((entry) => entry.value === current.fontFamily);
     const nextIndex = (Math.max(index, 0) + 1) % DISPLAY_FONT_OPTIONS.length;
     publish(DISPLAY_FONT_OPTIONS[nextIndex]!.value);
   };
 
-  const fontLabel = DISPLAY_FONT_OPTIONS.find((entry) => entry.value === state.fontFamily)?.label ?? state.fontFamily;
+  const current = state ?? DEFAULT_DISPLAY_FONT;
+  const fontLabel = DISPLAY_FONT_OPTIONS.find((entry) => entry.value === current.fontFamily)?.label ?? current.fontFamily;
 
   return (
     <button
@@ -78,7 +77,7 @@ export function TypographyControls({
         cycleFont();
       }}
     >
-      <span key={state.fontFamily}>{compact ? fontLabel.split(" ")[0] : fontLabel}</span>
+      <span key={current.fontFamily}>{compact ? fontLabel.split(" ")[0] : fontLabel}</span>
     </button>
   );
 }

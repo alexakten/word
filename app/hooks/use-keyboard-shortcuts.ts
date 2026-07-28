@@ -66,11 +66,13 @@ export function useKeyboardShortcuts({
       if (
         !isMobileLayout
         && appMode === "discover"
-        && event.shiftKey
         && !event.metaKey
         && !event.ctrlKey
         && !event.altKey
-        && event.code === "Space"
+        && (
+          (event.shiftKey && event.code === "Space")
+          || (!event.shiftKey && event.key.toLowerCase() === "m")
+        )
         && !event.repeat
         && !target.matches("input, select, textarea")
       ) {

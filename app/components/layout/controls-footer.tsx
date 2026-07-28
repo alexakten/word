@@ -21,6 +21,7 @@ export type ControlsFooterProps = Pick<
   | "sliceSettingsCount"
   | "rightSettingsCount"
   | "generateVisibleWords"
+  | "randomizeSlices"
   | "setFocusMode"
   | "resetAllDiscoverSettings"
   | "findWord"
@@ -54,6 +55,7 @@ export function ControlsFooter(props: ControlsFooterProps) {
     sliceSettingsCount,
     rightSettingsCount,
     generateVisibleWords,
+    randomizeSlices,
     setFocusMode,
     resetAllDiscoverSettings,
     findWord,
@@ -153,6 +155,16 @@ export function ControlsFooter(props: ControlsFooterProps) {
             <button className="space-button" type="button" onClick={() => generateVisibleWords()}>
               <kbd>space</kbd>
               <span>Generate</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.tick();
+                randomizeSlices();
+              }}
+            >
+              <kbd>M</kbd>
+              <span>Mix</span>
             </button>
             <button type="button" onClick={() => setFocusMode(true)}>
               <kbd>F</kbd>
