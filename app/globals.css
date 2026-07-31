@@ -6749,6 +6749,10 @@ html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-domain-mode-
   min-height: var(--mobile-style-control-size);
 }
 
+html[data-layout="mobile"] .page-shell.discover-mode .mobile-bottom-domain-mode-controls .domain-mode-toggle .word-type-active-layer {
+  inset-block: 0;
+}
+
 html[data-layout="mobile"] .page-shell.discover-mode .mobile-brand-style-row .font-cycle-button.capitalization-cycle-button {
   width: 36px;
   min-width: 36px;
