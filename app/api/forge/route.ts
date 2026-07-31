@@ -46,8 +46,6 @@ function connectionsForIdea(idea: string): Connection[] {
     { parameter: "rel_par", value: idea, label: "part of" },
     { parameter: "rel_jja", value: idea, label: "has this quality" },
     { parameter: "rel_jjb", value: idea, label: "describes this idea" },
-    { parameter: "rel_bga", value: idea, label: "often follows" },
-    { parameter: "rel_bgb", value: idea, label: "often precedes" },
     { parameter: "ml", value: `things related to ${idea}`, label: "connected idea" },
     { parameter: "ml", value: `things that are ${idea}`, label: "has this quality" },
     { parameter: "ml", value: `types of ${idea}`, label: "type" },
