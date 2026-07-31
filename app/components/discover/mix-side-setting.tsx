@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { SLICE_MODE_OPTIONS } from "../../lib/constants";
 import { parseSyllablePickValue, parseSyllableTakeValue } from "../../lib/syllable-parsers";
 import {
@@ -30,18 +30,10 @@ export function MixSideSetting({ labelPrefix, word, settings, sliceMode, syllabl
     [syllableCount, word],
   );
   const positionOptionsOnly = sliceMode === "custom" || sliceMode === "random";
-  const syllablePick = normalizeSyllablePick(
-    settings.syllablePick,
-    "",
-    undefined,
-    resolvedSyllableCount,
-    "exact",
-  );
   const pickOptions = useMemo(
     () => buildSyllablePickOptions("", resolvedSyllableCount, "exact", positionOptionsOnly),
     [positionOptionsOnly, resolvedSyllableCount],
   );
-  const maxTake = maxTakeFromPick(syllablePick, resolvedSyllableCount);
   const singleSyllableOnly = hasWord && resolvedSyllableCount === 1;
   const sliceDisabled = !hasWord || sliceMode !== "custom";
   const positionDisabled = sliceDisabled || singleSyllableOnly;
@@ -66,35 +58,16 @@ export function MixSideSetting({ labelPrefix, word, settings, sliceMode, syllabl
     resolvedSyllableCount,
     "exact",
   );
+  // Keep the stored custom preference intact when the current word has fewer
+  // syllables; only the value rendered for this word should be constrained.
   const displayTakeOptions = useMemo(
     () => buildSyllableTakeOptions(displayPick, resolvedSyllableCount),
     [displayPick, resolvedSyllableCount],
   );
-  const displayTakeValue = displaySettings.syllablePick === "full"
-    ? displayTakeOptions[0]?.value ?? "1"
-    : String(displaySettings.syllableTake);
-
-  useEffect(() => {
-    if (!hasWord || sliceMode !== "custom") return;
-
-    const normalizedPick = normalizeSyllablePick(settings.syllablePick, "", undefined, resolvedSyllableCount, "exact");
-    const nextSettings = normalizedPick !== settings.syllablePick
-      ? { ...settings, syllablePick: normalizedPick }
-      : settings;
-    const nextMaxTake = maxTakeFromPick(normalizedPick, resolvedSyllableCount);
-    if (nextSettings.syllableTake > nextMaxTake) {
-      onChange({ ...nextSettings, syllableTake: nextMaxTake });
-      return;
-    }
-    if (nextSettings !== settings) onChange(nextSettings);
-  }, [hasWord, onChange, resolvedSyllableCount, settings, sliceMode]);
-
-  useEffect(() => {
-    if (!hasWord || sliceDisabled) return;
-    if (settings.syllableTake > maxTake) {
-      onChange({ ...settings, syllableTake: maxTake });
-    }
-  }, [hasWord, maxTake, onChange, settings, sliceDisabled]);
+  const displayTakeValue = String(Math.min(
+    displaySettings.syllableTake,
+    maxTakeFromPick(displayPick, resolvedSyllableCount),
+  ));
 
   return (
     <div className="mix-side-settings">

@@ -296,7 +296,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     [mixRightSettings, rightSliceMode],
   );
   const mixedWordParts = useMemo(() => {
-    const parts = mixWordParts(
+    return mixWordParts(
       leftWordValue,
       rightWordValue,
       effectiveMixLeftSettings,
@@ -304,17 +304,10 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       result.syllables,
       secondaryResult.syllables,
     );
-    const overlap = Math.min(result.joinOverlap ?? 0, parts.leftChunk.length, parts.rightChunk.length);
-    if (!overlap || parts.leftChunk.slice(-overlap).toLowerCase() !== parts.rightChunk.slice(0, overlap).toLowerCase()) {
-      return parts;
-    }
-    const leftChunk = parts.leftChunk.slice(0, -overlap);
-    return { leftChunk, rightChunk: parts.rightChunk, mixed: `${leftChunk}${parts.rightChunk}`.toLowerCase() };
   }, [
     effectiveMixLeftSettings,
     effectiveMixRightSettings,
     leftWordValue,
-    result.joinOverlap,
     result.syllables,
     rightWordValue,
     secondaryResult.syllables,
@@ -468,10 +461,8 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       ).sort((a, b) => Math.abs(a - midpoint) - Math.abs(b - midpoint));
 
       let resolvedParts: [WordResult, WordResult] | null = null;
-      let resolvedOverlap = 0;
       let bestPartialParts: [WordResult, WordResult] | null = null;
       let bestRecognizedLength = 0;
-      let bestPartialOverlap = 0;
       const customWord = (word: string): WordResult => ({
         word,
         definition: "A custom word.",
@@ -480,27 +471,24 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
 
       for (let index = 0; index < splitPoints.length && !resolvedParts; index += 4) {
         const batch = splitPoints.slice(index, index + 4);
-        const matches = await Promise.all(batch.flatMap((splitAt) => [0, 1].map(async (overlap) => {
+        const matches = await Promise.all(batch.map(async (splitAt) => {
           const leftText = enteredWord.slice(0, splitAt);
-          const rightText = enteredWord.slice(splitAt - overlap);
+          const rightText = enteredWord.slice(splitAt);
           const [left, right] = await Promise.all([lookupWord(leftText), lookupWord(rightText)]);
-          return { left, right, leftText, rightText, overlap };
-        })));
+          return { left, right, leftText, rightText };
+        }));
         if (controller.signal.aborted || combinedEditRequestRef.current !== controller) return;
         const completeMatch = matches.find((match) => match.left && match.right);
         if (completeMatch?.left && completeMatch.right) {
           resolvedParts = [completeMatch.left, completeMatch.right];
-          resolvedOverlap = completeMatch.overlap;
           continue;
         }
 
         for (const match of matches) {
           if (Boolean(match.left) === Boolean(match.right)) continue;
           const recognizedLength = match.left ? match.leftText.length : match.rightText.length;
-          if (recognizedLength < bestRecognizedLength) continue;
-          if (recognizedLength === bestRecognizedLength && match.overlap <= bestPartialOverlap) continue;
+          if (recognizedLength <= bestRecognizedLength) continue;
           bestRecognizedLength = recognizedLength;
-          bestPartialOverlap = match.overlap;
           bestPartialParts = [
             match.left ?? customWord(match.leftText),
             match.right ?? customWord(match.rightText),
@@ -520,7 +508,6 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
           rightResult = emptyWordResult;
         } else if (bestPartialParts) {
           [leftResult, rightResult] = bestPartialParts;
-          resolvedOverlap = bestPartialOverlap;
         } else {
           leftResult = customWord(enteredWord);
           rightResult = emptyWordResult;
@@ -533,7 +520,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
       setRightSliceMode("none");
       setMixLeftSettings({ ...defaultMixLeftSettings });
       setMixRightSettings({ ...defaultMixRightSettings });
-      commitWord(resolvedOverlap ? { ...leftResult, joinOverlap: resolvedOverlap } : leftResult);
+      commitWord(leftResult);
       setSecondaryResult(rightResult);
     } finally {
       if (combinedEditRequestRef.current === controller) {

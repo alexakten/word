@@ -308,13 +308,14 @@ function normalizePickForCount(pick: SyllablePick, count: number): SyllablePick 
   }
 
   if (typeof pick === "number") {
-    if (pick === count && allowed.includes("end")) return "end";
-    const numericAllowed = allowed.filter((value): value is 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => typeof value === "number");
-    if (numericAllowed.length) {
-      return numericAllowed.reduce((best, value) => (
-        Math.abs(value - pick) < Math.abs(best - pick) ? value : best
-      ), numericAllowed[0]);
-    }
+    const positionalPicks = allowed.filter((value) => value !== "full" && value !== "random");
+    const preferredIndex = Math.min(Math.max(0, pick - 1), count - 1);
+    return positionalPicks.reduce((best, value) => (
+      Math.abs(syllableAnchorIndex(value, count) - preferredIndex)
+        < Math.abs(syllableAnchorIndex(best, count) - preferredIndex)
+        ? value
+        : best
+    ), positionalPicks[0]);
   }
 
   return allowed[0];

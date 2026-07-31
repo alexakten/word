@@ -15,7 +15,6 @@ export type WordResult = {
   pronunciation?: string;
   syllables?: number;
   relation?: string;
-  joinOverlap?: number;
   splitLeft?: WordResult;
   splitRight?: WordResult;
 };
