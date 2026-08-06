@@ -24,7 +24,7 @@ export function FilterCountSetting({ id, className = "", label, modeLabel, stepp
 
   const setCount = (next: number) => {
     if (next <= 0) {
-      onModeChange("exact");
+      onModeChange("less");
       onValueChange("");
       return;
     }

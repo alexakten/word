@@ -76,7 +76,7 @@ export function writeSideSettings(params: URLSearchParams, prefix: "l" | "r", se
     ["Start", settings.startsWith || null],
     ["End", settings.endsWith || null],
     ["Len", settings.letters || null],
-    ["LenMode", settings.lengthMode !== "exact" ? settings.lengthMode : null],
+    ["LenMode", settings.letters && settings.lengthMode !== "less" ? settings.lengthMode : null],
   ];
 
   for (const [key, value] of entries) {

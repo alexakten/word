@@ -57,6 +57,7 @@ type UseDiscoverOptions = {
 
 const DEFAULT_SYLLABLES = "2";
 const DEFAULT_WORD_SYLLABLE_MODE: LengthMode = "less";
+const DEFAULT_WORD_LENGTH_MODE: LengthMode = "less";
 const RESET_LEFT_WORD: WordResult = {
   word: "spell",
   definition: "Words or a formula supposed to have magical powers.",
@@ -102,7 +103,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [wordStartsWith, setWordStartsWith] = useState("");
   const [wordEndsWith, setWordEndsWith] = useState("");
   const [wordLetters, setWordLetters] = useState("");
-  const [wordLengthMode, setWordLengthMode] = useState<LengthMode>("exact");
+  const [wordLengthMode, setWordLengthMode] = useState<LengthMode>(DEFAULT_WORD_LENGTH_MODE);
   const [wordRelatedTo, setWordRelatedTo] = useState("");
   const [secondaryWordType, setSecondaryWordType] = useState<PartOfSpeech>("any");
   const [secondaryWordSyllables, setSecondaryWordSyllables] = useState(DEFAULT_SYLLABLES);
@@ -110,7 +111,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
   const [secondaryWordStartsWith, setSecondaryWordStartsWith] = useState("");
   const [secondaryWordEndsWith, setSecondaryWordEndsWith] = useState("");
   const [secondaryWordLetters, setSecondaryWordLetters] = useState("");
-  const [secondaryWordLengthMode, setSecondaryWordLengthMode] = useState<LengthMode>("exact");
+  const [secondaryWordLengthMode, setSecondaryWordLengthMode] = useState<LengthMode>(DEFAULT_WORD_LENGTH_MODE);
   const [secondaryWordRelatedTo, setSecondaryWordRelatedTo] = useState("");
   const [result, setResult] = useState<WordResult>(RESET_LEFT_WORD);
   const [secondaryResult, setSecondaryResult] = useState<WordResult>(RESET_RIGHT_WORD);
@@ -183,7 +184,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setWordStartsWith("");
     setWordEndsWith("");
     setWordLetters("");
-    setWordLengthMode("exact");
+    setWordLengthMode(DEFAULT_WORD_LENGTH_MODE);
   }, []);
 
   const resetSecondaryFilters = useCallback(() => {
@@ -194,7 +195,7 @@ export function useDiscover({ setApiHealth, savedWords, saveWords, setMessage }:
     setSecondaryWordStartsWith("");
     setSecondaryWordEndsWith("");
     setSecondaryWordLetters("");
-    setSecondaryWordLengthMode("exact");
+    setSecondaryWordLengthMode(DEFAULT_WORD_LENGTH_MODE);
   }, []);
 
   const resetLeftSliceSettings = useCallback(() => {

@@ -604,78 +604,78 @@ export function DiscoverView(props: DiscoverViewProps) {
                 </span>
               </form>
             ) : (
-                <button
-                  className={[
-                    "split-combined-word copyable-word mix-combined-word",
-                    nameDisplayMode === "brand" && logoEnabled ? "has-brand-mark" : "",
-                  ].filter(Boolean).join(" ")}
-                  type="button"
-                  disabled={!effectiveDisplayedName || loading || secondaryLoading || splitBatchLoading}
-                  aria-label={`Edit ${effectiveDisplayedName}`}
-                  onClick={beginCombinedWordEdit}
-                  onTouchStart={(event) => {
-                    const touch = event.touches[0];
-                    combinedWordTouchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
-                  }}
-                  onTouchEnd={(event) => {
-                    const start = combinedWordTouchStartRef.current;
-                    const touch = event.changedTouches[0];
-                    combinedWordTouchStartRef.current = null;
-                    if (!start || !touch) return;
-                    if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 10) return;
-                    event.preventDefault();
-                    beginCombinedWordEdit();
-                  }}
-                  onTouchCancel={() => {
-                    combinedWordTouchStartRef.current = null;
-                  }}
-                >
-                  {hasOverrideWord ? (
-                    <>
-                      {nameDisplayMode === "brand" && logoEnabled ? (
-                        <BrandMark logoId={brandLogoId} className={wordIsGenerating ? "is-generating" : ""} />
-                      ) : null}
-                      <span className="mix-combined-text">
-                        <span className="mix-word-part" key={`override-${overrideWord}`}>
-                          {overrideWord}
-                        </span>
-                        {nameDisplayMode === "brand" && brandSuffixMark ? (
-                          <sup className="brand-suffix-mark">{brandSuffixMark}</sup>
-                        ) : null}
+              <button
+                className={[
+                  "split-combined-word copyable-word mix-combined-word",
+                  nameDisplayMode === "brand" && logoEnabled ? "has-brand-mark" : "",
+                ].filter(Boolean).join(" ")}
+                type="button"
+                disabled={!effectiveDisplayedName || loading || secondaryLoading || splitBatchLoading}
+                aria-label={`Edit ${effectiveDisplayedName}`}
+                onClick={beginCombinedWordEdit}
+                onTouchStart={(event) => {
+                  const touch = event.touches[0];
+                  combinedWordTouchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+                }}
+                onTouchEnd={(event) => {
+                  const start = combinedWordTouchStartRef.current;
+                  const touch = event.changedTouches[0];
+                  combinedWordTouchStartRef.current = null;
+                  if (!start || !touch) return;
+                  if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 10) return;
+                  event.preventDefault();
+                  beginCombinedWordEdit();
+                }}
+                onTouchCancel={() => {
+                  combinedWordTouchStartRef.current = null;
+                }}
+              >
+                {hasOverrideWord ? (
+                  <>
+                    {nameDisplayMode === "brand" && logoEnabled ? (
+                      <BrandMark logoId={brandLogoId} className={wordIsGenerating ? "is-generating" : ""} />
+                    ) : null}
+                    <span className="mix-combined-text">
+                      <span className="mix-word-part" key={`override-${overrideWord}`}>
+                        {overrideWord}
                       </span>
-                    </>
-                  ) : (
-                    <>
-                      {nameDisplayMode === "brand" && logoEnabled ? (
-                        <BrandMark logoId={brandLogoId} className={wordIsGenerating ? "is-generating" : ""} />
+                      {nameDisplayMode === "brand" && brandSuffixMark ? (
+                        <sup className="brand-suffix-mark">{brandSuffixMark}</sup>
                       ) : null}
-                      <span className="mix-combined-text">
-                        {nameDisplayMode === "handle" && displayedCombinedWord ? (
-                          <span className="handle-at" aria-hidden="true">@</span>
-                        ) : null}
-                        <span
-                          className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
-                          key={`mix-left-${mixedWordParts.leftChunk}`}
-                        >
-                          {displayLeftChunk || (!effectiveDisplayedName ? "——" : "")}
-                        </span>
-                        <span
-                          className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
-                          data-view-transition-word
-                          key={`mix-right-${mixedWordParts.rightChunk}`}
-                        >
-                          {displayRightChunk || (!effectiveDisplayedName ? "——" : "")}
-                        </span>
-                        {nameDisplayMode === "brand" && brandSuffixMark ? (
-                          <sup className="brand-suffix-mark">{brandSuffixMark}</sup>
-                        ) : null}
-                        {nameDisplayMode === "domain" && displayedCombinedWord ? (
-                          <span className="domain-tld">{selectedTld}</span>
-                        ) : null}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {nameDisplayMode === "brand" && logoEnabled ? (
+                      <BrandMark logoId={brandLogoId} className={wordIsGenerating ? "is-generating" : ""} />
+                    ) : null}
+                    <span className="mix-combined-text">
+                      {nameDisplayMode === "handle" && displayedCombinedWord ? (
+                        <span className="handle-at" aria-hidden="true">@</span>
+                      ) : null}
+                      <span
+                        className={`mix-word-part${leftIsGenerating ? " is-generating" : ""}`}
+                        key={`mix-left-${mixedWordParts.leftChunk}`}
+                      >
+                        {displayLeftChunk || (!effectiveDisplayedName ? "——" : "")}
                       </span>
-                    </>
-                  )}
-                </button>
+                      <span
+                        className={`mix-word-part${rightIsGenerating ? " is-generating" : ""}`}
+                        data-view-transition-word
+                        key={`mix-right-${mixedWordParts.rightChunk}`}
+                      >
+                        {displayRightChunk || (!effectiveDisplayedName ? "——" : "")}
+                      </span>
+                      {nameDisplayMode === "brand" && brandSuffixMark ? (
+                        <sup className="brand-suffix-mark">{brandSuffixMark}</sup>
+                      ) : null}
+                      {nameDisplayMode === "domain" && displayedCombinedWord ? (
+                        <span className="domain-tld">{selectedTld}</span>
+                      ) : null}
+                    </span>
+                  </>
+                )}
+              </button>
             )}
           </div>
           <div

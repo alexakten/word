@@ -2486,7 +2486,7 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
   border-radius: 7px;
   padding: .45rem .55rem;
   background: transparent;
-  color: var(--ink);
+  color: #1a1a1a;
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
@@ -2497,7 +2497,7 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
 
 .length-mode-option-symbol {
   flex: none;
-  color: var(--muted);
+  color: #5a5a5a;
   font-size: .95rem;
   font-weight: 500;
   line-height: 1;
@@ -2506,12 +2506,12 @@ html:not([data-layout="mobile"]) .page-shell.discover-mode .split-slice-panel.ri
 .length-mode-dropdown-menu button:hover,
 .length-mode-dropdown-menu button.active,
 .length-mode-dropdown-menu button:focus-visible {
-  background: #F6F5F4;
+  background: #F1F2F4;
   outline: none;
 }
 
 .length-mode-dropdown-menu button.selected {
-  background: #ececea;
+  background: #F1F2F4;
 }
 
 .length-mode-dropdown.disabled {
