@@ -30,18 +30,19 @@ function getNamecheapAffiliateUrl(domain: string) {
 }
 
 function getGoDaddyAffiliateUrl(domain: string) {
-  const destination = `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`;
-  return `${GODADDY_AFFILIATE_URL}?url=${encodeURIComponent(destination)}`;
+  const domainSearchDestination = `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`;
+  const affiliateDestination = `https://click.godaddy.com/affiliate?isc=cjcfos1&cjelbDays=7&url=${encodeURIComponent(domainSearchDestination)}`;
+  return `${GODADDY_AFFILIATE_URL}?url=${encodeURIComponent(affiliateDestination)}`;
 }
 
 const registrarLinks = [
   {
-    name: "Namecheap",
-    href: getNamecheapAffiliateUrl,
-  },
-  {
     name: "GoDaddy",
     href: getGoDaddyAffiliateUrl,
+  },
+  {
+    name: "Namecheap",
+    href: getNamecheapAffiliateUrl,
   },
 ] as const;
 
