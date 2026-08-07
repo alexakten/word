@@ -22,22 +22,16 @@ type AvailabilityResult = {
 };
 
 const NAMECHEAP_AFFILIATE_URL = "https://www.dpbolvw.net/click-101831427-12892698";
-const GODADDY_AFFILIATE_URL = "https://www.anrdoezrs.net/click-101831427-15624319";
 
 function getNamecheapAffiliateUrl(domain: string) {
   const destination = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(domain)}`;
   return `${NAMECHEAP_AFFILIATE_URL}?url=${encodeURIComponent(destination)}`;
 }
 
-function getGoDaddyAffiliateUrl(domain: string) {
-  const destination = `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`;
-  return `${GODADDY_AFFILIATE_URL}?url=${encodeURIComponent(destination)}`;
-}
-
 const registrarLinks = [
   {
     name: "GoDaddy",
-    href: getGoDaddyAffiliateUrl,
+    href: (domain: string) => `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`,
   },
   {
     name: "Namecheap",
@@ -164,7 +158,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
             return (
               <li key={entry.domain}>
                 <a
-                  href={getGoDaddyAffiliateUrl(entry.domain)}
+                  href={getNamecheapAffiliateUrl(entry.domain)}
                   target="_blank"
                   rel="sponsored noopener noreferrer"
                   className={className}
@@ -184,7 +178,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
             <a
               href={registrar.href(domain)}
               target="_blank"
-              rel="sponsored noopener noreferrer"
+              rel={registrar.name === "Namecheap" ? "sponsored noopener noreferrer" : "noopener noreferrer"}
               aria-label={`Search for ${domain} on ${registrar.name}`}
               key={registrar.name}
               onClick={() => track(`${registrar.name} Clicked`, { domain })}
