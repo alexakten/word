@@ -22,10 +22,16 @@ type AvailabilityResult = {
 };
 
 const NAMECHEAP_AFFILIATE_URL = "https://www.dpbolvw.net/click-101831427-12892698";
+const GODADDY_AFFILIATE_URL = "https://www.anrdoezrs.net/click-101831427-15624319";
 
 function getNamecheapAffiliateUrl(domain: string) {
   const destination = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(domain)}`;
   return `${NAMECHEAP_AFFILIATE_URL}?url=${encodeURIComponent(destination)}`;
+}
+
+function getGoDaddyAffiliateUrl(domain: string) {
+  const destination = `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`;
+  return `${GODADDY_AFFILIATE_URL}?url=${encodeURIComponent(destination)}`;
 }
 
 const registrarLinks = [
@@ -35,7 +41,7 @@ const registrarLinks = [
   },
   {
     name: "GoDaddy",
-    href: (domain: string) => `https://www.godaddy.com/domainsearch/find?domainToCheck=${encodeURIComponent(domain)}`,
+    href: getGoDaddyAffiliateUrl,
   },
 ] as const;
 
@@ -158,9 +164,9 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
             return (
               <li key={entry.domain}>
                 <a
-                  href={registrarLinks[0].href(entry.domain)}
+                  href={getGoDaddyAffiliateUrl(entry.domain)}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="sponsored noopener noreferrer"
                   className={className}
                   onClick={() => track("Alternate TLD Clicked", { domain: entry.domain, tld: entry.tld })}
                 >
@@ -178,7 +184,7 @@ export function DomainAvailability({ domain, className = "" }: { domain: string;
             <a
               href={registrar.href(domain)}
               target="_blank"
-              rel={registrar.name === "Namecheap" ? "sponsored noopener noreferrer" : "noopener noreferrer"}
+              rel="sponsored noopener noreferrer"
               aria-label={`Search for ${domain} on ${registrar.name}`}
               key={registrar.name}
               onClick={() => track(`${registrar.name} Clicked`, { domain })}
