@@ -449,9 +449,6 @@ export function DiscoverView(props: DiscoverViewProps) {
             <DesktopTooltip label="Change theme">
               <ColorwaySwitcher />
             </DesktopTooltip>
-            <DesktopTooltip label="Toggle sound">
-              <SoundToggle />
-            </DesktopTooltip>
             <DesktopTooltip label={combinedSplitIsSaved ? "Saved words / unlike" : "Saved words / like"}>
               <SavedWordsPanel
                 savedWords={savedWords}
@@ -479,6 +476,9 @@ export function DiscoverView(props: DiscoverViewProps) {
             />
           </DesktopTooltip>
           <div className="style-toolbar-actions style-toolbar-actions-right">
+            <DesktopTooltip label="Toggle sound">
+              <SoundToggle />
+            </DesktopTooltip>
             <DesktopTooltip label="About Spellsurf">
               <AboutDrawer />
             </DesktopTooltip>
