@@ -56,16 +56,6 @@ const TOUR_STEPS = [
       "Pair with a mockup logo",
     ],
   },
-  {
-    title: "Discover Drops.",
-    description:
-      "Spellsurf Drops is a weekly release of three premium domains with matching social handles, every Friday.",
-    details: [
-      "Three premium domains every week",
-      "Matching social handles",
-      "Claim the best names first",
-    ],
-  },
 ] as const;
 
 export function AboutDrawer() {

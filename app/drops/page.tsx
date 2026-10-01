@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { BrandMark } from "../components/discover/brand-mark";
 import type { BrandLogoId } from "../lib/brand-logos";
 import { Countdown } from "./countdown";
@@ -167,6 +168,8 @@ type DomainCardStyle = CSSProperties & {
 };
 
 export default function DropsPage() {
+  notFound();
+
   return (
     <main className={styles.page}>
       <div className={styles.glow} aria-hidden="true" />

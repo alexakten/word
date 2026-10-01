@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, PenLine, RefreshCw, Shuffle, X } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { AffixSettings } from "../discover/affix-settings";
 import { BrandMark } from "../discover/brand-mark";
@@ -482,9 +481,6 @@ export function DiscoverView(props: DiscoverViewProps) {
           <div className="style-toolbar-actions style-toolbar-actions-right">
             <DesktopTooltip label="About Spellsurf">
               <AboutDrawer />
-            </DesktopTooltip>
-            <DesktopTooltip label="Spellsurf Drops newsletter">
-              <Link className="drops-nav-link" href="/drops">Drops <span aria-hidden="true">↗</span></Link>
             </DesktopTooltip>
           </div>
         </div>
